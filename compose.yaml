@@ -96,32 +96,26 @@ services:
     restart: unless-stopped
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.hanko-elements.rule: 'Host(`login.hotosm.org`) && PathPrefix(`/elements`)'
-      traefik.http.routers.hanko-elements.entrypoints: https
-      traefik.http.routers.hanko-elements.tls: 'true'
-      traefik.http.routers.hanko-elements.tls.options: 'default'
-      traefik.http.routers.hanko-elements.tls.certresolver: letsencrypt
-      traefik.http.services.hanko-elements.loadbalancer.server.port: '80'
-      traefik.http.routers.elements.middlewares: strip-elements
-      traefik.http.middlewares.strip-elements.stripprefix.prefixes: /elements
+      traefik.http.routers.elements.rule: 'Host(`elements.login.hotosm.org`)'
+      traefik.http.routers.elements.entrypoints: https
+      traefik.http.routers.elements.tls: 'true'
+      traefik.http.routers.elements.tls.certresolver: letsencrypt
+      traefik.http.services.elements.loadbalancer.server.port: '80'
 
   quickstart:
     image: ghcr.io/teamhanko/hanko/quickstart:v2.1.0
     environment:
       - HANKO_URL=https://login.hotosm.org
       - HANKO_URL_INTERNAL=http://hanko:8000
-      - HANKO_ELEMENT_URL=https://login.hotosm.org/elements/elements.js
-      - HANKO_FRONTEND_SDK_URL=https://login.hotosm.org/elements/sdk.modern.js
+      - HANKO_ELEMENT_URL=https://elements.login.hotosm.org/elements.js
+      - HANKO_FRONTEND_SDK_URL=https://elements.login.hotosm.org/sdk.modern.js
     networks:
       - net
     restart: unless-stopped
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.hanko-demo.rule: 'Host(`login.hotosm.org`) && PathPrefix(`/demo`)'
-      traefik.http.routers.hanko-demo.entrypoints: https
-      traefik.http.routers.hanko-demo.tls: 'true'
-      traefik.http.routers.hanko-demo.tls.options: 'default'
-      traefik.http.routers.hanko-demo.tls.certresolver: letsencrypt
-      traefik.http.services.hanko-demo.loadbalancer.server.port: '8080'
-      traefik.http.routers.quickstart.middlewares: strip-demo
-      traefik.http.middlewares.strip-demo.stripprefix.prefixes: /demo
+      traefik.http.routers.quickstart.rule: 'Host(`demo.login.hotosm.org`)'
+      traefik.http.routers.quickstart.entrypoints: https
+      traefik.http.routers.quickstart.tls: 'true'
+      traefik.http.routers.quickstart.tls.certresolver: letsencrypt
+      traefik.http.services.quickstart.loadbalancer.server.port: '8080'
