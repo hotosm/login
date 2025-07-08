@@ -102,6 +102,8 @@ services:
       traefik.http.routers.hanko-elements.tls.options: 'default'
       traefik.http.routers.hanko-elements.tls.certresolver: letsencrypt
       traefik.http.services.hanko-elements.loadbalancer.server.port: '80'
+      traefik.http.routers.elements.middlewares: strip-elements
+      traefik.http.middlewares.strip-elements.stripprefix.prefixes: /elements
 
   quickstart:
     image: ghcr.io/teamhanko/hanko/quickstart:v2.1.0
@@ -121,3 +123,5 @@ services:
       traefik.http.routers.hanko-demo.tls.options: 'default'
       traefik.http.routers.hanko-demo.tls.certresolver: letsencrypt
       traefik.http.services.hanko-demo.loadbalancer.server.port: '8080'
+      traefik.http.routers.quickstart.middlewares: strip-demo
+      traefik.http.middlewares.strip-demo.stripprefix.prefixes: /demo
