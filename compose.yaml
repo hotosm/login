@@ -5,6 +5,7 @@ volumes:
   certs:
 
 services:
+  # db migrations
   migrations:
     image: ghcr.io/teamhanko/hanko:v2.1.0
     volumes:
@@ -17,6 +18,7 @@ services:
       - net
     restart: "on-failure:2"
 
+  # the main hanko service
   hanko:
     depends_on:
       migrations:
@@ -39,6 +41,7 @@ services:
       traefik.http.routers.hanko.tls.certresolver: letsencrypt
       traefik.http.services.hanko.loadbalancer.server.port: '8000'
 
+  # the hanko data
   db:
     image: postgres:17-alpine
     environment:
@@ -55,6 +58,7 @@ services:
       - net
     restart: unless-stopped
 
+  # reverse proxy for load balance and certs
   traefik:
     image: 'traefik:v3.4.3'
     container_name: 'traefik'
@@ -84,3 +88,36 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.email=sysadmin@hotosm.org"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     restart: unless-stopped
+
+  elements:
+    image: ghcr.io/teamhanko/hanko/elements:v2.1.0
+    networks:
+      - net
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.hanko-elements.rule: 'Host(`login.hotosm.org`) && PathPrefix(`/elements`)'
+      traefik.http.routers.hanko-elements.entrypoints: https
+      traefik.http.routers.hanko-elements.tls: 'true'
+      traefik.http.routers.hanko-elements.tls.options: 'default'
+      traefik.http.routers.hanko-elements.tls.certresolver: letsencrypt
+      traefik.http.services.hanko-elements.loadbalancer.server.port: '80'
+
+  quickstart:
+    image: ghcr.io/teamhanko/hanko/quickstart:v2.1.0
+    environment:
+      - HANKO_URL=https://login.hotosm.org
+      - HANKO_URL_INTERNAL=http://hanko:8000
+      - HANKO_ELEMENT_URL=https://login.hotosm.org/elements/elements.js
+      - HANKO_FRONTEND_SDK_URL=https://login.hotosm.org/elements/sdk.modern.js
+    networks:
+      - net
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.hanko-demo.rule: 'Host(`login.hotosm.org`) && PathPrefix(`/demo`)'
+      traefik.http.routers.hanko-demo.entrypoints: https
+      traefik.http.routers.hanko-demo.tls: 'true'
+      traefik.http.routers.hanko-demo.tls.options: 'default'
+      traefik.http.routers.hanko-demo.tls.certresolver: letsencrypt
+      traefik.http.services.hanko-demo.loadbalancer.server.port: '8080'
