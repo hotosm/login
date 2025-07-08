@@ -1,0 +1,79 @@
+networks:
+  net:
+
+services:
+  hanko-migrate:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    volumes:
+      - ./config.yaml:/etc/config/config.yaml
+    command: --config /etc/config/config.yaml migrate up
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - net
+    restart: "on-failure:2"
+
+  hanko:
+    depends_on:
+      hanko-migrate:
+        condition: service_completed_successfully
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    command: serve --config /etc/config/config.yaml all
+    volumes:
+      - ./config.yaml:/etc/config/config.yaml
+    networks:
+      - net
+    environment:
+      - PASSWORD_ENABLED
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.hanko.rule: 'Host(`login.hotosm.org`)'
+      traefik.http.routers.hanko.entrypoints: 'https'
+      traefik.http.routers.hanko.tls: 'true'
+      traefik.http.routers.hanko.tls.options: 'default'
+      traefik.http.services.hanko.loadbalancer.server.port: '8000'
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-hanko}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hanko}
+      - POSTGRES_DB=${POSTGRES_DB:-hanko}
+    healthcheck:
+      test: pg_isready -U hanko -d hanko
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - net
+    restart: unless-stopped
+
+  traefik:
+    image: 'traefik:v3.4.3'
+    container_name: 'traefik'
+    volumes:
+      - './traefik:/etc/traefik'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    networks:
+      - net
+    labels:
+      traefik.enable: 'false'  # no dashboard
+    ports:
+      - '80:80'
+      - '443:443'
+    command:
+      - '--providers.docker=true'
+      - '--providers.docker.exposedByDefault=false'
+      - '--providers.file.filename=/etc/traefik/certificates.yml'
+      - '--entrypoints.http=true'
+      - '--entrypoints.http.address=:80'
+      - '--entrypoints.http.http.redirections.entrypoint.to=https'
+      - '--entrypoints.http.http.redirections.entrypoint.scheme=https'
+      - '--entrypoints.https=true'
+      - '--entrypoints.https.address=:443'
+      - '--log=true'
+      - '--log.level=DEBUG'
+    restart: unless-stopped
