@@ -1,0 +1,76 @@
+database:
+  user: hanko
+  password: hanko
+  host: postgresd
+  port: 5432
+  dialect: postgres
+email_delivery:
+  smtp:
+    host: "mailslurper"
+    port: "2500"
+  from_address: noreply@hanko.io
+secrets:
+  keys:
+    - abcedfghijklmnopqrstuvwxyz
+service:
+  name: Hanko Authentication Service
+webauthn:
+  relying_party:
+    origins:
+      - "http://localhost:8500"
+session:
+  cookie:
+    secure: false # is needed for safari, because safari does not store secure cookies on localhost
+server:
+  public:
+    cors:
+      allow_origins:
+        - "http://localhost:8500"
+third_party:
+  error_redirect_url: http://localhost:8500
+  redirect_url: http://localhost:8500/thirdparty/callback
+  allowed_redirect_urls:
+    - https://**.hotosm.org
+    - http://localhost:8500**
+  providers:
+    apple:
+      enabled: true
+      client_id: xxx
+      secret: xxx
+    discord:
+      enabled: true
+      client_id: xxx
+      secret: xxx
+    github:
+      enabled: true
+      client_id: xxx
+      secret: xxx
+    google:
+      enabled: true
+      client_id: xxx
+      secret: xxx
+    linkedin:
+      enabled: false
+    microsoft:
+      enabled: false
+    facebook:
+      enabled: false
+  custom_providers:
+    openstreetmap:
+      enabled: true
+      display_name: "OpenStreetMap"
+      client_id: "<YOUR_CLIENT_ID>"
+      secret: "<YOUR_CLIENT_SECRET>"
+      scopes:
+        - "read_prefs"
+        - "write_api"
+      # OSM does not provide OIDC discovery (.well-known/openid-configuration)
+      use_discovery: false
+      authorization_endpoint: "https://www.openstreetmap.org/oauth2/authorize"
+      token_endpoint: "https://www.openstreetmap.org/oauth2/token"
+      userinfo_endpoint: "https://your-proxy.example.com/openstreetmap/userinfo"
+      allow_linking: true
+      attribute_mapping:
+        sub: id
+        email: email
+        name: display_name
