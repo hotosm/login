@@ -33,9 +33,10 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.hanko.rule: 'Host(`login.hotosm.org`)'
-      traefik.http.routers.hanko.entrypoints: 'https'
+      traefik.http.routers.hanko.entrypoints: https
       traefik.http.routers.hanko.tls: 'true'
       traefik.http.routers.hanko.tls.options: 'default'
+      traefik.http.routers.hanko.tls.certresolver: letsencrypt
       traefik.http.services.hanko.loadbalancer.server.port: '8000'
 
   db:
@@ -58,9 +59,9 @@ services:
     image: 'traefik:v3.4.3'
     container_name: 'traefik'
     volumes:
-      - certs:/etc/traefik
+      - certs:/letsencrypt
       # We run rootless as user 1000!
-      - /run/user/1000/docker.sock:/run/user/1000/docker.sock:ro
+      - /var/run/user/1000/docker.sock:/var/run/user/1000/docker.sock:ro
     networks:
       - net
     labels:
@@ -69,15 +70,17 @@ services:
       - '80:80'
       - '443:443'
     command:
-      - '--providers.docker=true'
-      - '--providers.docker.exposedByDefault=false'
-      - '--providers.file.filename=/etc/traefik/certificates.yml'
-      - '--entrypoints.http=true'
-      - '--entrypoints.http.address=:80'
-      - '--entrypoints.http.http.redirections.entrypoint.to=https'
-      - '--entrypoints.http.http.redirections.entrypoint.scheme=https'
-      - '--entrypoints.https=true'
-      - '--entrypoints.https.address=:443'
-      - '--log=true'
-      - '--log.level=DEBUG'
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.endpoint=unix:///var/run/user/1000/docker.sock"
+      - "--entrypoints.http=true"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.http.http.redirections.entrypoint.to=https"
+      - "--entrypoints.http.http.redirections.entrypoint.scheme=https"
+      - "--entryPoints.https.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      # For staging test
+      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.letsencrypt.acme.email=sysadmin@hotosm.org"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     restart: unless-stopped
