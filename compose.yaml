@@ -60,7 +60,7 @@ services:
     volumes:
       - certs:/etc/traefik
       # We run rootless as user 1000!
-      - /run/user/1000/docker.sock:/run/user/1000/docker.sock
+      - /run/user/1000/docker.sock:/run/user/1000/docker.sock:ro
     networks:
       - net
     labels:
