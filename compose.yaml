@@ -5,7 +5,7 @@ volumes:
   certs:
 
 services:
-  hanko-migrate:
+  migrations:
     image: ghcr.io/teamhanko/hanko:v2.1.0
     volumes:
       - ./config.yaml:/etc/config/config.yaml
@@ -80,7 +80,7 @@ services:
       - "--entryPoints.https.address=:443"
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       # For staging test
-      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      # - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.letsencrypt.acme.email=sysadmin@hotosm.org"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     restart: unless-stopped
