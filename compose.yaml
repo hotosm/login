@@ -19,7 +19,7 @@ services:
 
   hanko:
     depends_on:
-      hanko-migrate:
+      migrations:
         condition: service_completed_successfully
     image: ghcr.io/teamhanko/hanko:v2.1.0
     command: serve --config /etc/config/config.yaml all
