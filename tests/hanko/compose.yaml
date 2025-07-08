@@ -1,0 +1,76 @@
+services:
+  hanko-migrate:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    volumes:
+      - ./config.yaml:/etc/config/config.yaml
+    command: --config /etc/config/config.yaml migrate up
+    restart: on-failure
+    depends_on:
+      postgresd:
+        condition: service_healthy
+    networks:
+      - intranet
+
+  hanko:
+    depends_on:
+      hanko-migrate:
+        condition: service_completed_successfully
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    ports:
+      - '8000:8000' # public
+      - '8001:8001' # admin
+    restart: unless-stopped
+    command: serve --config /etc/config/config.yaml all
+    volumes:
+      - ./config.yaml:/etc/config/config.yaml
+    networks:
+      - intranet
+    environment:
+      - PASSWORD_ENABLED
+
+  postgresd:
+    image: postgres:12-alpine
+    # ports:
+    #   - "5432:5432"
+    environment:
+      - POSTGRES_USER=hanko
+      - POSTGRES_PASSWORD=hanko
+      - POSTGRES_DB=hanko
+    healthcheck:
+      test: pg_isready -U hanko -d hanko
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - intranet
+
+  elements:
+    image: ghcr.io/teamhanko/hanko/elements:v2.1.0
+    ports:
+      - "9500:80"
+    networks:
+      - intranet
+
+  quickstart:
+    image: ghcr.io/teamhanko/hanko/quickstart:v2.1.0
+    ports:
+      - "8500:8080"
+    environment:
+      - HANKO_URL=http://localhost:8000
+      - HANKO_URL_INTERNAL=http://hanko:8000
+      - HANKO_ELEMENT_URL=http://localhost:9500/elements.js
+      - HANKO_FRONTEND_SDK_URL=http://localhost:9500/sdk.modern.js
+    networks:
+      - intranet
+
+  mailslurper:
+    image: marcopas/docker-mailslurper:latest
+    ports:
+      - '8501:8080' # web UI
+      - '8085:8085'
+    networks:
+      - intranet
+
+networks:
+  intranet:
