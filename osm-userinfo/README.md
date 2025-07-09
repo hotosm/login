@@ -30,7 +30,8 @@ Also using an attribute mapping seemed to not work:
 ```
 
 Hence we had to create this small single endpoint API that:
-- Accepts a request to `userinfo.login.hotosm.org`.
+- Accepts a request to `https://userinfo.login.hotosm.org`.
+  - Alternatively, if in the same docker network, simply use `http://osm-userinfo:8080"`.
 - Parses the OSM `user.id` and `user.display_name` values.
 - Return a valid OpenID Connect set of claims:
 
