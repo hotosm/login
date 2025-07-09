@@ -127,8 +127,8 @@ services:
     restart: unless-stopped
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.quickstart.rule: 'Host(`userinfo.login.hotosm.org`)'
-      traefik.http.routers.quickstart.entrypoints: https
-      traefik.http.routers.quickstart.tls: 'true'
-      traefik.http.routers.quickstart.tls.certresolver: letsencrypt
-      traefik.http.services.quickstart.loadbalancer.server.port: '8080'
+      traefik.http.routers.userinfo.rule: 'Host(`userinfo.login.hotosm.org`)'
+      traefik.http.routers.userinfo.entrypoints: https
+      traefik.http.routers.userinfo.tls: 'true'
+      traefik.http.routers.userinfo.tls.certresolver: letsencrypt
+      traefik.http.services.userinfo.loadbalancer.server.port: '8080'
