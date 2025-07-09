@@ -119,3 +119,16 @@ services:
       traefik.http.routers.quickstart.tls: 'true'
       traefik.http.routers.quickstart.tls.certresolver: letsencrypt
       traefik.http.services.quickstart.loadbalancer.server.port: '8080'
+
+  osm-userinfo:
+    image: ghcr.io/hotosm/login/osm-userinfo:latest
+    networks:
+      - net
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.quickstart.rule: 'Host(`userinfo.login.hotosm.org`)'
+      traefik.http.routers.quickstart.entrypoints: https
+      traefik.http.routers.quickstart.tls: 'true'
+      traefik.http.routers.quickstart.tls.certresolver: letsencrypt
+      traefik.http.services.quickstart.loadbalancer.server.port: '8080'
