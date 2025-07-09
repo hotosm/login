@@ -3,6 +3,8 @@ networks:
 
 volumes:
   certs:
+  hanko-db-prod:
+  hanko-db-dev:
 
 services:
   # db migrations
@@ -48,6 +50,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-hanko}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hanko}
       - POSTGRES_DB=${POSTGRES_DB:-hanko}
+    volumes:
+      - hanko-db-prod:/var/lib/postgresql/data/
     healthcheck:
       test: pg_isready -U hanko -d hanko
       interval: 10s
@@ -125,12 +129,59 @@ services:
     networks:
       - net
     restart: unless-stopped
-    # Not required, as we can use:
-    #   userinfo_endpoint: "http://osm-userinfo:8080"
-    # labels:
-    #   traefik.enable: 'true'
-    #   traefik.http.routers.userinfo.rule: 'Host(`userinfo.login.hotosm.org`)'
-    #   traefik.http.routers.userinfo.entrypoints: https
-    #   traefik.http.routers.userinfo.tls: 'true'
-    #   traefik.http.routers.userinfo.tls.certresolver: letsencrypt
-    #   traefik.http.services.userinfo.loadbalancer.server.port: '8080'
+
+  # DEV SERVICES (Local testing)
+  # db migrations dev
+  migrations-dev:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    volumes:
+      - ./config_dev.yaml:/etc/config/config.yaml
+    command: --config /etc/config/config.yaml migrate up
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - net
+    restart: "on-failure:2"
+
+  # the main hanko service dev
+  hanko-dev:
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    command: serve --config /etc/config/config.yaml all
+    volumes:
+      - ./config_dev.yaml:/etc/config/config.yaml
+    networks:
+      - net
+    environment:
+      - PASSWORD_ENABLED
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.hanko-dev.rule: 'Host(`dev.login.hotosm.org`)'
+      traefik.http.routers.hanko-dev.entrypoints: https
+      traefik.http.routers.hanko-dev.tls: 'true'
+      traefik.http.routers.hanko-dev.tls.options: 'default'
+      traefik.http.routers.hanko-dev.tls.certresolver: letsencrypt
+      traefik.http.services.hanko-dev.loadbalancer.server.port: '8000'
+
+  # the hanko data dev
+  db-dev:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-hanko}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hanko}
+      - POSTGRES_DB=${POSTGRES_DB:-hanko}
+    volumes:
+      - hanko-db-dev:/var/lib/postgresql/data/
+    healthcheck:
+      test: pg_isready -U hanko -d hanko
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - net
+    restart: unless-stopped
