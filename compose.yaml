@@ -264,6 +264,7 @@ services:
 
   # custom login backend dev
   backend-dev:
+    env_file: .env
     build:
       context: ./backend
       dockerfile: Dockerfile
