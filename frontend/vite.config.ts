@@ -8,7 +8,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5174,
     strictPort: true,
-    allowedHosts: ['login.hotosm.test', 'localhost', '127.0.0.1', '.test'],
+    allowedHosts: ['login.hotosm.test', 'localhost', '127.0.0.1', '.test', 'dev.login.hotosm.org', 'login.hotosm.org'],
     hmr: {
       clientPort: 80,
       host: 'login.hotosm.test',
