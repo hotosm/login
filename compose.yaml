@@ -7,60 +7,9 @@ volumes:
   hanko-db-dev:
 
 services:
-  # db migrations
-  migrations:
-    image: ghcr.io/teamhanko/hanko:v2.1.0
-    volumes:
-      - ./config.yaml:/etc/config/config.yaml
-    command: --config /etc/config/config.yaml migrate up
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - net
-    restart: "on-failure:2"
-
-  # the main hanko service
-  hanko:
-    depends_on:
-      migrations:
-        condition: service_completed_successfully
-    image: ghcr.io/teamhanko/hanko:v2.1.0
-    command: serve --config /etc/config/config.yaml all
-    volumes:
-      - ./config.yaml:/etc/config/config.yaml
-    networks:
-      - net
-    environment:
-      - PASSWORD_ENABLED
-    restart: unless-stopped
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.hanko.rule: 'Host(`login.hotosm.org`)'
-      traefik.http.routers.hanko.entrypoints: https
-      traefik.http.routers.hanko.tls: 'true'
-      traefik.http.routers.hanko.tls.options: 'default'
-      traefik.http.routers.hanko.tls.certresolver: letsencrypt
-      traefik.http.services.hanko.loadbalancer.server.port: '8000'
-
-  # the hanko data
-  db:
-    image: postgres:17-alpine
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-hanko}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hanko}
-      - POSTGRES_DB=${POSTGRES_DB:-hanko}
-    volumes:
-      - hanko-db-prod:/var/lib/postgresql/data/
-    healthcheck:
-      test: pg_isready -U hanko -d hanko
-      interval: 10s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    networks:
-      - net
-    restart: unless-stopped
+  # ==================
+  # TRAEFIK (Always running for both dev and prod)
+  # ==================
 
   # reverse proxy for load balance and certs
   traefik:
@@ -93,6 +42,72 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     restart: unless-stopped
 
+  # ==================
+  # PRODUCTION SERVICES (profile: prod)
+  # ==================
+
+  # db migrations
+  migrations:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    volumes:
+      - ./config.yaml:/etc/config/config.yaml
+    command: --config /etc/config/config.yaml migrate up
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - net
+    restart: "on-failure:2"
+    profiles:
+      - prod
+
+  # the main hanko service
+  hanko:
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    command: serve --config /etc/config/config.yaml all
+    volumes:
+      - ./config.yaml:/etc/config/config.yaml
+    networks:
+      - net
+    environment:
+      - PASSWORD_ENABLED
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.hanko.rule: 'Host(`login.hotosm.org`)'
+      traefik.http.routers.hanko.entrypoints: https
+      traefik.http.routers.hanko.tls: 'true'
+      traefik.http.routers.hanko.tls.options: 'default'
+      traefik.http.routers.hanko.tls.certresolver: letsencrypt
+      traefik.http.services.hanko.loadbalancer.server.port: '8000'
+    profiles:
+      - prod
+
+  # the hanko database
+  db:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-hanko}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hanko}
+      - POSTGRES_DB=${POSTGRES_DB:-hanko}
+    volumes:
+      - hanko-db-prod:/var/lib/postgresql/data/
+    healthcheck:
+      test: pg_isready -U hanko -d hanko
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - net
+    restart: unless-stopped
+    profiles:
+      - prod
+
+  # hanko elements
   elements:
     image: ghcr.io/teamhanko/hanko/elements:v2.1.0
     networks:
@@ -105,7 +120,10 @@ services:
       traefik.http.routers.elements.tls: 'true'
       traefik.http.routers.elements.tls.certresolver: letsencrypt
       traefik.http.services.elements.loadbalancer.server.port: '80'
+    profiles:
+      - prod
 
+  # hanko quickstart demo
   quickstart:
     image: ghcr.io/teamhanko/hanko/quickstart:v2.1.0
     environment:
@@ -123,14 +141,66 @@ services:
       traefik.http.routers.quickstart.tls: 'true'
       traefik.http.routers.quickstart.tls.certresolver: letsencrypt
       traefik.http.services.quickstart.loadbalancer.server.port: '8080'
+    profiles:
+      - prod
 
-  osm-userinfo:
-    image: ghcr.io/hotosm/login/osm-userinfo:latest
+  # custom login backend
+  backend:
+    image: ghcr.io/hotosm/login-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
     networks:
       - net
     restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.backend.rule: 'Host(`login.hotosm.org`) && PathPrefix(`/api`)'
+      traefik.http.routers.backend.entrypoints: https
+      traefik.http.routers.backend.tls: 'true'
+      traefik.http.routers.backend.tls.certresolver: letsencrypt
+      traefik.http.services.backend.loadbalancer.server.port: '8000'
+      traefik.http.routers.backend.priority: '10'
+    profiles:
+      - prod
 
-  # DEV SERVICES (Local testing)
+  # custom login frontend
+  frontend:
+    image: ghcr.io/hotosm/login-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    networks:
+      - net
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.frontend.rule: 'Host(`app.login.hotosm.org`)'
+      traefik.http.routers.frontend.entrypoints: https
+      traefik.http.routers.frontend.tls: 'true'
+      traefik.http.routers.frontend.tls.certresolver: letsencrypt
+      traefik.http.services.frontend.loadbalancer.server.port: '80'
+    profiles:
+      - prod
+
+  # osm userinfo service
+  osm-userinfo:
+    image: ghcr.io/hotosm/login-osm-userinfo:latest
+    build:
+      context: ./osm-userinfo
+      dockerfile: Dockerfile
+    networks:
+      - net
+    restart: unless-stopped
+    profiles:
+      - prod
+
+  # ==================
+  # DEVELOPMENT SERVICES (profile: dev)
+  # ==================
+
   # db migrations dev
   migrations-dev:
     image: ghcr.io/teamhanko/hanko:v2.1.0
@@ -138,16 +208,18 @@ services:
       - ./config_dev.yaml:/etc/config/config.yaml
     command: --config /etc/config/config.yaml migrate up
     depends_on:
-      db:
+      db-dev:
         condition: service_healthy
     networks:
       - net
     restart: "on-failure:2"
+    profiles:
+      - dev
 
   # the main hanko service dev
   hanko-dev:
     depends_on:
-      migrations:
+      migrations-dev:
         condition: service_completed_successfully
     image: ghcr.io/teamhanko/hanko:v2.1.0
     command: serve --config /etc/config/config.yaml all
@@ -166,6 +238,8 @@ services:
       traefik.http.routers.hanko-dev.tls.options: 'default'
       traefik.http.routers.hanko-dev.tls.certresolver: letsencrypt
       traefik.http.services.hanko-dev.loadbalancer.server.port: '8000'
+    profiles:
+      - dev
 
   # the hanko data dev
   db-dev:
@@ -185,3 +259,44 @@ services:
     networks:
       - net
     restart: unless-stopped
+    profiles:
+      - dev
+
+  # custom login backend dev
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: dev
+    networks:
+      - net
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.backend-dev.rule: 'Host(`dev.login.hotosm.org`) && PathPrefix(`/api`)'
+      traefik.http.routers.backend-dev.entrypoints: https
+      traefik.http.routers.backend-dev.tls: 'true'
+      traefik.http.routers.backend-dev.tls.certresolver: letsencrypt
+      traefik.http.services.backend-dev.loadbalancer.server.port: '8000'
+      traefik.http.routers.backend-dev.priority: '10'
+    profiles:
+      - dev
+
+  # custom login frontend dev
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    networks:
+      - net
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.frontend-dev.rule: 'Host(`app.dev.login.hotosm.org`)'
+      traefik.http.routers.frontend-dev.entrypoints: https
+      traefik.http.routers.frontend-dev.tls: 'true'
+      traefik.http.routers.frontend-dev.tls.certresolver: letsencrypt
+      traefik.http.services.frontend-dev.loadbalancer.server.port: '80'
+    profiles:
+      - dev
