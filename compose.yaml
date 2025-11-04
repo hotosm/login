@@ -302,6 +302,6 @@ services:
       traefik.http.routers.frontend-dev.tls.certresolver: letsencrypt
       traefik.http.routers.frontend-dev.middlewares: frontend-dev-stripprefix
       traefik.http.middlewares.frontend-dev-stripprefix.stripprefix.prefixes: '/app'
-      traefik.http.services.frontend-dev.loadbalancer.server.port: '80'
+      traefik.http.services.frontend-dev.loadbalancer.server.port: '5174'
     profiles:
       - dev
