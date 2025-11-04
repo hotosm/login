@@ -294,7 +294,7 @@ services:
     restart: unless-stopped
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.frontend-dev.rule: 'Host(`app.dev.login.hotosm.org`)'
+      traefik.http.routers.frontend-dev.rule: 'Host(`app.login.hotosm.org`)'
       traefik.http.routers.frontend-dev.entrypoints: https
       traefik.http.routers.frontend-dev.tls: 'true'
       traefik.http.routers.frontend-dev.tls.certresolver: letsencrypt
