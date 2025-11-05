@@ -5,9 +5,11 @@ FROM python:3.12-slim AS dev
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including git and ssh
 RUN apt-get update && apt-get install -y \
     curl \
+    git \
+    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -16,12 +18,9 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Copy dependency files
 COPY pyproject.toml ./
 
-# Copy auth-libs dist (built artifacts) - copy wheel file explicitly
-RUN mkdir -p /app/auth-libs/python/dist
-COPY auth-libs/python/dist/*.whl /app/auth-libs/python/dist/
-
 # Install dependencies
-RUN uv sync
+# Mount SSH keys for private git repos
+RUN --mount=type=ssh uv sync
 
 # Copy application code
 COPY . .
@@ -37,9 +36,11 @@ FROM python:3.12-slim AS production
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including git and ssh
 RUN apt-get update && apt-get install -y \
     curl \
+    git \
+    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -48,12 +49,9 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Copy dependency files
 COPY pyproject.toml ./
 
-# Copy auth-libs dist (built artifacts) - copy wheel file explicitly
-RUN mkdir -p /app/auth-libs/python/dist
-COPY auth-libs/python/dist/*.whl /app/auth-libs/python/dist/
-
 # Install dependencies (production only)
-RUN uv sync --no-dev
+# Mount SSH keys for private git repos
+RUN --mount=type=ssh uv sync --no-dev
 
 # Copy application code
 COPY . .
