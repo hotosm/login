@@ -5,26 +5,20 @@ FROM python:3.12-slim AS dev
 
 WORKDIR /app
 
-# Install system dependencies including git and ssh
+# Install system dependencies including git
 RUN apt-get update && apt-get install -y \
     curl \
     git \
-    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Add GitHub to known_hosts
-RUN mkdir -p /root/.ssh && \
-    ssh-keyscan github.com >> /root/.ssh/known_hosts
-
 # Copy dependency files
 COPY login/backend/pyproject.toml ./
 
 # Install dependencies
-# Mount SSH keys for private git repos
-RUN --mount=type=ssh uv sync
+RUN uv sync
 
 # Copy application code
 COPY login/backend/ .
@@ -40,26 +34,20 @@ FROM python:3.12-slim AS production
 
 WORKDIR /app
 
-# Install system dependencies including git and ssh
+# Install system dependencies including git
 RUN apt-get update && apt-get install -y \
     curl \
     git \
-    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Add GitHub to known_hosts
-RUN mkdir -p /root/.ssh && \
-    ssh-keyscan github.com >> /root/.ssh/known_hosts
-
 # Copy dependency files
 COPY login/backend/pyproject.toml ./
 
 # Install dependencies (production only)
-# Mount SSH keys for private git repos
-RUN --mount=type=ssh uv sync --no-dev
+RUN uv sync --no-dev
 
 # Copy application code
 COPY login/backend/ .

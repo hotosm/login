@@ -243,7 +243,7 @@ wheels = [
 [[package]]
 name = "hotosm-auth"
 version = "0.1.0"
-source = { git = "ssh://git@github.com/LawalCoop/hot-auth-libs.git?subdirectory=python&rev=main#7bb0ca6d65b57267d8dbe0c6e41c95cf3e58889c" }
+source = { git = "https://github.com/LawalCoop/hot-auth-libs.git?subdirectory=python&rev=main#7bb0ca6d65b57267d8dbe0c6e41c95cf3e58889c" }
 dependencies = [
     { name = "cryptography" },
     { name = "httpx" },
@@ -278,7 +278,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115.6" },
-    { name = "hotosm-auth", git = "ssh://git@github.com/LawalCoop/hot-auth-libs.git?subdirectory=python&rev=main" },
+    { name = "hotosm-auth", git = "https://github.com/LawalCoop/hot-auth-libs.git?subdirectory=python&rev=main" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1" },
     { name = "pydantic", specifier = ">=2.10.6" },
