@@ -11,7 +11,7 @@ dependencies = [
     "python-multipart>=0.0.20",
     "httpx>=0.28.1",
     "sqlalchemy>=2.0.0",
-    "hotosm-auth @ file:///app/auth-libs/python/dist/hotosm_auth-0.1.0-py3-none-any.whl",
+    "hotosm-auth @ git+ssh://git@github.com/LawalCoop/hot-auth-libs.git@main#subdirectory=python",
 ]
 
 [project.optional-dependencies]
