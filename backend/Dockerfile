@@ -20,14 +20,14 @@ RUN mkdir -p /root/.ssh && \
     ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 # Copy dependency files
-COPY pyproject.toml ./
+COPY login/backend/pyproject.toml ./
 
 # Install dependencies
 # Mount SSH keys for private git repos
 RUN --mount=type=ssh uv sync
 
 # Copy application code
-COPY . .
+COPY login/backend/ .
 
 # Expose port
 EXPOSE 8000
@@ -55,14 +55,14 @@ RUN mkdir -p /root/.ssh && \
     ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 # Copy dependency files
-COPY pyproject.toml ./
+COPY login/backend/pyproject.toml ./
 
 # Install dependencies (production only)
 # Mount SSH keys for private git repos
 RUN --mount=type=ssh uv sync --no-dev
 
 # Copy application code
-COPY . .
+COPY login/backend/ .
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
