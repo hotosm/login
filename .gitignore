@@ -1,3 +1,4 @@
 .env
 config.yaml
 config_dev.yaml
+hanko-config.yaml
