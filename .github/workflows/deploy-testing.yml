@@ -86,6 +86,9 @@ jobs:
             # Navigate to application directory
             cd /home/admin/login || exit 1
 
+            # Configure git safe directory
+            git config --global --add safe.directory /home/admin/login
+
             # Pull latest changes (reset to avoid divergent branches)
             git fetch origin develop
             git reset --hard origin/develop
