@@ -84,7 +84,7 @@ jobs:
             set -e
 
             # Navigate to application directory
-            cd /opt/login || exit 1
+            cd /home/admin/login || exit 1
 
             # Pull latest changes (reset to avoid divergent branches)
             git fetch origin develop
@@ -104,7 +104,7 @@ jobs:
             echo "✓ Updated backend secrets"
 
             # Go back to root
-            cd /opt/login
+            cd /home/admin/login
 
             # Login to GitHub Container Registry
             echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
