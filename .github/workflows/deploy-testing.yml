@@ -72,28 +72,41 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+          OSM_CLIENT_ID: ${{ secrets.OSM_CLIENT_ID }}
+          OSM_CLIENT_SECRET: ${{ secrets.OSM_CLIENT_SECRET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
         run: |
           # Deploy via SSH (using ssh-agent from webfactory/ssh-agent action)
-          ssh $EC2_USER@$EC2_HOST << 'EOF'
+          ssh $EC2_USER@$EC2_HOST << EOF
             set -e
 
             # Navigate to application directory
             cd /opt/login || exit 1
 
-            # Pull latest changes
-            git pull origin develop
+            # Pull latest changes (reset to avoid divergent branches)
+            git fetch origin develop
+            git reset --hard origin/develop
 
-            # Create/update .env file with secrets (if not exists)
+            # Create/update backend .env file with secrets
+            cd backend
             if [ ! -f .env ]; then
-              echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" > .env
-              echo "✓ Created .env file"
-            else
-              sed -i 's|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}|' .env
-              echo "✓ Updated .env file"
+              cp .env.example .env
+              echo "✓ Created backend .env from .env.example"
             fi
 
+            # Update secrets in backend .env
+            sed -i 's|^COOKIE_SECRET=.*|COOKIE_SECRET=$COOKIE_SECRET|' .env
+            sed -i 's|^OSM_CLIENT_ID=.*|OSM_CLIENT_ID=$OSM_CLIENT_ID|' .env
+            sed -i 's|^OSM_CLIENT_SECRET=.*|OSM_CLIENT_SECRET=$OSM_CLIENT_SECRET|' .env
+            echo "✓ Updated backend secrets"
+
+            # Go back to root
+            cd /opt/login
+
             # Login to GitHub Container Registry
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
             # Pull latest images
             docker compose pull
