@@ -15,13 +15,13 @@ RUN apt-get update && apt-get install -y \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Copy dependency files
-COPY login/backend/pyproject.toml ./
+COPY pyproject.toml ./
 
 # Install dependencies
 RUN uv sync
 
 # Copy application code
-COPY login/backend/ .
+COPY . .
 
 # Expose port
 EXPOSE 8000
@@ -44,13 +44,13 @@ RUN apt-get update && apt-get install -y \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Copy dependency files
-COPY login/backend/pyproject.toml ./
+COPY pyproject.toml ./
 
 # Install dependencies (production only)
 RUN uv sync --no-dev
 
 # Copy application code
-COPY login/backend/ .
+COPY . .
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
