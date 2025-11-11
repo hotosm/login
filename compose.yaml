@@ -58,8 +58,6 @@ services:
 #     networks:
 #       - net
 #     restart: "on-failure:2"
-#     profiles:
-#       - prod
 
 #   # the main hanko service
 #   hanko:
@@ -83,8 +81,6 @@ services:
 #       traefik.http.routers.hanko.tls.options: 'default'
 #       traefik.http.routers.hanko.tls.certresolver: letsencrypt
 #       traefik.http.services.hanko.loadbalancer.server.port: '8000'
-#     profiles:
-#       - prod
 
 #   # the hanko database
 #   db:
@@ -104,8 +100,6 @@ services:
 #     networks:
 #       - net
 #     restart: unless-stopped
-#     profiles:
-#       - prod
 
 #  # custom login backend
 #   backend:
@@ -125,8 +119,6 @@ services:
 #       traefik.http.routers.backend.tls.certresolver: letsencrypt
 #       traefik.http.services.backend.loadbalancer.server.port: '8000'
 #       traefik.http.routers.backend.priority: '10'
-#     profiles:
-#       - prod
 
 #   # custom login frontend
 #   frontend:
@@ -147,8 +139,6 @@ services:
 #       traefik.http.routers.frontend.middlewares: frontend-stripprefix
 #       traefik.http.middlewares.frontend-stripprefix.stripprefix.prefixes: '/app,/login'
 #       traefik.http.services.frontend.loadbalancer.server.port: '80'
-#     profiles:
-#       - prod
 
   # hanko elements
   elements:
@@ -163,8 +153,6 @@ services:
       traefik.http.routers.elements.tls: 'true'
       traefik.http.routers.elements.tls.certresolver: letsencrypt
       traefik.http.services.elements.loadbalancer.server.port: '80'
-    profiles:
-      - prod
 
   # hanko quickstart demo
   quickstart:
@@ -184,8 +172,6 @@ services:
       traefik.http.routers.quickstart.tls: 'true'
       traefik.http.routers.quickstart.tls.certresolver: letsencrypt
       traefik.http.services.quickstart.loadbalancer.server.port: '8080'
-    profiles:
-      - prod
 
   # osm userinfo service
   osm-userinfo:
@@ -196,8 +182,6 @@ services:
     networks:
       - net
     restart: unless-stopped
-    profiles:
-      - prod
 
   # ==================
   # DEVELOPMENT SERVICES (profile: dev)
@@ -215,8 +199,6 @@ services:
     networks:
       - net
     restart: "on-failure:2"
-    profiles:
-      - dev
 
   # the main hanko service dev
   hanko-dev:
@@ -240,8 +222,6 @@ services:
       traefik.http.routers.hanko-dev.tls.options: 'default'
       traefik.http.routers.hanko-dev.tls.certresolver: letsencrypt
       traefik.http.services.hanko-dev.loadbalancer.server.port: '8000'
-    profiles:
-      - dev
 
   # the hanko data dev
   db-dev:
@@ -261,8 +241,6 @@ services:
     networks:
       - net
     restart: unless-stopped
-    profiles:
-      - dev
 
   # custom login backend dev
   backend-dev:
@@ -282,8 +260,6 @@ services:
       traefik.http.routers.backend-dev.tls.certresolver: letsencrypt
       traefik.http.services.backend-dev.loadbalancer.server.port: '8000'
       traefik.http.routers.backend-dev.priority: '10'
-    profiles:
-      - dev
 
   # custom login frontend dev
   frontend-dev:
@@ -303,5 +279,3 @@ services:
       traefik.http.routers.frontend-dev.middlewares: frontend-dev-stripprefix
       traefik.http.middlewares.frontend-dev-stripprefix.stripprefix.prefixes: '/app,/login'
       traefik.http.services.frontend-dev.loadbalancer.server.port: '5174'
-    profiles:
-      - dev
