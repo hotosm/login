@@ -3,6 +3,8 @@ import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Base path - frontend is served at /app in both dev and production
+  base: '/app',
   plugins: [react()],
   server: {
     host: '0.0.0.0',

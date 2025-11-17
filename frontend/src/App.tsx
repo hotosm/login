@@ -5,10 +5,10 @@ import { AuthProvider } from './contexts/AuthContext';
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/app">
         <Routes>
+          {/* Root path serves the login page */}
           <Route path="/" element={<LoginPage />} />
-          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
