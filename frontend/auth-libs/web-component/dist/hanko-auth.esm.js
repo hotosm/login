@@ -4175,9 +4175,9 @@ let Ne = class extends Nt {
       const n = this._sessionJWT;
       if (n) {
         const e = window.location.hostname, t = e === "localhost" || e === "127.0.0.1", o = t ? `; domain=${e}` : "; domain=.hotosm.org";
-        document.cookie = `hanko=${n}; path=/${o}; max-age=86400; SameSite=Lax`, this.log(`🔐 JWT synced to cookie for SSO${t ? ` (domain=${e})` : " (domain=.hotosm.org)"}`);
+        document.cookie = `hanko=${n}; path=/${o}; max-age=86400; SameSite=Lax; Secure`, console.log(`🔐 JWT synced to cookie for SSO${t ? ` (domain=${e})` : " (domain=.hotosm.org)"}`);
       } else
-        this.log("⚠️ No JWT found in session event");
+        console.log("⚠️ No JWT found in session event");
     } catch (n) {
       console.error("Failed to sync JWT to cookie:", n);
     }
