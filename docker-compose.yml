@@ -178,12 +178,14 @@ services:
       - hotosm
     labels:
       - "traefik.enable=true"
-      # Frontend serves everything else (lowest priority)
-      - "traefik.http.routers.login-frontend.rule=Host(`dev.login.hotosm.org`)"
+      # Frontend serves /app path
+      - "traefik.http.routers.login-frontend.rule=Host(`dev.login.hotosm.org`) && PathPrefix(`/app`)"
       - "traefik.http.routers.login-frontend.entrypoints=https"
       - "traefik.http.routers.login-frontend.tls=true"
       - "traefik.http.routers.login-frontend.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.login-frontend.priority=1"
+      - "traefik.http.routers.login-frontend.priority=2"
+      - "traefik.http.routers.login-frontend.middlewares=login-frontend-stripprefix"
+      - "traefik.http.middlewares.login-frontend-stripprefix.stripprefix.prefixes=/app"
       - "traefik.http.services.login-frontend.loadbalancer.server.port=80"
     depends_on:
       - backend
