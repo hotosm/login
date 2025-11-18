@@ -110,6 +110,14 @@ jobs:
               echo "✓ Created hanko-config.yaml from example"
             fi
 
+            # Fix CORS config in hanko-config.yaml (ensure wildcard is disabled)
+            sed -i 's/unsafe_wildcard_origin_allowed: true/unsafe_wildcard_origin_allowed: false/' hanko-config.yaml
+            echo "✓ Updated CORS config in hanko-config.yaml"
+
+            # Fix cookie domain in hanko-config.yaml (ensure it's .hotosm.org not .login.hotosm.org)
+            sed -i 's|domain: ".login.hotosm.org"|domain: ".hotosm.org"|g' hanko-config.yaml
+            echo "✓ Updated cookie domain in hanko-config.yaml"
+
             # Update secrets in .env
             sed -i 's|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}|' .env
             sed -i 's|^COOKIE_SECRET=.*|COOKIE_SECRET=${{ secrets.COOKIE_SECRET }}|' .env
