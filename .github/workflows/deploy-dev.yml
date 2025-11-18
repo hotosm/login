@@ -93,6 +93,12 @@ jobs:
             git fetch origin develop
             git reset --hard origin/develop
 
+            # Remove compose.yaml if it exists (use docker-compose.yml only)
+            if [ -f compose.yaml ]; then
+              rm compose.yaml
+              echo "✓ Removed compose.yaml (using docker-compose.yml)"
+            fi
+
             # Create config files if they don't exist
             if [ ! -f .env ]; then
               cp .env.example .env
