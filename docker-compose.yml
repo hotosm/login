@@ -87,13 +87,13 @@ services:
       - "traefik.http.routers.hanko-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.hanko-api.priority=10"
       - "traefik.http.routers.hanko-api.service=hanko"
-      # Hanko /login endpoint for POST requests (API) - higher priority than frontend GET
-      - "traefik.http.routers.hanko-login.rule=Host(`dev.login.hotosm.org`) && Path(`/login`) && Method(`POST`,`PUT`,`DELETE`,`PATCH`)"
-      - "traefik.http.routers.hanko-login.entrypoints=https"
-      - "traefik.http.routers.hanko-login.tls=true"
-      - "traefik.http.routers.hanko-login.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.hanko-login.priority=5"
-      - "traefik.http.routers.hanko-login.service=hanko"
+      # Hanko /login endpoint for POST requests - higher priority than frontend
+      - "traefik.http.routers.hanko-login-post.rule=Host(`dev.login.hotosm.org`) && Path(`/login`) && Method(`POST`)"
+      - "traefik.http.routers.hanko-login-post.entrypoints=https"
+      - "traefik.http.routers.hanko-login-post.tls=true"
+      - "traefik.http.routers.hanko-login-post.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.hanko-login-post.priority=20"
+      - "traefik.http.routers.hanko-login-post.service=hanko"
       - "traefik.http.services.hanko.loadbalancer.server.port=8000"
     depends_on:
       hanko-db:
@@ -178,14 +178,14 @@ services:
       - hotosm
     labels:
       - "traefik.enable=true"
-      # Frontend serves /app path
-      - "traefik.http.routers.login-frontend.rule=Host(`dev.login.hotosm.org`) && PathPrefix(`/app`)"
+      # Frontend serves /app and /login paths (GET /login goes to frontend, POST /login has higher priority to Hanko)
+      - "traefik.http.routers.login-frontend.rule=Host(`dev.login.hotosm.org`) && (PathPrefix(`/app`) || Path(`/login`))"
       - "traefik.http.routers.login-frontend.entrypoints=https"
       - "traefik.http.routers.login-frontend.tls=true"
       - "traefik.http.routers.login-frontend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.login-frontend.priority=2"
       - "traefik.http.routers.login-frontend.middlewares=login-frontend-stripprefix"
-      - "traefik.http.middlewares.login-frontend-stripprefix.stripprefix.prefixes=/app"
+      - "traefik.http.middlewares.login-frontend-stripprefix.stripprefix.prefixes=/app,/login"
       - "traefik.http.services.login-frontend.loadbalancer.server.port=80"
     depends_on:
       - backend
