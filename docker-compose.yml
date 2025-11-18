@@ -81,7 +81,7 @@ services:
       - "traefik.http.routers.hanko-wellknown.priority=50"
       - "traefik.http.routers.hanko-wellknown.service=hanko"
       # Hanko API routes (registration, login POST, users, etc.)
-      - "traefik.http.routers.hanko-api.rule=Host(`dev.login.hotosm.org`) && (PathPrefix(`/registration`) || PathPrefix(`/logout`) || PathPrefix(`/sessions`) || PathPrefix(`/users`) || PathPrefix(`/passcode`) || PathPrefix(`/webauthn`) || PathPrefix(`/token`) || PathPrefix(`/thirdparty`) || PathPrefix(`/me`))"
+      - "traefik.http.routers.hanko-api.rule=Host(`dev.login.hotosm.org`) && (PathPrefix(`/registration`) || PathPrefix(`/logout`) || PathPrefix(`/sessions`) || PathPrefix(`/users`) || PathPrefix(`/passcode`) || PathPrefix(`/webauthn`) || PathPrefix(`/token`) || PathPrefix(`/thirdparty`) || Path(`/me`))"
       - "traefik.http.routers.hanko-api.entrypoints=https"
       - "traefik.http.routers.hanko-api.tls=true"
       - "traefik.http.routers.hanko-api.tls.certresolver=letsencrypt"
