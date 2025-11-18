@@ -85,10 +85,15 @@ jobs:
             git fetch origin develop
             git reset --hard origin/develop
 
-            # Create/update .env file with secrets
+            # Create config files if they don't exist
             if [ ! -f .env ]; then
               cp .env.example .env
               echo "✓ Created .env from .env.example"
+            fi
+
+            if [ ! -f hanko-config.yaml ]; then
+              cp hanko-config.yaml.example hanko-config.yaml
+              echo "✓ Created hanko-config.yaml from example"
             fi
 
             # Update secrets in .env
