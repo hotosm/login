@@ -469,7 +469,17 @@ export class HankoAuth extends LitElement {
 
       // Create persistent Hanko instance and set up session event listeners
       const { Hanko } = await import('@teamhanko/hanko-elements');
-      this._hanko = new Hanko(this.hankoUrl);
+
+      // Configure cookie domain for cross-subdomain SSO
+      const hostname = window.location.hostname;
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+      const cookieOptions = isLocalhost ? {} : {
+        cookieDomain: '.hotosm.org',
+        cookieName: 'hanko',
+        cookieSameSite: 'lax'
+      };
+
+      this._hanko = new Hanko(this.hankoUrl, cookieOptions);
 
       // Set up session lifecycle event listeners (these persist across the component lifecycle)
       this._hanko.onSessionExpired(() => {
@@ -576,8 +586,6 @@ export class HankoAuth extends LitElement {
               bubbles: true,
               composed: true
             }));
-
-            await this.syncJWTToCookie();
 
             // Also check if we need to auto-connect to OSM
             await this.checkOSMConnection();
@@ -762,8 +770,6 @@ export class HankoAuth extends LitElement {
       bubbles: true,
       composed: true
     }));
-
-    await this.syncJWTToCookie();
 
     // Check OSM connection before deciding redirect
     await this.checkOSMConnection();

@@ -4089,8 +4089,12 @@ let Ne = class extends Nt {
   async init() {
     try {
       await Di(this.hankoUrl);
-      const { Hanko: n } = await Promise.resolve().then(() => na);
-      this._hanko = new n(this.hankoUrl), this._hanko.onSessionExpired(() => {
+      const { Hanko: n } = await Promise.resolve().then(() => na), e = window.location.hostname, o = e === "localhost" || e === "127.0.0.1" ? {} : {
+        cookieDomain: ".hotosm.org",
+        cookieName: "hanko",
+        cookieSameSite: "lax"
+      };
+      this._hanko = new n(this.hankoUrl, o), this._hanko.onSessionExpired(() => {
         this.log("🕒 Hanko session expired event received"), this.handleSessionExpired();
       }), this._hanko.onUserLoggedOut(() => {
         this.log("🚪 Hanko user logged out event received"), this.handleUserLoggedOut();
@@ -4160,7 +4164,7 @@ let Ne = class extends Nt {
           })), this.dispatchEvent(new CustomEvent("auth-complete", {
             bubbles: !0,
             composed: !0
-          })), await this.syncJWTToCookie(), await this.checkOSMConnection(), this.osmRequired && this.autoConnect && !this.osmConnected && (console.log("🔄 Auto-connecting to OSM (from existing session)..."), this.handleOSMConnect()));
+          })), await this.checkOSMConnection(), this.osmRequired && this.autoConnect && !this.osmConnected && (console.log("🔄 Auto-connecting to OSM (from existing session)..."), this.handleOSMConnect()));
         } else
           this.log("ℹ️ No valid session cookie found - user needs to login");
       } catch (n) {
@@ -4265,7 +4269,7 @@ let Ne = class extends Nt {
       detail: { user: this.user },
       bubbles: !0,
       composed: !0
-    })), await this.syncJWTToCookie(), await this.checkOSMConnection(), this.osmRequired && this.autoConnect && !this.osmConnected) {
+    })), await this.checkOSMConnection(), this.osmRequired && this.autoConnect && !this.osmConnected) {
       console.log("🔄 Auto-connecting to OSM..."), this.handleOSMConnect();
       return;
     }
