@@ -7,7 +7,7 @@ server:
         - "https://login.hotosm.test"
         - "https://dronetm.hotosm.test"
       allow_credentials: true
-      unsafe_wildcard_origin_allowed: true
+      unsafe_wildcard_origin_allowed: false
 
 database:
   database: hanko
