@@ -1,0 +1,190 @@
+networks:
+  hotosm:
+
+volumes:
+  certs:
+  hanko-db-data:
+
+services:
+  # ==========================================
+  # Traefik - Reverse Proxy
+  # ==========================================
+
+  traefik:
+    image: traefik:v3.4.3
+    container_name: login-traefik
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.endpoint=unix:///var/run/user/1000/docker.sock"
+      - "--entrypoints.http=true"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.http.http.redirections.entrypoint.to=https"
+      - "--entrypoints.http.http.redirections.entrypoint.scheme=https"
+      - "--entryPoints.https.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=sysadmin@hotosm.org"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certs:/letsencrypt
+      - /var/run/user/1000/docker.sock:/var/run/user/1000/docker.sock:ro
+    networks:
+      - hotosm
+    restart: unless-stopped
+
+  # ==========================================
+  # Hanko - Authentication Service
+  # ==========================================
+
+  # Hanko database migrations (runs once before Hanko starts)
+  hanko-migrate:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    container_name: login-hanko-migrate
+    volumes:
+      - ./hanko-config.yaml:/etc/config/config.yaml:ro
+    command: migrate up --config /etc/config/config.yaml
+    environment:
+      - DATABASE_URL=postgres://hanko:${POSTGRES_PASSWORD:-hanko}@hanko-db:5432/hanko?sslmode=disable
+    depends_on:
+      hanko-db:
+        condition: service_healthy
+    networks:
+      - hotosm
+    restart: "no"
+
+  hanko:
+    image: ghcr.io/teamhanko/hanko:v2.1.0
+    container_name: login-hanko
+    volumes:
+      - ./hanko-config.yaml:/etc/config/config.yaml:ro
+    command: serve --config /etc/config/config.yaml public
+    environment:
+      - DATABASE_URL=postgres://hanko:${POSTGRES_PASSWORD:-hanko}@hanko-db:5432/hanko?sslmode=disable
+      # Cookie configuration for cross-subdomain SSO
+      - SESSION_COOKIE_DOMAIN=.hotosm.org
+      - SESSION_COOKIE_HTTP_ONLY=true
+      - SESSION_COOKIE_SAME_SITE=lax
+      - SESSION_COOKIE_SECURE=true
+      - THIRD_PARTY_COOKIE_DOMAIN=.hotosm.org
+    networks:
+      - hotosm
+    labels:
+      - "traefik.enable=true"
+      # Hanko API endpoints with different priorities
+      - "traefik.http.routers.hanko-wellknown.rule=Host(`dev.login.hotosm.org`) && PathPrefix(`/.well-known`)"
+      - "traefik.http.routers.hanko-wellknown.entrypoints=https"
+      - "traefik.http.routers.hanko-wellknown.tls=true"
+      - "traefik.http.routers.hanko-wellknown.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.hanko-wellknown.priority=50"
+      - "traefik.http.routers.hanko-wellknown.service=hanko"
+      # Hanko API routes (registration, login POST, users, etc.)
+      - "traefik.http.routers.hanko-api.rule=Host(`dev.login.hotosm.org`) && (PathPrefix(`/registration`) || PathPrefix(`/logout`) || PathPrefix(`/sessions`) || PathPrefix(`/users`) || PathPrefix(`/passcode`) || PathPrefix(`/webauthn`) || PathPrefix(`/token`) || PathPrefix(`/thirdparty`) || PathPrefix(`/me`))"
+      - "traefik.http.routers.hanko-api.entrypoints=https"
+      - "traefik.http.routers.hanko-api.tls=true"
+      - "traefik.http.routers.hanko-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.hanko-api.priority=10"
+      - "traefik.http.routers.hanko-api.service=hanko"
+      # Hanko /login endpoint for POST requests (API) - higher priority than frontend GET
+      - "traefik.http.routers.hanko-login.rule=Host(`dev.login.hotosm.org`) && Path(`/login`) && Method(`POST`,`PUT`,`DELETE`,`PATCH`)"
+      - "traefik.http.routers.hanko-login.entrypoints=https"
+      - "traefik.http.routers.hanko-login.tls=true"
+      - "traefik.http.routers.hanko-login.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.hanko-login.priority=5"
+      - "traefik.http.routers.hanko-login.service=hanko"
+      - "traefik.http.services.hanko.loadbalancer.server.port=8000"
+    depends_on:
+      hanko-db:
+        condition: service_healthy
+      hanko-migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  hanko-db:
+    image: postgres:17-alpine
+    container_name: login-hanko-db
+    environment:
+      - POSTGRES_USER=hanko
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hanko}
+      - POSTGRES_DB=hanko
+    volumes:
+      - hanko-db-data:/var/lib/postgresql/data
+    networks:
+      - hotosm
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hanko -d hanko"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ==========================================
+  # OSM Userinfo Service - Sidecar for Hanko
+  # ==========================================
+
+  osm-userinfo:
+    image: ghcr.io/hotosm/login-osm-userinfo:latest
+    container_name: login-osm-userinfo
+    volumes:
+      - ./hanko-config.yaml:/etc/config/config.yaml:ro
+    networks:
+      - hotosm
+    restart: unless-stopped
+
+  # ==========================================
+  # Backend - FastAPI Application
+  # ==========================================
+
+  backend:
+    image: ghcr.io/hotosm/login-backend:latest
+    container_name: login-backend
+    environment:
+      - AUTH_PROVIDER=hanko
+      - HANKO_API_URL=http://hanko:8000
+      - JWT_ISSUER=https://dev.login.hotosm.org
+      - COOKIE_SECRET=${COOKIE_SECRET}
+      - BACKEND_URL=https://dev.login.hotosm.org
+      - FRONTEND_URL=https://dev.login.hotosm.org
+      - OSM_CLIENT_ID=${OSM_CLIENT_ID}
+      - OSM_CLIENT_SECRET=${OSM_CLIENT_SECRET}
+      - OSM_REDIRECT_URI=${OSM_REDIRECT_URI}
+      - OSM_URL=${OSM_URL:-https://www.openstreetmap.org}
+      - OSM_SCOPE=${OSM_SCOPE:-read_prefs}
+      - LOG_LEVEL=INFO
+    networks:
+      - hotosm
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.login-backend.rule=Host(`dev.login.hotosm.org`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.login-backend.entrypoints=https"
+      - "traefik.http.routers.login-backend.tls=true"
+      - "traefik.http.routers.login-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.login-backend.priority=15"
+      - "traefik.http.services.login-backend.loadbalancer.server.port=8000"
+    depends_on:
+      - hanko
+    restart: unless-stopped
+
+  # ==========================================
+  # Frontend - React + Vite Application
+  # ==========================================
+
+  frontend:
+    image: ghcr.io/hotosm/login-frontend:latest
+    container_name: login-frontend
+    networks:
+      - hotosm
+    labels:
+      - "traefik.enable=true"
+      # Frontend serves everything else (lowest priority)
+      - "traefik.http.routers.login-frontend.rule=Host(`dev.login.hotosm.org`)"
+      - "traefik.http.routers.login-frontend.entrypoints=https"
+      - "traefik.http.routers.login-frontend.tls=true"
+      - "traefik.http.routers.login-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.login-frontend.priority=1"
+      - "traefik.http.services.login-frontend.loadbalancer.server.port=80"
+    depends_on:
+      - backend
+    restart: unless-stopped
