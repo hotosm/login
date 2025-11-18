@@ -103,10 +103,10 @@ jobs:
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # Pull latest images
-            docker compose pull
+            docker compose -f docker-compose.yml pull
 
             # Restart services with force recreate
-            docker compose up -d --force-recreate --pull always
+            docker compose -f docker-compose.yml up -d --force-recreate --pull always
 
             # Clean up old images
             docker image prune -af
