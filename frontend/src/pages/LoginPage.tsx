@@ -15,28 +15,31 @@ function LoginPage() {
       <div className="w-full max-w-md">
         {/* Login Card */}
         <div className="bg-white rounded-xl shadow-xl p-8">
-          {/* Logo and Header */}
+          {/* Logo */}
           <div className="text-center mb-8">
             <img
               src={hotLogo}
               alt="Humanitarian OpenStreetMap Team"
-              className="h-10 mx-auto mb-6"
+              className="h-12 mx-auto"
             />
-            <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-              Log In
-            </h1>
-            <p className="text-sm text-gray-600">
-              Sign in to access HOTOSM applications
-            </p>
           </div>
 
-          <hotosm-auth
-            hanko-url={hankoBaseUrl}
-            show-profile={true}
-            redirect-after-login={returnTo || undefined}
-            osm-required={osmRequired || undefined}
-            auto-connect={autoConnect || undefined}
-          />
+          <div className="max-w-[400px] mx-auto">
+            {/* SSO Description */}
+            <div className="text-center px-5">
+              <p className="text-sm text-gray-600">
+                Access all HOT tools and services
+              </p>
+            </div>
+
+            <hotosm-auth
+              hanko-url={hankoBaseUrl}
+              show-profile={true}
+              redirect-after-login={returnTo || undefined}
+              osm-required={osmRequired || undefined}
+              auto-connect={autoConnect || undefined}
+            />
+          </div>
 
           {returnTo && (
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
