@@ -142,7 +142,7 @@ services:
     container_name: login-backend
     environment:
       - AUTH_PROVIDER=hanko
-      - HANKO_API_URL=http://hanko:8000
+      - HANKO_API_URL=${HANKO_API_URL:-http://hanko:8000}
       - JWT_ISSUER=https://dev.login.hotosm.org
       - COOKIE_SECRET=${COOKIE_SECRET}
       - BACKEND_URL=https://dev.login.hotosm.org
