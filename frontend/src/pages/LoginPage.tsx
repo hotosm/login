@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router-dom';
 
 function LoginPage() {
   const [searchParams] = useSearchParams();
-  const returnTo = searchParams.get('return_to') || '/';
+  const returnTo = searchParams.get('return_to') || '/app';
   const osmRequired = searchParams.get('osm_required') === 'true';
   const autoConnect = searchParams.get('auto_connect') === 'true';
   const hankoUrl = import.meta.env.VITE_HANKO_URL || 'http://login.localhost';
@@ -23,7 +23,7 @@ function LoginPage() {
           auto-connect={autoConnect || undefined}
         />
 
-        {returnTo && returnTo !== '/' && (
+        {returnTo && returnTo !== '/app' && (
           <div className="mt-4 text-center">
             <a
               href={returnTo}
