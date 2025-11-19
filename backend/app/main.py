@@ -46,6 +46,10 @@ app.add_middleware(
         "https://portal.hotosm.test",
         "https://login.hotosm.test",
         "https://dronetm.hotosm.test",
+        # Production domains
+        "https://portal.hotosm.org",
+        "https://dev.login.hotosm.org",
+        "https://login.hotosm.org",
     ],
     allow_credentials=True,
     allow_methods=["*"],
