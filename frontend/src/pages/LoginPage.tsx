@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
+import hotLogo from '../assets/images/hot-logo.svg';
 
 function LoginPage() {
   const [searchParams] = useSearchParams();
@@ -10,29 +11,59 @@ function LoginPage() {
   const hankoBaseUrl = hankoUrl.replace(/\/login$/, '') || 'http://localhost';
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          HOT Login
-        </h1>
-        <hotosm-auth
-          hanko-url={hankoBaseUrl}
-          show-profile={true}
-          redirect-after-login={returnTo || undefined}
-          osm-required={osmRequired || undefined}
-          auto-connect={autoConnect || undefined}
-        />
-
-        {returnTo && (
-          <div className="mt-4 text-center">
-            <a
-              href={returnTo}
-              className="text-sm text-gray-600 hover:text-gray-900 inline-flex items-center gap-1"
-            >
-              <span>←</span> Back to previous page
-            </a>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="w-full max-w-md">
+        {/* Login Card */}
+        <div className="bg-white rounded-xl shadow-xl p-8">
+          {/* Logo and Header */}
+          <div className="text-center mb-8">
+            <img
+              src={hotLogo}
+              alt="Humanitarian OpenStreetMap Team"
+              className="h-10 mx-auto mb-6"
+            />
+            <h1 className="text-2xl font-semibold text-gray-800 mb-4">
+              Log In
+            </h1>
+            <p className="text-sm text-gray-600">
+              Sign in to access HOTOSM applications
+            </p>
           </div>
-        )}
+
+          <hotosm-auth
+            hanko-url={hankoBaseUrl}
+            show-profile={true}
+            redirect-after-login={returnTo || undefined}
+            osm-required={osmRequired || undefined}
+            auto-connect={autoConnect || undefined}
+          />
+
+          {returnTo && (
+            <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+              <a
+                href={returnTo}
+                className="text-sm text-gray-600 hover:text-red-600 inline-flex items-center gap-2 transition-colors"
+              >
+                <span>←</span> Back to previous page
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 text-center text-xs text-gray-500">
+          <p>
+            Powered by{' '}
+            <a
+              href="https://www.hotosm.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-red-600 hover:text-red-700 transition-colors"
+            >
+              Humanitarian OpenStreetMap Team
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

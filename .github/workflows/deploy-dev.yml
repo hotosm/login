@@ -119,7 +119,12 @@ jobs:
             echo "✓ Updated cookie domain in hanko-config.yaml"
 
             # Update secrets in .env
-            sed -i 's|^HANKO_API_URL=.*|HANKO_API_URL=https://dev.login.hotosm.org|' .env
+            # Add HANKO_API_URL if it doesn't exist, otherwise update it
+            if grep -q '^HANKO_API_URL=' .env; then
+              sed -i 's|^HANKO_API_URL=.*|HANKO_API_URL=https://dev.login.hotosm.org|' .env
+            else
+              echo 'HANKO_API_URL=https://dev.login.hotosm.org' >> .env
+            fi
             sed -i 's|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}|' .env
             sed -i 's|^COOKIE_SECRET=.*|COOKIE_SECRET=${{ secrets.COOKIE_SECRET }}|' .env
             sed -i 's|^OSM_CLIENT_ID=.*|OSM_CLIENT_ID=${{ secrets.OSM_CLIENT_ID }}|' .env
