@@ -46,6 +46,8 @@ app.add_middleware(
         "https://portal.hotosm.test",
         "https://login.hotosm.test",
         "https://dronetm.hotosm.test",
+        "https://fair.hotosm.test",
+        "https://openaerialmap.hotosm.test",
         # Production domains
         "https://portal.hotosm.org",
         "https://dev.login.hotosm.org",
