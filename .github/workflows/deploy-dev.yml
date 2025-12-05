@@ -114,9 +114,16 @@ jobs:
             sed -i 's/unsafe_wildcard_origin_allowed: true/unsafe_wildcard_origin_allowed: false/' hanko-config.yaml
             echo "✓ Updated CORS config in hanko-config.yaml"
 
-            # Fix cookie domain in hanko-config.yaml (ensure it's .hotosm.org not .login.hotosm.org)
+            # Transform all .hotosm.test URLs to .hotosm.org
+            sed -i 's|\.hotosm\.test|.hotosm.org|g' hanko-config.yaml
+            # Update login.hotosm.org to dev.login.hotosm.org
+            sed -i 's|login\.hotosm\.org|dev.login.hotosm.org|g' hanko-config.yaml
+            # Fix cookie domain (ensure it's .hotosm.org not .login.hotosm.org)
             sed -i 's|domain: ".login.hotosm.org"|domain: ".hotosm.org"|g' hanko-config.yaml
-            echo "✓ Updated cookie domain in hanko-config.yaml"
+            sed -i 's|domain: ".dev.login.hotosm.org"|domain: ".hotosm.org"|g' hanko-config.yaml
+            # Add testlogin.dronetm.hotosm.org to CORS allow_origins
+            sed -i '/allow_origins:/a\        - "https://testlogin.dronetm.hotosm.org"' hanko-config.yaml
+            echo "✓ Updated URLs and CORS in hanko-config.yaml"
 
             # Update secrets in .env
             # Add HANKO_API_URL if it doesn't exist, otherwise update it
