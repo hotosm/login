@@ -125,6 +125,10 @@ jobs:
             if ! grep -q "testlogin.dronetm.hotosm.org" hanko-config.yaml; then
               sed -i '/allow_origins:/a\        - "https://testlogin.dronetm.hotosm.org"' hanko-config.yaml
             fi
+            # Add testlogin.fair.hotosm.org to CORS allow_origins if not present
+            if ! grep -q "testlogin.fair.hotosm.org" hanko-config.yaml; then
+              sed -i '/allow_origins:/a\        - "https://testlogin.fair.hotosm.org"' hanko-config.yaml
+            fi
             echo "✓ Updated URLs and CORS in hanko-config.yaml"
 
             # Update secrets in .env
