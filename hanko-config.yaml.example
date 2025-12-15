@@ -24,6 +24,7 @@ service:
   name: "HOTOSM Portal (Dev)"
 
 webauthn:
+  enabled: false  # Passkeys disabled - using email/password + Google OAuth only
   relying_party:
     id: "hotosm.test"
     display_name: "HOTOSM Portal"
