@@ -144,14 +144,20 @@ jobs:
             done
             echo "✓ Updated URLs and CORS in hanko-config.yaml"
 
-            # Inject SMTP and Google OAuth secrets into hanko-config.yaml
-            sed -i 's|SMTP_HOST_PLACEHOLDER|${{ secrets.SMTP_HOST }}|g' hanko-config.yaml
-            sed -i 's|SMTP_USER_PLACEHOLDER|${{ secrets.SMTP_USER }}|g' hanko-config.yaml
-            sed -i 's|SMTP_PASSWORD_PLACEHOLDER|${{ secrets.SMTP_PASSWORD }}|g' hanko-config.yaml
-            sed -i 's|SMTP_FROM_PLACEHOLDER|${{ secrets.SMTP_FROM_ADDRESS }}|g' hanko-config.yaml
-            sed -i 's|GOOGLE_CLIENT_ID_PLACEHOLDER|${{ secrets.GOOGLE_CLIENT_ID }}|g' hanko-config.yaml
-            sed -i 's|GOOGLE_CLIENT_SECRET_PLACEHOLDER|${{ secrets.GOOGLE_CLIENT_SECRET }}|g' hanko-config.yaml
-            echo "✓ Injected SMTP and Google OAuth secrets"
+            # Update SMTP settings in hanko-config.yaml (replace any existing values)
+            sed -i 's|host: ".*"|host: "${{ secrets.SMTP_HOST }}"|' hanko-config.yaml
+            sed -i '/smtp:/,/from_address:/ s|user: ".*"|user: "${{ secrets.SMTP_USER }}"|' hanko-config.yaml
+            sed -i '/smtp:/,/from_address:/ s|password: ".*"|password: "${{ secrets.SMTP_PASSWORD }}"|' hanko-config.yaml
+            sed -i 's|from_address: ".*"|from_address: "${{ secrets.SMTP_FROM_ADDRESS }}"|' hanko-config.yaml
+            echo "✓ Updated SMTP settings"
+
+            # Update Google OAuth secrets in hanko-config.yaml
+            sed -i 's|client_id: "GOOGLE_CLIENT_ID_PLACEHOLDER"|client_id: "${{ secrets.GOOGLE_CLIENT_ID }}"|' hanko-config.yaml
+            sed -i 's|secret: "GOOGLE_CLIENT_SECRET_PLACEHOLDER"|secret: "${{ secrets.GOOGLE_CLIENT_SECRET }}"|' hanko-config.yaml
+            # Also replace if already set (for redeployments)
+            sed -i '/provider_id: "google"/,/allow_linking:/ s|client_id: ".*\.apps\.googleusercontent\.com"|client_id: "${{ secrets.GOOGLE_CLIENT_ID }}"|' hanko-config.yaml
+            sed -i '/provider_id: "google"/,/allow_linking:/ s|secret: "GOCSPX-.*"|secret: "${{ secrets.GOOGLE_CLIENT_SECRET }}"|' hanko-config.yaml
+            echo "✓ Updated Google OAuth secrets"
 
             # Update secrets in .env
             # Add HANKO_API_URL if it doesn't exist, otherwise update it
