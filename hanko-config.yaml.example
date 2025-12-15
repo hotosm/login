@@ -33,10 +33,27 @@ webauthn:
       - "https://dronetm.hotosm.test"
 
 email:
-  require_verification: false
+  require_verification: true
 
 passcode:
-  enabled: false  # Disabled for development (no SMTP server)
+  enabled: true
+  ttl: 300  # 5 minutes
+
+password:
+  enabled: true
+  min_length: 8
+  recovery: true
+
+# SMTP settings - values injected by deploy workflow via sed
+email_delivery:
+  enabled: true
+  smtp:
+    host: "SMTP_HOST_PLACEHOLDER"
+    port: 587
+    user: "SMTP_USER_PLACEHOLDER"
+    password: "SMTP_PASSWORD_PLACEHOLDER"
+  from_address: "SMTP_FROM_PLACEHOLDER"
+  from_name: "HOTOSM"
 
 session:
   lifespan: 1h
@@ -67,6 +84,6 @@ third_party:
   providers:
     google:
       enabled: true
-      client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-      secret: "YOUR_GOOGLE_CLIENT_SECRET"
+      client_id: "GOOGLE_CLIENT_ID_PLACEHOLDER"
+      secret: "GOOGLE_CLIENT_SECRET_PLACEHOLDER"
       allow_linking: true

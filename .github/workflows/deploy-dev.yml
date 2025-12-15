@@ -82,6 +82,12 @@ jobs:
           OSM_CLIENT_ID: ${{ secrets.OSM_CLIENT_ID }}
           OSM_CLIENT_SECRET: ${{ secrets.OSM_CLIENT_SECRET }}
           OSM_REDIRECT_URI: ${{ secrets.OSM_REDIRECT_URI }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM_ADDRESS: ${{ secrets.SMTP_FROM_ADDRESS }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
           ssh $EC2_USER@$EC2_HOST << 'EOF'
             set -e
@@ -130,6 +136,15 @@ jobs:
               sed -i '/allow_origins:/a\        - "https://testlogin.fair.hotosm.org"' hanko-config.yaml
             fi
             echo "✓ Updated URLs and CORS in hanko-config.yaml"
+
+            # Inject SMTP and Google OAuth secrets into hanko-config.yaml
+            sed -i 's|SMTP_HOST_PLACEHOLDER|${{ secrets.SMTP_HOST }}|g' hanko-config.yaml
+            sed -i 's|SMTP_USER_PLACEHOLDER|${{ secrets.SMTP_USER }}|g' hanko-config.yaml
+            sed -i 's|SMTP_PASSWORD_PLACEHOLDER|${{ secrets.SMTP_PASSWORD }}|g' hanko-config.yaml
+            sed -i 's|SMTP_FROM_PLACEHOLDER|${{ secrets.SMTP_FROM_ADDRESS }}|g' hanko-config.yaml
+            sed -i 's|GOOGLE_CLIENT_ID_PLACEHOLDER|${{ secrets.GOOGLE_CLIENT_ID }}|g' hanko-config.yaml
+            sed -i 's|GOOGLE_CLIENT_SECRET_PLACEHOLDER|${{ secrets.GOOGLE_CLIENT_SECRET }}|g' hanko-config.yaml
+            echo "✓ Injected SMTP and Google OAuth secrets"
 
             # Update secrets in .env
             # Add HANKO_API_URL if it doesn't exist, otherwise update it
