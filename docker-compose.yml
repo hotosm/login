@@ -14,8 +14,6 @@ services:
     image: traefik:v3.4.3
     container_name: login-traefik
     command:
-      - "--api.insecure=true"
-      - "--log.level=DEBUG"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.endpoint=unix:///var/run/user/1000/docker.sock"
@@ -30,7 +28,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
       - certs:/letsencrypt
       - /var/run/user/1000/docker.sock:/var/run/user/1000/docker.sock:ro
@@ -146,6 +143,7 @@ services:
     environment:
       - AUTH_PROVIDER=hanko
       - HANKO_API_URL=${HANKO_API_URL:-http://hanko:8000}
+      - HANKO_DB_URL=postgresql://hanko:${POSTGRES_PASSWORD:-hanko}@hanko-db:5432/hanko
       - JWT_ISSUER=https://dev.login.hotosm.org
       - COOKIE_SECRET=${COOKIE_SECRET}
       - BACKEND_URL=https://dev.login.hotosm.org
@@ -156,6 +154,7 @@ services:
       - OSM_URL=${OSM_URL:-https://www.openstreetmap.org}
       - OSM_SCOPE=${OSM_SCOPE:-read_prefs}
       - LOG_LEVEL=INFO
+      - ADMIN_EMAILS=hernangigena@gmail.com
     networks:
       - hotosm
     labels:
