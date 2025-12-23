@@ -91,6 +91,11 @@ app.include_router(
     tags=["auth"],
 )
 
+# Include admin routes for user mapping management
+from app.api.routes import admin as admin_routes
+
+app.include_router(admin_routes.router)
+
 
 @app.get("/me", response_model=UserInfoResponse)
 async def get_current_user(user: CurrentUser) -> UserInfoResponse:
