@@ -55,8 +55,8 @@ FROM nginx:alpine AS production
 # Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration (if exists, otherwise use default)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx configuration for SPA routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 80
