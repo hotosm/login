@@ -14,6 +14,8 @@ services:
     image: traefik:v3.4.3
     container_name: login-traefik
     command:
+      - "--api.insecure=true"
+      - "--log.level=DEBUG"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.endpoint=unix:///var/run/user/1000/docker.sock"
@@ -28,6 +30,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"
     volumes:
       - certs:/letsencrypt
       - /var/run/user/1000/docker.sock:/var/run/user/1000/docker.sock:ro
