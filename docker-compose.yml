@@ -155,6 +155,11 @@ services:
       - OSM_SCOPE=${OSM_SCOPE:-read_prefs}
       - LOG_LEVEL=INFO
       - ADMIN_EMAILS=hernangigena@gmail.com
+      # App URLs for admin proxy (public URLs, not internal Docker)
+      - DRONETM_BACKEND_URL=https://testlogin.dronetm.hotosm.org
+      - FAIR_BACKEND_URL=https://testlogin.fair.hotosm.org
+      - PORTAL_BACKEND_URL=https://portal.hotosm.org
+      - OAM_BACKEND_URL=https://openaerialmap.org
     networks:
       - hotosm
     labels:
