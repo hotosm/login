@@ -12,7 +12,8 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: ['login.hotosm.test', 'localhost', '127.0.0.1', '.test', 'dev.login.hotosm.org', 'login.hotosm.org'],
     hmr: {
-      clientPort: 80,
+      protocol: 'wss',
+      clientPort: 443,
       host: 'login.hotosm.test',
     },
     proxy: {
