@@ -144,6 +144,7 @@ services:
       - AUTH_PROVIDER=hanko
       - HANKO_API_URL=${HANKO_API_URL:-http://hanko:8000}
       - HANKO_DB_URL=postgresql://hanko:${POSTGRES_PASSWORD:-hanko}@hanko-db:5432/hanko
+      - DATABASE_URL=postgresql+asyncpg://hanko:${POSTGRES_PASSWORD:-hanko}@hanko-db:5432/hanko
       - JWT_ISSUER=https://dev.login.hotosm.org
       - COOKIE_SECRET=${COOKIE_SECRET}
       - BACKEND_URL=https://dev.login.hotosm.org
