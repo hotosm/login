@@ -1225,21 +1225,14 @@ export class HankoAuth extends LitElement {
       osmConnected: this.osmConnected,
     });
 
-    // Verify if session is actually expired before cleaning up
-    // The SDK may fire this event for old sessions while a new valid session exists
-    if (this._hanko) {
-      try {
-        const session = await this._hanko.session.get();
-        if (session && session.isValid) {
-          console.log("✅ Session is still valid, ignoring expired event (likely stale)");
-          return;
-        }
-      } catch (e) {
-        console.log("⚠️ Could not verify session, proceeding with cleanup");
-      }
+    // If we have an active user, the session is still valid
+    // The SDK may fire this event for old/stale sessions while a new session exists
+    if (this.user) {
+      console.log("✅ User is logged in, ignoring stale session expired event");
+      return;
     }
 
-    console.log("🧹 Session confirmed expired - cleaning up state");
+    console.log("🧹 No active user - cleaning up state");
 
     // Call OSM disconnect endpoint to clear httpOnly cookie
     try {

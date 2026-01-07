@@ -4492,17 +4492,11 @@ let Ce = class extends Ut {
     if (console.log("🕒 Session expired event received"), console.log("📊 Current state:", {
       user: this.user,
       osmConnected: this.osmConnected
-    }), this._hanko)
-      try {
-        const t = await this._hanko.session.get();
-        if (t && t.isValid) {
-          console.log("✅ Session is still valid, ignoring expired event (likely stale)");
-          return;
-        }
-      } catch {
-        console.log("⚠️ Could not verify session, proceeding with cleanup");
-      }
-    console.log("🧹 Session confirmed expired - cleaning up state");
+    }), this.user) {
+      console.log("✅ User is logged in, ignoring stale session expired event");
+      return;
+    }
+    console.log("🧹 No active user - cleaning up state");
     try {
       const t = this.getBasePath(), o = this.authPath, i = window.location.origin, s = this.addTrailingSlash(
         `${t}${o}/disconnect`,
