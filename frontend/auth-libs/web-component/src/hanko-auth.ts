@@ -1219,12 +1219,27 @@ export class HankoAuth extends LitElement {
   }
 
   private async handleSessionExpired() {
-    console.log("🆕🆕🆕 NEW CODE RUNNING - handleSessionExpired v3.0 🆕🆕🆕");
-    console.log("🕒 Session expired - cleaning up state");
-    console.log("📊 State before cleanup:", {
+    console.log("🕒 Session expired event received");
+    console.log("📊 Current state:", {
       user: this.user,
       osmConnected: this.osmConnected,
     });
+
+    // Verify if session is actually expired before cleaning up
+    // The SDK may fire this event for old sessions while a new valid session exists
+    if (this._hanko) {
+      try {
+        const session = await this._hanko.session.get();
+        if (session && session.isValid) {
+          console.log("✅ Session is still valid, ignoring expired event (likely stale)");
+          return;
+        }
+      } catch (e) {
+        console.log("⚠️ Could not verify session, proceeding with cleanup");
+      }
+    }
+
+    console.log("🧹 Session confirmed expired - cleaning up state");
 
     // Call OSM disconnect endpoint to clear httpOnly cookie
     try {
