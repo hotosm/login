@@ -43,7 +43,7 @@ function LoginPage() {
 
   // Track if user is logged in and their profile
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [displayName, setDisplayName] = useState('');
+  const [_displayName, setDisplayName] = useState('');
 
   // Listen for login/logout events from hotosm-auth
   useEffect(() => {
