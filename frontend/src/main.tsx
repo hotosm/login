@@ -6,8 +6,16 @@ import './index.css';
 // Import HOTOSM auth web component
 import '../auth-libs/web-component/dist/hanko-auth.esm.js';
 
+// Import and register Hanko Profile component
+import { register } from '@teamhanko/hanko-elements';
+
 // Set global HANKO_URL for the web component
 window.HANKO_URL = import.meta.env.VITE_HANKO_URL || 'http://login.localhost';
+
+// Register Hanko elements (for hanko-profile)
+register(window.HANKO_URL).catch((error) => {
+  console.error('Failed to register Hanko elements:', error);
+});
 
 console.log('🔧 Hanko URL configured:', window.HANKO_URL);
 

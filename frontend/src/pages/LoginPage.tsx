@@ -41,6 +41,44 @@ function LoginPage() {
   // Show error toast if there's an error param
   const [showError, setShowError] = useState(!!errorMessage);
 
+  // Track if user is logged in and their profile
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+
+  // Listen for login/logout events from hotosm-auth
+  useEffect(() => {
+    const handleLogin = async () => {
+      setIsLoggedIn(true);
+      // Fetch profile to get display name
+      try {
+        const response = await fetch('/api/profile/me', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const profile = await response.json();
+          if (profile.first_name || profile.last_name) {
+            setDisplayName(`${profile.first_name || ''} ${profile.last_name || ''}`.trim());
+          }
+        }
+      } catch (error) {
+        console.log('Could not fetch profile:', error);
+      }
+    };
+
+    const handleLogout = () => {
+      setIsLoggedIn(false);
+      setDisplayName('');
+    };
+
+    document.addEventListener('hanko-login', handleLogin);
+    document.addEventListener('logout', handleLogout);
+
+    return () => {
+      document.removeEventListener('hanko-login', handleLogin);
+      document.removeEventListener('logout', handleLogout);
+    };
+  }, []);
+
   // Reset to question step if there's an error (user came back from failed onboarding)
   useEffect(() => {
     if (errorMessage && isOnboarding) {
@@ -106,7 +144,7 @@ function LoginPage() {
   const appDisplayName = onboardingApp === 'fair' ? 'fAIr' : onboardingApp || 'the app';
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-hot-gray-50 p-4">
       {/* Error Toast */}
       {showError && errorMessage && (
         <div className="toast-error">
@@ -134,19 +172,19 @@ function LoginPage() {
           {isOnboarding && onboardingStep === 'question' && (
             <div className="max-w-[400px] mx-auto">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                <h2 className="text-xl font-semibold text-hot-gray-900 mb-2">
                   Welcome to {appDisplayName}!
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-hot-gray-600">
                   We need to set up your account.
                 </p>
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6">
-                <p className="text-center text-gray-800 font-medium mb-3">
+                <p className="text-center text-hot-gray-900 font-medium mb-3">
                   Did you have an existing {appDisplayName} account?
                 </p>
-                <p className="text-center text-sm text-gray-600">
+                <p className="text-center text-sm text-hot-gray-600">
                   If you previously used {appDisplayName} with OpenStreetMap,
                   we can recover your data.
                 </p>
@@ -161,7 +199,7 @@ function LoginPage() {
                 </button>
               </div>
 
-              <p className="mt-5 text-xs text-center text-gray-400">
+              <p className="mt-5 text-xs text-center text-hot-gray-400">
                 Not sure? Select "Yes" and we'll check for you.
               </p>
             </div>
@@ -171,10 +209,10 @@ function LoginPage() {
           {isOnboarding && onboardingStep === 'osm_connect' && (
             <div className="max-w-[400px] mx-auto">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-2">
+                <h2 className="text-lg font-semibold text-hot-gray-900 mb-2">
                   Connect your OpenStreetMap account
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-hot-gray-600">
                   Connect with the same OSM account you used before to recover your {appDisplayName} data.
                 </p>
               </div>
@@ -199,8 +237,8 @@ function LoginPage() {
           {/* Onboarding: Redirecting step */}
           {isOnboarding && onboardingStep === 'redirecting' && (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent mx-auto mb-4"></div>
-              <p className="text-gray-600">Setting up your account...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-600 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-hot-gray-600">Setting up your account...</p>
             </div>
           )}
 
@@ -208,7 +246,7 @@ function LoginPage() {
           {!isOnboarding && (
             <div className="max-w-[400px] mx-auto">
               <div className="text-center px-5">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-hot-gray-600">
                   Access all HOT tools and services
                 </p>
               </div>
@@ -220,14 +258,26 @@ function LoginPage() {
                 osm-required={osmRequired || undefined}
                 auto-connect={autoConnect || undefined}
               />
+
+              {/* Profile link when logged in */}
+              {isLoggedIn && (
+                <div className="mt-4 text-center">
+                  <a
+                    href="/app/profile"
+                    className="text-sm text-hot-red-600 hover:text-hot-red-700 font-medium transition-colors"
+                  >
+                    Manage my profile →
+                  </a>
+                </div>
+              )}
             </div>
           )}
 
           {returnTo && !isOnboarding && (
-            <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+            <div className="mt-6 pt-6 border-t border-hot-gray-200 text-center">
               <a
                 href={returnTo}
-                className="text-sm text-gray-600 hover:text-red-600 inline-flex items-center gap-2 transition-colors"
+                className="text-sm text-hot-gray-600 hover:text-hot-red-600 inline-flex items-center gap-2 transition-colors"
               >
                 <span>←</span> Back to previous page
               </a>
@@ -236,14 +286,14 @@ function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-6 text-center text-xs text-gray-500">
+        <div className="mt-6 text-center text-xs text-hot-gray-500">
           <p>
             Powered by{' '}
             <a
               href="https://www.hotosm.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-red-600 hover:text-red-700 transition-colors"
+              className="text-hot-red-600 hover:text-hot-red-700 transition-colors"
             >
               Humanitarian OpenStreetMap Team
             </a>

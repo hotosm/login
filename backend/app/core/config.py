@@ -11,6 +11,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # Database
+    database_url: str = "postgresql+asyncpg://hanko:hanko@hanko-db:5432/hanko"
+
     # Authentication
     hanko_api_url: str = "http://hanko:8000"
     cookie_secret: str

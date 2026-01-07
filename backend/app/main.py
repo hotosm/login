@@ -93,8 +93,10 @@ app.include_router(
 
 # Include admin routes for user mapping management
 from app.api.routes import admin as admin_routes
+from app.api.routes import profile as profile_routes
 
 app.include_router(admin_routes.router)
+app.include_router(profile_routes.router)
 
 
 @app.get("/me", response_model=UserInfoResponse)
