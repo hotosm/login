@@ -5,9 +5,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from hotosm_auth import AuthConfig
-from hotosm_auth.integrations import fastapi as auth_fastapi
-from hotosm_auth.integrations import fastapi_osm_routes
-from hotosm_auth.integrations.fastapi import init_auth, CurrentUser
+from hotosm_auth_fastapi import init_auth, CurrentUser, osm_router
 
 from app.core.config import settings
 from app.schemas.auth import UserInfoResponse
@@ -86,7 +84,7 @@ init_auth(auth_config)
 # Include OSM OAuth routes
 api_v1_prefix = "/api"
 app.include_router(
-    fastapi_osm_routes.router,
+    osm_router,
     prefix=api_v1_prefix,
     tags=["auth"],
 )

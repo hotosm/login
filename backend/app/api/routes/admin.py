@@ -9,7 +9,7 @@ from typing import Annotated, Any
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from hotosm_auth.integrations.fastapi import get_current_user
+from hotosm_auth_fastapi import get_current_user
 from hotosm_auth.models import HankoUser
 
 from app.core.config import settings

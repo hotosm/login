@@ -4,7 +4,7 @@ import hashlib
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from hotosm_auth.integrations.fastapi import get_current_user
+from hotosm_auth_fastapi import get_current_user
 from hotosm_auth.models import HankoUser
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -114,7 +114,7 @@ async def sync_osm_to_profile(user: CurrentUser, db: DB) -> dict:
 
     Call this after connecting OSM to cache the OSM user info in the profile.
     """
-    from hotosm_auth.integrations.fastapi import get_osm_connection
+    from hotosm_auth_fastapi import get_osm_connection
 
     # Try to get OSM connection
     # Note: This would need the request object, so we'll handle this differently
