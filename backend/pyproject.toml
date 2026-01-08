@@ -14,7 +14,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "alembic>=1.14.0",
     "psycopg2-binary>=2.9.0",
-    "hotosm-auth @ git+https://github.com/LawalCoop/hot-auth-libs.git@main#subdirectory=python",
+    "hotosm-auth @ git+https://github.com/LawalCoop/hot-auth-libs.git@v0.1.11#subdirectory=python",
 ]
 
 [project.optional-dependencies]
