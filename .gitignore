@@ -2,3 +2,6 @@
 config.yaml
 config_dev.yaml
 hanko-config.yaml
+
+# Local Claude Code instructions (not committed)
+auth-libs/CLAUDE.md
