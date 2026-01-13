@@ -59,9 +59,9 @@ update_pyproject() {
     if [ -f "$file" ]; then
         # Replace old repo URL (LawalCoop/hot-auth-libs) with new (hotosm/login)
         # and update subdirectory path from python to auth-libs/python
-        sed -i "s|LawalCoop/hot-auth-libs.git@[^#]*#subdirectory=python|hotosm/login.git@v$VERSION#subdirectory=auth-libs/python|g" "$file"
+        sed -i "s|LawalCoop/hot-auth-libs.git@[^#]*#subdirectory=python|hotosm/login.git@auth-libs-v$VERSION#subdirectory=auth-libs/python|g" "$file"
         # Also handle if already using hotosm/login
-        sed -i "s|hotosm/login.git@[^#]*#subdirectory=auth-libs/python|hotosm/login.git@v$VERSION#subdirectory=auth-libs/python|g" "$file"
+        sed -i "s|hotosm/login.git@[^#]*#subdirectory=auth-libs/python|hotosm/login.git@auth-libs-v$VERSION#subdirectory=auth-libs/python|g" "$file"
         echo "  ✅ Updated: $file"
     fi
 }
