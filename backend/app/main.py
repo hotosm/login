@@ -46,10 +46,12 @@ app.add_middleware(
         "https://dronetm.hotosm.test",
         "https://fair.hotosm.test",
         "https://openaerialmap.hotosm.test",
+        "https://chatmap.hotosm.test",
         # Production domains
         "https://portal.hotosm.org",
         "https://dev.login.hotosm.org",
         "https://login.hotosm.org",
+        "https://chatmap.hotosm.org",
         # Test environments
         "https://testlogin.dronetm.hotosm.org",
         "https://testlogin.fair.hotosm.org",
