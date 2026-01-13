@@ -1,6 +1,7 @@
 site_name: HOTOSM Auth
 site_description: Authentication documentation for HOTOSM applications
 site_url: https://hotosm.github.io/auth-docs
+docs_dir: src
 
 repo_name: hotosm/login
 repo_url: https://github.com/hotosm/login

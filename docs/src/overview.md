@@ -99,6 +99,55 @@ CREATE TABLE hanko_user_mappings (
 3. **Admin assigns** - Manual mapping via admin API
 4. **Onboarding flow** - User completes registration after login
 
+### FastAPI Flow
+
+```mermaid
+flowchart TD
+    A[Request with JWT] --> B[get_current_user]
+    B --> C{JWT Valid?}
+    C -->|No| D[401 Unauthorized]
+    C -->|Yes| E[HankoUser]
+    E --> F[get_mapped_user_id]
+    F --> G{Mapping exists?}
+    G -->|Yes| H[Return app_user_id]
+    G -->|No| I{auto_create?}
+    I -->|No| J[403 Forbidden]
+    I -->|Yes| K{email_lookup_fn?}
+    K -->|Found| L[Link existing user]
+    K -->|Not found| M{user_creator_fn?}
+    M -->|Yes| N[Create new user]
+    M -->|No| O[Use Hanko ID as app ID]
+    L --> P[INSERT mapping]
+    N --> P
+    O --> P
+    P --> H
+```
+
+### Django Flow
+
+```mermaid
+flowchart TD
+    A[Request] --> B[HankoAuthMiddleware]
+    B --> C[request.hotosm.user]
+    C --> D{JWT Valid?}
+    D -->|No| E[user = None]
+    D -->|Yes| F[HankoUser]
+    F --> G[get_mapped_user_id]
+    G --> H{Mapping exists?}
+    H -->|Yes| I[Return app_user_id]
+    H -->|No| J{auto_create?}
+    J -->|No default| K[Return None]
+    K --> L[App handles onboarding]
+    L --> M[User completes flow]
+    M --> N[create_user_mapping]
+    N --> O[User fully authenticated]
+    J -->|Yes| P[user_id_generator]
+    P --> Q[INSERT mapping]
+    Q --> I
+```
+
+> **Key Difference**: FastAPI supports auto-creation with `email_lookup_fn` and `user_creator_fn`. Django defaults to `auto_create=False`, expecting the app to handle onboarding (e.g., after OSM connect).
+
 ---
 
 ## Environment Variables
