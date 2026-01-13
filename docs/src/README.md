@@ -97,5 +97,3 @@ login/
 ## Deployment
 
 Docs deploy automatically to GitHub Pages on push to `develop`.
-
-Live site: https://hotosm.github.io/login/
