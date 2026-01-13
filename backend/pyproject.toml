@@ -14,7 +14,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "alembic>=1.14.0",
     "psycopg2-binary>=2.9.0",
-    "hotosm-auth @ file:../auth-libs/python",
+    "hotosm-auth @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python",
 ]
 
 [project.optional-dependencies]

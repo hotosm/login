@@ -296,8 +296,8 @@ wheels = [
 
 [[package]]
 name = "hotosm-auth"
-version = "0.2.1"
-source = { git = "https://github.com/LawalCoop/hot-auth-libs.git?subdirectory=python&rev=v0.2.1#5ab68ce4507a4697bc5bf6ac204fe540d43318f9" }
+version = "0.2.2"
+source = { git = "https://github.com/hotosm/login.git?subdirectory=auth-libs%2Fpython&rev=auth-libs-v0.2.2#4fc4b599d6730c46ef8212fff145d34c84a87328" }
 dependencies = [
     { name = "cryptography" },
     { name = "httpx" },
@@ -337,7 +337,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.14.0" },
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "fastapi", specifier = ">=0.115.6" },
-    { name = "hotosm-auth", git = "https://github.com/LawalCoop/hot-auth-libs.git?subdirectory=python&rev=v0.2.1" },
+    { name = "hotosm-auth", git = "https://github.com/hotosm/login.git?subdirectory=auth-libs%2Fpython&rev=auth-libs-v0.2.2" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1" },
     { name = "psycopg2-binary", specifier = ">=2.9.0" },
