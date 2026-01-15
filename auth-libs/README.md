@@ -28,22 +28,32 @@ async def get_me(user: CurrentUser):
 
 ---
 
-### 2. Web Component (`web-component/`)
+### 2. Web Component
 
 **Componente web** para el frontend (HTML/JS).
 
-**Uso**:
-```html
-<head>
-    <meta name="hanko-url" content="https://login.hotosm.org">
-    <script src="auth-libs/web-component/dist/hanko-auth.iife.js"></script>
-</head>
-<body>
-    <hotosm-auth show-profile></hotosm-auth>
-</body>
+**Ubicación**: `frontend/auth-libs/web-component/`
+
+**Instalación desde npm**:
+```bash
+pnpm add @hotosm/hanko-auth
+pnpm add @awesome.me/webawesome  # peer dependency
 ```
 
-📚 **Documentación completa**: [web-component/README.md](./web-component/README.md)
+**Uso**:
+```javascript
+import '@awesome.me/webawesome';
+import '@hotosm/hanko-auth';
+```
+
+```html
+<hotosm-auth
+  hanko-url="https://login.hotosm.org"
+  show-profile
+></hotosm-auth>
+```
+
+📚 **Documentación completa**: [../frontend/auth-libs/web-component/README.md](../frontend/auth-libs/web-component/README.md)
 
 ---
 
