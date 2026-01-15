@@ -2,7 +2,17 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
+  esbuild: {
+    target: 'es2020',
+    tsconfigRaw: {
+      compilerOptions: {
+        useDefineForClassFields: false,
+        experimentalDecorators: true
+      }
+    }
+  },
   build: {
+    target: 'es2020',
     lib: {
       entry: resolve(__dirname, 'src/hanko-auth.ts'),
       name: 'HankoAuth',

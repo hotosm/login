@@ -37,17 +37,20 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/hotosm/login.git",
-    "directory": "auth-libs/web-component"
+    "directory": "frontend/auth-libs/web-component"
   },
   "bugs": {
     "url": "https://github.com/hotosm/login/issues"
   },
   "dependencies": {
-    "@awesome.me/webawesome": "3.0.0-beta.1",
     "@teamhanko/hanko-elements": "^1.0.0",
     "lit": "^3.3.1"
   },
+  "peerDependencies": {
+    "@awesome.me/webawesome": "^3.0.0-beta.1"
+  },
   "devDependencies": {
+    "@awesome.me/webawesome": "3.0.0-beta.1",
     "vite": "^5.0.0"
   }
 }
