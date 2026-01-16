@@ -98,6 +98,9 @@ distribute_python "$HOT_DIR/openaerialmap/backend/stac-api/auth-libs" "openaeria
 distribute_web_component "$HOT_DIR/fAIr/frontend/auth-libs/web-component" "fAIr"
 distribute_python "$HOT_DIR/fAIr/backend/auth-libs" "fAIr"
 
+# ChatMap
+distribute_web_component "$HOT_DIR/chatmap/chatmap-ui/auth-libs/web-component" "chatmap"
+
 echo "✅ Distribution complete!"
 echo ""
 
@@ -111,6 +114,7 @@ update_pyproject "$HOT_DIR/portal/backend/pyproject.toml"
 update_pyproject "$HOT_DIR/drone-tm/src/backend/pyproject.toml"
 update_pyproject "$HOT_DIR/fAIr/backend/pyproject.toml"
 update_pyproject "$HOT_DIR/openaerialmap/backend/stac-api/pyproject.toml"
+update_pyproject "$HOT_DIR/chatmap/chatmap-api/pyproject.toml"
 
 echo ""
 echo "✅ All pyproject.toml references updated to v$VERSION"
@@ -143,6 +147,8 @@ echo "  - openaerialmap/backend/stac-api/pyproject.toml → v$VERSION"
 echo "  - fAIr/frontend/auth-libs/web-component/dist/"
 echo "  - fAIr/backend/auth-libs/dist/"
 echo "  - fAIr/backend/pyproject.toml → v$VERSION"
+echo "  - chatmap/chatmap-ui/auth-libs/web-component/dist/"
+echo "  - chatmap/chatmap-api/pyproject.toml → v$VERSION"
 echo "  - hot-dev-env/docker-compose.yml → v$VERSION"
 echo ""
 echo "Note: login/backend uses local reference to auth-libs (no version update needed)"
