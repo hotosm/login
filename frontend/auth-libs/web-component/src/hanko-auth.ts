@@ -70,6 +70,8 @@ export class HankoAuth extends LitElement {
   @property({ type: String, attribute: "app-id" }) appId = "";
   // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
   @property({ type: String, attribute: "login-url" }) loginUrl = "";
+  // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
+  @property({ type: String, attribute: "login-url" }) loginUrl = "";
 
   // Internal state
   @state() private user: UserState | null = null;
@@ -137,7 +139,7 @@ export class HankoAuth extends LitElement {
       color: var(--hot-color-gray-600);
       font-weight: var(--hot-font-weight-semibold);
     }
-    // TODO replace with we button
+    // TODO replace with WA button
     button {
       width: 100%;
       padding: 12px 20px;
@@ -1607,7 +1609,7 @@ export class HankoAuth extends LitElement {
                     </wa-dropdown-item>
                   `
               : ""}
-            <wa-dropdown-item value="logout">
+            <wa-dropdown-item value="logout" variant="danger">
               <wa-icon slot="icon" name="right-from-bracket"></wa-icon>
               Sign Out
             </wa-dropdown-item>

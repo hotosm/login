@@ -69,7 +69,8 @@ export function AuthButton({ hankoUrl, onLogin }) {
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `hanko-url` | string | `window.location.origin` | Login service URL (login.hotosm.org) for Hanko authentication |
+| `hanko-url` | string | `window.location.origin` | Hanko API URL for SDK initialization and JWT validation |
+| `login-url` | string | `${hanko-url}/app` | Login page URL (override for standalone mode) |
 | `base-path` | string | `""` | Base URL for OSM OAuth endpoints. Usually same as `hanko-url` since login service hosts both Hanko and OSM auth |
 | `auth-path` | string | `/api/auth/osm` | OSM auth endpoints path (appended to `base-path`) |
 
@@ -374,6 +375,30 @@ flowchart TD
   app-id="portal"
 ></hotosm-auth>
 ```
+
+### Standalone Mode (Local Hanko)
+
+For development/standalone deployments with a local Hanko instance:
+
+```html
+<!-- In header (show login button) -->
+<hotosm-auth
+  hanko-url="http://localhost:8002"
+  login-url="http://localhost:5173/app"
+></hotosm-auth>
+
+<!-- In /app route (show Hanko form) -->
+<hotosm-auth
+  hanko-url="http://localhost:8002"
+  show-profile
+  redirect-after-login="http://localhost:5173"
+></hotosm-auth>
+```
+
+**Key difference from SSO mode:**
+
+- **SSO mode**: `hanko-url` points to login.hotosm.org which hosts both the Hanko API and the login UI
+- **Standalone mode**: `hanko-url` points to local Hanko API, `login-url` points to your app's login page with embedded Hanko form
 
 ---
 
