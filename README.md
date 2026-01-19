@@ -112,25 +112,23 @@ docker build -t test-osm-userinfo ./osm-userinfo
 
 ### Auth-libs Integration
 
-This project uses auth-libs for authentication. The `auth-libs/` directories contain **ONLY** built artifacts (`dist/`), not source code.
+**Python library:**
+- Located in `auth-libs/python/`
+- Installed via pip during Docker build
 
-**Source code location:** `/home/willaru/dev/HOT/auth-libs/`
+**Web component:**
+- Source: `frontend/auth-libs/web-component/`
+- Published to npm as `@hotosm/hanko-auth`
+- Other HOT projects install from npm:
+  ```bash
+  pnpm add @hotosm/hanko-auth
+  pnpm add @awesome.me/webawesome  # peer dependency
+  ```
 
-**To update auth-libs:**
-
-1. Edit source in the main auth-libs repo
-2. Build: `cd ../auth-libs && ./scripts/build.sh`
-3. Distribute: `./scripts/distribute.sh`
-4. Commit updated `dist/` in this repo
-5. Push changes
-
-See `/home/willaru/dev/HOT/auth-libs/CLAUDE.md` for complete documentation.
-
-**Included artifacts:**
-- `backend/auth-libs/python/dist/hotosm_auth-0.1.0-py3-none-any.whl`
-- `frontend/auth-libs/web-component/dist/hanko-auth.esm.js`
-
-These files are force-added to git (ignored by .gitignore but needed for Docker builds).
+**Development:**
+- Edit source in respective directories
+- Build web component: `cd frontend/auth-libs/web-component && pnpm build`
+- Frontend imports from `../auth-libs/web-component/dist/hanko-auth.esm.js`
 
 ## Deployment
 

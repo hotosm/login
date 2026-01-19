@@ -13,13 +13,13 @@ hanko-auth {
   --color-shade-1: var(--hot-color-gray-700);
   --color-shade-2: var(--hot-color-gray-500);
 
-  --brand-color: var(--hot-color-red-600);
-  --brand-color-shade-1: var(--hot-color-red-700);
+  --brand-color: var(--hot-color-gray-800);
+  --brand-color-shade-1: var(--hot-color-gray-900);
   --brand-contrast-color: white;
 
   --background-color: white;
   --error-color: var(--hot-color-red-600);
-  --link-color: var(--hot-color-red-600);
+  --link-color: var(--hot-color-gray-800);
 
   --font-family: var(--hot-font-sans);
   --font-size: 14px;
