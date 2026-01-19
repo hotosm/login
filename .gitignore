@@ -6,3 +6,6 @@ hanko-config.yaml
 # Local Claude Code instructions (not committed)
 auth-libs/CLAUDE.md
 site/
+
+# Dependencies
+node_modules/
