@@ -176,13 +176,9 @@ export class HankoAuth extends LitElement {
       padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
     }
 
-    .profile-name {
-      font-weight: var(--hot-font-weight-semibold);
-    }
-
     .profile-email {
       font-size: var(--hot-font-size-small);
-      color: var(--hot-color-gray-600);
+      font-weight: var(--hot-font-weight-bold);
     }
 
     .osm-section {
@@ -227,37 +223,6 @@ export class HankoAuth extends LitElement {
       color: var(--hot-color-success-700);
       margin-top: var(--hot-spacing-2x-small);
     }
-
-    button {
-      width: 100%;
-      padding: var(--hot-spacing-small) var(--hot-spacing-large);
-      border: none;
-      border-radius: var(--hot-border-radius-medium);
-      font-size: var(--hot-font-size-small);
-      font-weight: var(--hot-font-weight-semibold);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: var(--hot-color-red-600);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--hot-color-red-700);
-    }
-
-    .btn-secondary {
-      background: var(--hot-color-gray-100);
-      color: var(--hot-color-gray-900);
-      margin-top: var(--hot-spacing-x-small);
-    }
-
-    .btn-secondary:hover {
-      background: var(--hot-color-gray-200);
-    }
-
     .osm-prompt {
       background: var(--hot-color-warning-50);
       border: var(--hot-border-width, 1px) solid var(--hot-color-warning-200);
@@ -329,6 +294,32 @@ export class HankoAuth extends LitElement {
       background: transparent !important;
       box-shadow: none !important;
     }
+
+    wa-dropdown::part(menu) {
+      /* anchor the right edge of the panel to the right edge of the trigger (0 offset).
+     */
+      right: 0 !important;
+      left: auto !important; /* Ensures 'right' takes precedence */
+    }
+
+    wa-dropdown-item {
+      font-size: var(--hot-font-size-small);
+    }
+
+    wa-dropdown-item:hover {
+      background-color: var(--hot-color-neutral-50);
+    }
+
+    /* Mobile: full-width dropdown */
+    @media (max-width: 768px) {
+      wa-dropdown::part(menu) {
+        width: 100vw;
+        max-width: 100vw;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+      }
+    }
   `;
 
   // Get computed hankoUrl (priority: attribute > meta tag > window.HANKO_URL > origin)
@@ -349,7 +340,7 @@ export class HankoAuth extends LitElement {
     if ((window as any).HANKO_URL) {
       this.log(
         "🔍 hanko-url auto-detected from window.HANKO_URL:",
-        (window as any).HANKO_URL
+        (window as any).HANKO_URL,
       );
       return (window as any).HANKO_URL;
     }
@@ -404,7 +395,7 @@ export class HankoAuth extends LitElement {
     super.disconnectedCallback();
     document.removeEventListener(
       "visibilitychange",
-      this._handleVisibilityChange
+      this._handleVisibilityChange,
     );
     window.removeEventListener("focus", this._handleWindowFocus);
     document.removeEventListener("hanko-login", this._handleExternalLogin);
@@ -563,6 +554,16 @@ export class HankoAuth extends LitElement {
         document.head.appendChild(link);
       });
     }
+
+    // Inject Google Fonts - Archivo (only once)
+    if (!document.getElementById("google-font-archivo")) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap";
+      link.id = "google-font-archivo";
+      document.head.appendChild(link);
+    }
   }
 
   private async init() {
@@ -648,7 +649,7 @@ export class HankoAuth extends LitElement {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (validateResponse.ok) {
@@ -657,7 +658,7 @@ export class HankoAuth extends LitElement {
           // Check if session is actually valid (endpoint returns 200 with is_valid:false when no session)
           if (sessionData.is_valid === false) {
             this.log(
-              "ℹ️ Session validation returned is_valid:false - no valid session"
+              "ℹ️ Session validation returned is_valid:false - no valid session",
             );
             return;
           }
@@ -723,7 +724,7 @@ export class HankoAuth extends LitElement {
               !alreadyVerified
             ) {
               this.log(
-                "🔄 verify-session enabled, redirecting to callback for app verification..."
+                "🔄 verify-session enabled, redirecting to callback for app verification...",
               );
               sessionStorage.setItem(verifyKey, "true");
               window.location.href = this.redirectAfterLogin;
@@ -743,14 +744,14 @@ export class HankoAuth extends LitElement {
                 detail: { user: this.user },
                 bubbles: true,
                 composed: true,
-              })
+              }),
             );
 
             this.dispatchEvent(
               new CustomEvent("auth-complete", {
                 bubbles: true,
                 composed: true,
-              })
+              }),
             );
 
             // Also check if we need to auto-connect to OSM
@@ -826,7 +827,7 @@ export class HankoAuth extends LitElement {
         } catch (e) {
           this.logError(
             "Failed to parse OSM response as JSON:",
-            text.substring(0, 500)
+            text.substring(0, 500),
           );
           throw new Error("Invalid JSON response from OSM status endpoint");
         }
@@ -843,7 +844,7 @@ export class HankoAuth extends LitElement {
               detail: { osmData: data },
               bubbles: true,
               composed: true,
-            })
+            }),
           );
 
           // Dispatch event so parent components can handle the connection
@@ -895,7 +896,7 @@ export class HankoAuth extends LitElement {
         if (data.needs_onboarding) {
           if (alreadyTriedOnboarding) {
             this.log(
-              "⚠️ Already tried onboarding this session, skipping redirect"
+              "⚠️ Already tried onboarding this session, skipping redirect",
             );
             return true; // Don't loop, let user continue
           }
@@ -916,7 +917,7 @@ export class HankoAuth extends LitElement {
       } else if (response.status === 401 || response.status === 403) {
         if (alreadyTriedOnboarding) {
           this.log(
-            "⚠️ Already tried onboarding this session, skipping redirect"
+            "⚠️ Already tried onboarding this session, skipping redirect",
           );
           return true;
         }
@@ -985,7 +986,7 @@ export class HankoAuth extends LitElement {
         });
 
         hankoAuth.addEventListener("hankoAuthLogout", () =>
-          this.handleLogout()
+          this.handleLogout(),
         );
       }
     });
@@ -1033,14 +1034,14 @@ export class HankoAuth extends LitElement {
         userInfoRetrieved = true;
       } else {
         this.log(
-          "⚠️ /me endpoint returned non-OK status, will try SDK fallback"
+          "⚠️ /me endpoint returned non-OK status, will try SDK fallback",
         );
       }
     } catch (error) {
       // NetworkError or timeout on cross-origin fetch is common with mkcert certs
       this.log(
         "⚠️ /me endpoint fetch failed (timeout or cross-origin TLS issue):",
-        error
+        error,
       );
     }
 
@@ -1050,7 +1051,7 @@ export class HankoAuth extends LitElement {
         this.log("🔄 Trying SDK fallback for user info...");
         // Add timeout to SDK call in case it hangs
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("SDK timeout")), 5000)
+          setTimeout(() => reject(new Error("SDK timeout")), 5000),
         );
         const user = (await Promise.race([
           this._hanko.user.getCurrent(),
@@ -1086,7 +1087,7 @@ export class HankoAuth extends LitElement {
         } catch (claimsError) {
           this.logError(
             "Failed to extract user info from claims:",
-            claimsError
+            claimsError,
           );
           this.user = null;
           return;
@@ -1106,7 +1107,7 @@ export class HankoAuth extends LitElement {
         detail: { user: this.user },
         bubbles: true,
         composed: true,
-      })
+      }),
     );
 
     // Check OSM connection before deciding redirect
@@ -1130,7 +1131,7 @@ export class HankoAuth extends LitElement {
       "showProfile:",
       this.showProfile,
       "canRedirect:",
-      canRedirect
+      canRedirect,
     );
 
     if (canRedirect) {
@@ -1138,7 +1139,7 @@ export class HankoAuth extends LitElement {
         new CustomEvent("auth-complete", {
           bubbles: true,
           composed: true,
-        })
+        }),
       );
 
       if (this.redirectAfterLogin) {
@@ -1245,7 +1246,7 @@ export class HankoAuth extends LitElement {
     this._clearAuthState();
 
     this.log(
-      "✅ Logout complete - component will re-render with updated state"
+      "✅ Logout complete - component will re-render with updated state",
     );
 
     // Redirect after logout if configured
@@ -1291,7 +1292,7 @@ export class HankoAuth extends LitElement {
       new CustomEvent("logout", {
         bubbles: true,
         composed: true,
-      })
+      }),
     );
   }
 
@@ -1344,7 +1345,7 @@ export class HankoAuth extends LitElement {
     if (this.redirectAfterLogout) {
       this.log(
         "🔄 Redirecting after session expired to:",
-        this.redirectAfterLogout
+        this.redirectAfterLogout,
       );
       window.location.href = this.redirectAfterLogout;
     }
@@ -1367,7 +1368,7 @@ export class HankoAuth extends LitElement {
       const baseUrl = this.hankoUrl;
       const returnTo = this.redirectAfterLogin || window.location.origin;
       window.location.href = `${baseUrl}/app/profile?return_to=${encodeURIComponent(
-        returnTo
+        returnTo,
       )}`;
     } else if (selectedValue === "connect-osm") {
       // Smart return_to: if already on a login page, redirect to home instead
@@ -1380,7 +1381,7 @@ export class HankoAuth extends LitElement {
       // Use the getter which handles all fallbacks correctly
       const baseUrl = this.hankoUrl;
       window.location.href = `${baseUrl}/app?return_to=${encodeURIComponent(
-        returnTo
+        returnTo,
       )}&osm_required=true`;
     } else if (selectedValue === "logout") {
       this.handleLogout();
@@ -1402,7 +1403,7 @@ export class HankoAuth extends LitElement {
       "user:",
       !!this.user,
       "loading:",
-      this.loading
+      this.loading,
     );
 
     if (this.loading) {
@@ -1439,7 +1440,6 @@ export class HankoAuth extends LitElement {
               <div class="profile-header">
                 <div class="profile-avatar">${initial}</div>
                 <div class="profile-info">
-                  <div class="profile-name">${displayName}</div>
                   <div class="profile-email">
                     ${this.user.email || this.user.id}
                   </div>
@@ -1453,26 +1453,26 @@ export class HankoAuth extends LitElement {
                     </div>
                   `
                 : this.osmRequired && this.osmConnected
-                ? html`
-                    <div class="osm-section">
-                      <div class="osm-connected">
-                        <div class="osm-badge">
-                          <span class="osm-badge-icon">🗺️</span>
-                          <div>
-                            <div>Connected to OpenStreetMap</div>
-                            ${this.osmData?.osm_username
-                              ? html`
-                                  <div class="osm-username">
-                                    @${this.osmData.osm_username}
-                                  </div>
-                                `
-                              : ""}
+                  ? html`
+                      <div class="osm-section">
+                        <div class="osm-connected">
+                          <div class="osm-badge">
+                            <span class="osm-badge-icon">🗺️</span>
+                            <div>
+                              <div>Connected to OpenStreetMap</div>
+                              ${this.osmData?.osm_username
+                                ? html`
+                                    <div class="osm-username">
+                                      @${this.osmData.osm_username}
+                                    </div>
+                                  `
+                                : ""}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  `
-                : ""}
+                    `
+                  : ""}
               ${needsOSM
                 ? html`
                     <div class="osm-section">
@@ -1511,8 +1511,7 @@ export class HankoAuth extends LitElement {
         // Logged in, show-profile=false: render dropdown with WebAwesome
         return html`
           <wa-dropdown
-            placement="bottom-start"
-            distance="4"
+            placement="bottom-end"
             @wa-select=${this.handleDropdownSelect}
           >
             <wa-button
@@ -1532,17 +1531,16 @@ export class HankoAuth extends LitElement {
                     >
                   `
                 : this.osmRequired
-                ? html`
-                    <span
-                      class="osm-status-badge required"
-                      title="OSM connection required"
-                      >!</span
-                    >
-                  `
-                : ""}
+                  ? html`
+                      <span
+                        class="osm-status-badge required"
+                        title="OSM connection required"
+                        >!</span
+                      >
+                    `
+                  : ""}
             </wa-button>
             <div class="profile-info">
-              <div class="profile-name">${displayName}</div>
               <div class="profile-email">
                 ${this.user.email || this.user.id}
               </div>
@@ -1569,27 +1567,23 @@ export class HankoAuth extends LitElement {
             style="
             --color: var(--hot-color-gray-900);
             --color-shade-1: var(--hot-color-gray-700);
-            --color-shade-2: var(--hot-color-gray-500);
+            --color-shade-2: var(--hot-color-gray-100);
             --brand-color: var(--hot-color-gray-800);
             --brand-color-shade-1: var(--hot-color-gray-900);
             --brand-contrast-color: white;
             --background-color: white;
             --error-color: var(--hot-color-red-600);
-            --link-color: var(--hot-color-gray-800);
+            --link-color: var(--hot-color-gray-900);
             --font-family: var(--hot-font-sans);
-            --font-size: var(--hot-font-size-small);
             --font-weight: var(--hot-font-weight-normal);
-            --border-radius: var(--hot-border-radius-large);
+            --border-radius: var(--hot-border-radius-medium);
             --item-height: 2.75rem;
             --item-margin: var(--hot-spacing-small) 0;
             --container-padding: 0;
-            --container-max-width: 100%;
-            --input-min-width: 100%;
             --headline1-font-size: var(--hot-font-size-large);
             --headline1-font-weight: var(--hot-font-weight-semibold);
             --headline2-font-size: var(--hot-font-size-medium);
             --headline2-font-weight: var(--hot-font-weight-semibold);
-            --button-min-width: auto;
           "
           >
             <hanko-auth></hanko-auth>
@@ -1613,7 +1607,7 @@ export class HankoAuth extends LitElement {
         const baseUrl = this.hankoUrl;
         this.log("🔗 Login URL base:", baseUrl);
         const loginUrl = `${baseUrl}/app?return_to=${encodeURIComponent(
-          returnTo
+          returnTo,
         )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}`;
 
         return html`<wa-button
