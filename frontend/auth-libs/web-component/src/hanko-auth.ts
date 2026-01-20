@@ -70,8 +70,6 @@ export class HankoAuth extends LitElement {
   @property({ type: String, attribute: "app-id" }) appId = "";
   // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
   @property({ type: String, attribute: "login-url" }) loginUrl = "";
-  // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
-  @property({ type: String, attribute: "login-url" }) loginUrl = "";
 
   // Internal state
   @state() private user: UserState | null = null;

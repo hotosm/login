@@ -98,8 +98,8 @@ distribute_python "$HOT_DIR/openaerialmap/backend/stac-api/auth-libs" "openaeria
 distribute_web_component "$HOT_DIR/fAIr/frontend/auth-libs/web-component" "fAIr"
 distribute_python "$HOT_DIR/fAIr/backend/auth-libs" "fAIr"
 
-# ChatMap
-distribute_web_component "$HOT_DIR/chatmap/chatmap-ui/auth-libs/web-component" "chatmap"
+# ChatMap - SKIPPED: Now uses npm package @hotosm/hanko-auth
+# distribute_web_component "$HOT_DIR/chatmap/chatmap-ui/auth-libs/web-component" "chatmap"
 
 echo "✅ Distribution complete!"
 echo ""
