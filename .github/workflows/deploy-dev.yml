@@ -129,7 +129,7 @@ jobs:
             sed -i 's|domain: "\.login\.hotosm\.org"|domain: ".hotosm.org"|g' hanko-config.yaml
             sed -i 's|domain: "\.dev\.login\.hotosm\.org"|domain: ".hotosm.org"|g' hanko-config.yaml
             # Add testlogin domains to all required sections
-            for domain in "testlogin.dronetm.hotosm.org" "testlogin.fair.hotosm.org"; do
+            for domain in "testlogin.dronetm.hotosm.org" "testlogin.fair.hotosm.org" "chatmap-dev.hotosm.org"; do
               # CORS allow_origins (check specifically in allow_origins section)
               if ! grep -A 10 'allow_origins:' hanko-config.yaml | grep -q "$domain"; then
                 sed -i '/allow_origins:/a\        - "https://'"$domain"'"' hanko-config.yaml
