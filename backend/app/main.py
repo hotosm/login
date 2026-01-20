@@ -52,6 +52,7 @@ app.add_middleware(
         "https://dev.login.hotosm.org",
         "https://login.hotosm.org",
         "https://chatmap.hotosm.org",
+        "https://chatmap-dev.hotosm.org",
         # Test environments
         "https://testlogin.dronetm.hotosm.org",
         "https://testlogin.fair.hotosm.org",
