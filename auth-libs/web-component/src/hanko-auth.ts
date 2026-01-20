@@ -1292,10 +1292,16 @@ export class HankoAuth extends LitElement {
       "✅ Logout complete - component will re-render with updated state",
     );
 
-    // Redirect after logout if configured
+    // Redirect after logout if configured (but not if already there)
     if (this.redirectAfterLogout) {
-      this.log("🔄 Redirecting after logout to:", this.redirectAfterLogout);
-      window.location.href = this.redirectAfterLogout;
+      const currentUrl = window.location.href.replace(/\/$/, "");
+      const targetUrl = this.redirectAfterLogout.replace(/\/$/, "");
+      if (currentUrl !== targetUrl && !currentUrl.startsWith(targetUrl + "#")) {
+        this.log("🔄 Redirecting after logout to:", this.redirectAfterLogout);
+        window.location.href = this.redirectAfterLogout;
+      } else {
+        this.log("⏭️ Already on logout target, skipping redirect");
+      }
     }
     // Otherwise let Lit's reactivity handle the re-render
   }
@@ -1384,13 +1390,19 @@ export class HankoAuth extends LitElement {
 
     this.log("✅ Session cleanup complete");
 
-    // Redirect after session expired if configured
+    // Redirect after session expired if configured (but not if already there)
     if (this.redirectAfterLogout) {
-      this.log(
-        "🔄 Redirecting after session expired to:",
-        this.redirectAfterLogout,
-      );
-      window.location.href = this.redirectAfterLogout;
+      const currentUrl = window.location.href.replace(/\/$/, ""); // Remove trailing slash
+      const targetUrl = this.redirectAfterLogout.replace(/\/$/, "");
+      if (currentUrl !== targetUrl && !currentUrl.startsWith(targetUrl + "#")) {
+        this.log(
+          "🔄 Redirecting after session expired to:",
+          this.redirectAfterLogout,
+        );
+        window.location.href = this.redirectAfterLogout;
+      } else {
+        this.log("⏭️ Already on logout target, skipping redirect");
+      }
     }
     // Otherwise component will re-render and show login button
   }
@@ -1406,11 +1418,11 @@ export class HankoAuth extends LitElement {
     this.log("🎯 Dropdown item selected:", selectedValue);
 
     if (selectedValue === "profile") {
-      // Profile page lives on the login site
-      // Pass return URL so profile can navigate back to the app
-      const baseUrl = this.hankoUrl;
+      // Profile page lives on the login site (or standalone app's login page)
+      // Use loginUrl if set (standalone mode), otherwise hankoUrl
+      const baseUrl = this.loginUrl || this.hankoUrl;
       const returnTo = this.redirectAfterLogin || window.location.origin;
-      window.location.href = `${baseUrl}/app/profile?return_to=${encodeURIComponent(returnTo)}`;
+      window.location.href = `${baseUrl}/profile?return_to=${encodeURIComponent(returnTo)}`;
     } else if (selectedValue === "connect-osm") {
       // Smart return_to: if already on a login page, redirect to home instead
       const currentPath = window.location.pathname;

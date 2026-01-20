@@ -4502,9 +4502,12 @@ let ge = class extends Ut {
       } catch (n) {
         this.logError("Hanko logout failed:", n);
       }
-    this._clearAuthState(), this.log(
+    if (this._clearAuthState(), this.log(
       "✅ Logout complete - component will re-render with updated state"
-    ), this.redirectAfterLogout && (this.log("🔄 Redirecting after logout to:", this.redirectAfterLogout), window.location.href = this.redirectAfterLogout);
+    ), this.redirectAfterLogout) {
+      const n = window.location.href.replace(/\/$/, ""), e = this.redirectAfterLogout.replace(/\/$/, "");
+      n !== e && !n.startsWith(e + "#") ? (this.log("🔄 Redirecting after logout to:", this.redirectAfterLogout), window.location.href = this.redirectAfterLogout) : this.log("⏭️ Already on logout target, skipping redirect");
+    }
   }
   /**
    * Clear all auth state - shared between logout and session expired handlers
@@ -4542,10 +4545,13 @@ let ge = class extends Ut {
     } catch (n) {
       this.logError("❌ OSM disconnect failed:", n);
     }
-    this._clearAuthState(), this.log("✅ Session cleanup complete"), this.redirectAfterLogout && (this.log(
-      "🔄 Redirecting after session expired to:",
-      this.redirectAfterLogout
-    ), window.location.href = this.redirectAfterLogout);
+    if (this._clearAuthState(), this.log("✅ Session cleanup complete"), this.redirectAfterLogout) {
+      const n = window.location.href.replace(/\/$/, ""), e = this.redirectAfterLogout.replace(/\/$/, "");
+      n !== e && !n.startsWith(e + "#") ? (this.log(
+        "🔄 Redirecting after session expired to:",
+        this.redirectAfterLogout
+      ), window.location.href = this.redirectAfterLogout) : this.log("⏭️ Already on logout target, skipping redirect");
+    }
   }
   handleUserLoggedOut() {
     this.log("🚪 User logged out in another window/tab"), this.handleSessionExpired();
@@ -4553,8 +4559,8 @@ let ge = class extends Ut {
   handleDropdownSelect(n) {
     const e = n.detail.item.value;
     if (this.log("🎯 Dropdown item selected:", e), e === "profile") {
-      const t = this.hankoUrl, o = this.redirectAfterLogin || window.location.origin;
-      window.location.href = `${t}/app/profile?return_to=${encodeURIComponent(o)}`;
+      const t = this.loginUrl || this.hankoUrl, o = this.redirectAfterLogin || window.location.origin;
+      window.location.href = `${t}/profile?return_to=${encodeURIComponent(o)}`;
     } else if (e === "connect-osm") {
       const i = window.location.pathname.includes("/app") ? window.location.origin : window.location.href, s = this.hankoUrl;
       window.location.href = `${s}/app?return_to=${encodeURIComponent(
