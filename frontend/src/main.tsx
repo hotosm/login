@@ -4,7 +4,7 @@ import App from './App.tsx';
 import './index.css';
 
 // Import HOTOSM auth web component
-import '../auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
 
 // Import and register Hanko Profile component
 import { register } from '@teamhanko/hanko-elements';
