@@ -607,10 +607,17 @@ export class HankoAuth extends LitElement {
       // Configure cookie domain for cross-subdomain SSO
       const hostname = window.location.hostname;
       const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+
+      // Extract base domain for cookie (e.g., "login.hotosm.org" -> ".hotosm.org")
+      // Handles both production (.hotosm.org) and dev (.hotosm.test)
+      const parts = hostname.split(".");
+      const baseDomain =
+        parts.length >= 2 ? `.${parts.slice(-2).join(".")}` : hostname;
+
       const cookieOptions = isLocalhost
         ? {}
         : {
-            cookieDomain: ".hotosm.org",
+            cookieDomain: baseDomain,
             cookieName: "hanko",
             cookieSameSite: "lax",
           };
@@ -818,6 +825,12 @@ export class HankoAuth extends LitElement {
   }
 
   private async checkOSMConnection() {
+    // Skip OSM check if not required
+    if (!this.osmRequired) {
+      this.log("⏭️ OSM not required, skipping connection check");
+      return;
+    }
+
     if (this.osmConnected) {
       this.log("⏭️ Already connected to OSM, skipping check");
       return;
@@ -1350,7 +1363,15 @@ export class HankoAuth extends LitElement {
     this.log("📊 Current state:", {
       user: this.user,
       osmConnected: this.osmConnected,
+      loading: this.loading,
     });
+
+    // If still loading, wait for session check to complete before acting
+    // The SDK may fire this event for old/stale sessions during init
+    if (this.loading) {
+      this.log("⏳ Still loading, ignoring session expired event during init");
+      return;
+    }
 
     // If we have an active user, the session is still valid
     // The SDK may fire this event for old/stale sessions while a new session exists
@@ -1418,11 +1439,13 @@ export class HankoAuth extends LitElement {
     this.log("🎯 Dropdown item selected:", selectedValue);
 
     if (selectedValue === "profile") {
-      // Profile page lives on the login site (or standalone app's login page)
-      // Use loginUrl if set (standalone mode), otherwise hankoUrl
-      const baseUrl = this.loginUrl || this.hankoUrl;
+      // Profile page: standalone apps have their own, others use central login service
+      // loginUrl already includes /app, hankoUrl doesn't
       const returnTo = this.redirectAfterLogin || window.location.origin;
-      window.location.href = `${baseUrl}/profile?return_to=${encodeURIComponent(returnTo)}`;
+      const profileUrl = this.loginUrl
+        ? `${this.loginUrl}/profile`
+        : `${this.hankoUrl}/app/profile`;
+      window.location.href = `${profileUrl}?return_to=${encodeURIComponent(returnTo)}`;
     } else if (selectedValue === "connect-osm") {
       // Smart return_to: if already on a login page, redirect to home instead
       const currentPath = window.location.pathname;
