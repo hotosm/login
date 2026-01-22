@@ -15,36 +15,11 @@ pnpm add @hotosm/hanko-auth
 yarn add @hotosm/hanko-auth
 ```
 
-### Peer Dependencies
-
-This package requires Web Awesome to be installed separately:
-
-```bash
-# npm
-npm install @awesome.me/webawesome
-
-# pnpm
-pnpm add @awesome.me/webawesome
-
-# yarn
-yarn add @awesome.me/webawesome
-```
-
-**Why peer dependencies?**
-
-- Control the Web Awesome version in your project
-- Share Web Awesome across multiple packages without duplication
-- Reduce bundle size when multiple packages use Web Awesome
-
 ## Quick Start
 
 ### Import the component
 
 ```javascript
-// Import Web Awesome (required peer dependency)
-import "@awesome.me/webawesome";
-
-// Import the auth component
 import "@hotosm/hanko-auth";
 ```
 
@@ -61,7 +36,6 @@ import "@hotosm/hanko-auth";
 
 ```tsx
 import { useEffect, useRef } from "react";
-import "@awesome.me/webawesome";
 import "@hotosm/hanko-auth";
 
 export function AuthButton({ hankoUrl, onLogin }) {
@@ -202,15 +176,4 @@ The component detects the Hanko URL in the following priority order:
   window.HANKO_URL = "https://login.hotosm.org";
 </script>
 <hotosm-auth></hotosm-auth>
-```
-
-## Styling
-
-The component uses Shadow DOM. Override styles with CSS custom properties:
-
-```css
-hotosm-auth {
-  --primary-color: #d73f3f;
-  --text-color: #333;
-}
 ```
