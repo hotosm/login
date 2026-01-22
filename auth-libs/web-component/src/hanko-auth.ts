@@ -12,7 +12,11 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { register } from "@teamhanko/hanko-elements";
-import "@awesome.me/webawesome";
+//Icons
+import accountIcon from "../assets/icon-account.svg";
+import logoutIcon from "../assets/icon-logout.svg";
+import mapIcon from "../assets/icon-map.svg";
+import checkIcon from "../assets/icon-check.svg";
 
 // Module-level singleton state - shared across all instances
 const sharedAuth = {
@@ -80,6 +84,21 @@ export class HankoAuth extends LitElement {
   @state() private error: string | null = null;
   @state() private profileDisplayName: string = "";
   @state() private hasAppMapping = false; // True if user has mapping in the app
+  // dropdown
+  @state() private isOpen = false;
+
+  private toggleDropdown() {
+    this.isOpen = !this.isOpen;
+  }
+
+  private closeDropdown() {
+    this.isOpen = false;
+  }
+  private handleOutsideClick = (event: MouseEvent) => {
+    if (!this.contains(event.target as Node)) {
+      this.closeDropdown();
+    }
+  };
 
   // Private fields
   private _trailingSlashCache: Record<string, boolean> = {};
@@ -137,7 +156,7 @@ export class HankoAuth extends LitElement {
       color: var(--hot-color-gray-600);
       font-weight: var(--hot-font-weight-semibold);
     }
-    // TODO replace with WA button
+
     button {
       width: 100%;
       padding: 12px 20px;
@@ -150,22 +169,24 @@ export class HankoAuth extends LitElement {
     }
 
     .btn-primary {
-      background: #d73f3f;
+      background: var(--hot-color-gray-700);
       color: white;
     }
 
     .btn-primary:hover {
-      background: #c23535;
+      background: var(--hot-color-gray-600);
     }
 
     .btn-secondary {
-      background: #f0f0f0;
-      color: #333;
+      border: 1px solid var(--hot-color-gray-700);
+      border-radius: var(--hot-border-radius-medium);
+      background-color: white;
+      color: var(--hot-color-gray-700);
       margin-top: 8px;
     }
 
     .btn-secondary:hover {
-      background: #e0e0e0;
+      background: var(--hot-color-gray-50);
     }
 
     .error {
@@ -216,9 +237,8 @@ export class HankoAuth extends LitElement {
     .osm-section {
       border-top: var(--hot-border-width, 1px) solid var(--hot-color-gray-100);
       padding-top: var(--hot-spacing-medium);
-      padding-bottom: var(--hot-spacing-medium);
+      padding-bottom: var(--hot-spacing-small);
       margin-top: var(--hot-spacing-medium);
-      margin-bottom: var(--hot-spacing-medium);
       text-align: center;
     }
 
@@ -282,8 +302,8 @@ export class HankoAuth extends LitElement {
 
     .osm-status-badge {
       position: absolute;
-      top: calc(-1 * var(--hot-spacing-2x-small));
-      right: var(--hot-spacing-x-small);
+      top: 2px;
+      right: 2px;
       width: var(--hot-font-size-small);
       height: var(--hot-font-size-small);
       border-radius: 50%;
@@ -316,30 +336,100 @@ export class HankoAuth extends LitElement {
       color: white;
     }
 
-    /* Remove hover styles from the dropdown trigger button */
-    wa-button.no-hover::part(base) {
-      transition: none;
-    }
-    wa-button.no-hover::part(base):hover,
-    wa-button.no-hover::part(base):focus,
-    wa-button.no-hover::part(base):active {
-      background: transparent !important;
-      box-shadow: none !important;
-    }
-
-    wa-dropdown::part(menu) {
-      /* anchor the right edge of the panel to the right edge of the trigger (0 offset).
-     */
-      right: 0 !important;
-      left: auto !important; /* Ensures 'right' takes precedence */
-    }
-
-    wa-dropdown-item {
+    .login-link {
+      color: var(--hot-color-neutral-950);
       font-size: var(--hot-font-size-small);
+      border-radius: var(--hot-border-radius-medium);
+      text-decoration: none;
+      padding: 14px;
+    }
+    .login-link:hover {
+      background: var(--hot-color-gray-50);
+    }
+    /* Dropdown styles */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-trigger {
+      background: none;
+      border: none;
+      padding: var(--hot-spacing-x-small);
+      cursor: pointer;
+      position: relative;
     }
 
-    wa-dropdown-item:hover {
-      background-color: var(--hot-color-neutral-50);
+    .dropdown-trigger.no-hover:hover,
+    .dropdown-trigger.no-hover:active,
+    .dropdown-trigger.no-hover:focus {
+      background: none;
+      outline: none;
+    }
+    .dropdown-content {
+      position: absolute;
+      right: 0;
+      background: white;
+      border: 1px solid var(--hot-color-gray-100);
+      border-radius: var(--hot-border-radius-medium);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease,
+        transform 0.2s ease;
+    }
+    @media (max-width: 768px) {
+      .dropdown-content {
+        position: fixed;
+        width: 100%;
+      }
+    }
+
+    .dropdown-content.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-content button {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.2s ease;
+      gap: var(--hot-spacing-small);
+      font-size: var(--hot-font-size-small);
+      color: var(--hot-color-gray-900);
+    }
+
+    .dropdown-content button:hover {
+      background-color: var(--hot-color-gray-50);
+    }
+
+    .dropdown-content button:focus {
+      background-color: var(--hot-color-gray-50);
+      outline: 2px solid var(--hot-color-gray-500);
+      outline-offset: -2px;
+    }
+
+    .dropdown-content .profile-info {
+      padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+    }
+
+    .dropdown-content .profile-email {
+      font-size: var(--hot-font-size-small);
+      font-weight: var(--hot-font-weight-bold);
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
     }
   `;
 
@@ -376,8 +466,8 @@ export class HankoAuth extends LitElement {
     this._debugMode = this._checkDebugMode();
     this.log("🔌 hanko-auth connectedCallback called");
 
-    // Inject Hanko styles early, before any Hanko elements render
-    this.injectHankoStyles();
+    // Inject Hot styles early, before any Hanko elements render
+    this.injectHotStyles();
     // Register this instance
     sharedAuth.instances.add(this);
 
@@ -419,6 +509,7 @@ export class HankoAuth extends LitElement {
     );
     window.removeEventListener("focus", this._handleWindowFocus);
     document.removeEventListener("hanko-login", this._handleExternalLogin);
+    document.removeEventListener("click", this.handleOutsideClick);
 
     // Unregister this instance
     sharedAuth.instances.delete(this);
@@ -557,35 +648,27 @@ export class HankoAuth extends LitElement {
     return path;
   }
 
-  private injectHankoStyles() {
-    // Inject HOT design system CSS from CDN (only once)
-    if (!document.getElementById("hot-design-system")) {
-      const styleLinks = [
-        "https://cdn.jsdelivr.net/npm/hotosm-ui-design@latest/dist/hot.css",
-        "https://cdn.jsdelivr.net/npm/hotosm-ui-design@latest/dist/hot-font-face.css",
-        "https://cdn.jsdelivr.net/npm/hotosm-ui-design@latest/dist/hot-wa.css",
-      ];
+  private injectHotStyles() {
+    const stylesheets = [
+      {
+        id: "hot-design-system",
+        href: "https://cdn.jsdelivr.net/npm/hotosm-ui-design@latest/dist/hot.css",
+      },
+      {
+        id: "google-font-archivo",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap",
+      },
+    ];
 
-      styleLinks.forEach((href, index) => {
+    stylesheets.forEach(({ id, href }) => {
+      if (!document.getElementById(id)) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = href;
-        if (index === 0) {
-          link.id = "hot-design-system"; // Mark first one to prevent duplicate injection
-        }
+        link.id = id;
         document.head.appendChild(link);
-      });
-    }
-
-    // Inject Google Fonts - Archivo (only once)
-    if (!document.getElementById("google-font-archivo")) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href =
-        "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap";
-      link.id = "google-font-archivo";
-      document.head.appendChild(link);
-    }
+      }
+    });
   }
 
   private async init() {
@@ -1434,7 +1517,31 @@ export class HankoAuth extends LitElement {
     this.handleSessionExpired();
   }
 
-  private handleDropdownSelect(event: CustomEvent) {
+  private handleDropdownSelect(event: Event) {
+    const target = event.currentTarget as HTMLElement;
+    const action = target.dataset.action;
+    this.log("🎯 Dropdown item selected:", action);
+
+    if (action === "profile") {
+      const baseUrl = this.hankoUrl;
+      const returnTo = this.redirectAfterLogin || window.location.origin;
+      window.location.href = `${baseUrl}/app/profile?return_to=${encodeURIComponent(returnTo)}`;
+    } else if (action === "connect-osm") {
+      const currentPath = window.location.pathname;
+      const isOnLoginPage = currentPath.includes("/app");
+      const returnTo = isOnLoginPage
+        ? window.location.origin
+        : window.location.href;
+      const baseUrl = this.hankoUrl;
+      window.location.href = `${baseUrl}/app?return_to=${encodeURIComponent(returnTo)}&osm_required=true`;
+    } else if (action === "logout") {
+      this.handleLogout();
+    }
+
+    // Close dropdown after selection
+    this.closeDropdown();
+  }
+  private oldHandleDropdownSelect(event: CustomEvent) {
     const selectedValue = event.detail.item.value;
     this.log("🎯 Dropdown item selected:", selectedValue);
 
@@ -1483,9 +1590,7 @@ export class HankoAuth extends LitElement {
     );
 
     if (this.loading) {
-      return html`
-        <wa-button appearance="plain" size="small" disabled>Log in</wa-button>
-      `;
+      return html` <button disabled>Log in</button> `;
     }
 
     if (this.error) {
@@ -1510,6 +1615,7 @@ export class HankoAuth extends LitElement {
 
       if (this.showProfile) {
         // Show full profile view
+        // TODO check use cases
         return html`
           <div class="container">
             <div class="profile">
@@ -1577,28 +1683,25 @@ export class HankoAuth extends LitElement {
                   `
                 : ""}
 
-              <button @click=${this.handleLogout} class="btn-logout">
-                Logout
+              <button @click=${this.handleLogout} class="btn-secondary">
+                Log out
               </button>
             </div>
           </div>
         `;
       } else {
-        // Logged in, show-profile=false: render dropdown with WebAwesome
+        // Logged in, show-profile=false: render dropdown
         return html`
-          <wa-dropdown
-            placement="bottom-end"
-            distance="4"
-            @wa-select=${this.handleDropdownSelect}
-          >
-            <wa-button
-              slot="trigger"
-              class="no-hover"
-              appearance="plain"
-              size="small"
-              style="position: relative;"
+          <div class="dropdown">
+            <button
+              @click=${this.toggleDropdown}
+              aria-label="Open account menu"
+              aria-expanded=${this.isOpen}
+              aria-haspopup="true"
+              class="dropdown-trigger"
             >
               <span class="header-avatar">${initial}</span>
+
               ${this.osmConnected
                 ? html`
                     <span
@@ -1616,37 +1719,41 @@ export class HankoAuth extends LitElement {
                       >
                     `
                   : ""}
-            </wa-button>
-            <div class="profile-info">
-              <div class="profile-name">${displayName}</div>
-              <div class="profile-email">
-                ${this.user.email || this.user.id}
+            </button>
+            <div class="dropdown-content ${this.isOpen ? "open" : ""}">
+              <div class="profile-info">
+                <div class="profile-email">
+                  ${this.user.email || this.user.id}
+                </div>
               </div>
+              <button data-action="profile" @click=${this.handleDropdownSelect}>
+                <img src="${accountIcon}" class="icon" alt="Account icon" />
+                My HOT Account
+              </button>
+              ${this.osmRequired
+                ? this.osmConnected
+                  ? html`
+                      <button class="osm-connected" disabled>
+                        <img src="${checkIcon}" alt="Check icon" class="icon" />
+                        Connected to OSM (@${this.osmData?.osm_username})
+                      </button>
+                    `
+                  : html`
+                      <button
+                        data-action="connect-osm"
+                        @click=${this.handleDropdownSelect}
+                      >
+                        <img src="${mapIcon}" alt="Check icon" class="icon" />
+                        Connect to OSM
+                      </button>
+                    `
+                : ""}
+              <button data-action="logout" @click=${this.handleDropdownSelect}>
+                <img src="${logoutIcon}" alt="Log out icon" class="icon" />
+                Log Out
+              </button>
             </div>
-            <wa-dropdown-item value="profile">
-              <wa-icon slot="icon" name="address-card"></wa-icon>
-              My HOT Account
-            </wa-dropdown-item>
-            ${this.osmRequired
-              ? this.osmConnected
-                ? html`
-                    <wa-dropdown-item value="osm-connected" disabled>
-                      <wa-icon slot="icon" name="check"></wa-icon>
-                      Connected to OSM (@${this.osmData?.osm_username})
-                    </wa-dropdown-item>
-                  `
-                : html`
-                    <wa-dropdown-item value="connect-osm">
-                      <wa-icon slot="icon" name="map"></wa-icon>
-                      Connect OSM
-                    </wa-dropdown-item>
-                  `
-              : ""}
-            <wa-dropdown-item value="logout" variant="danger">
-              <wa-icon slot="icon" name="right-from-bracket"></wa-icon>
-              Sign Out
-            </wa-dropdown-item>
-          </wa-dropdown>
+          </div>
         `;
       }
     } else {
@@ -1705,12 +1812,7 @@ export class HankoAuth extends LitElement {
           returnTo,
         )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}`;
 
-        return html`<wa-button
-          appearance="plain"
-          size="small"
-          href="${loginUrl}"
-          >Log in
-        </wa-button> `;
+        return html`<a class="login-link" href="${loginUrl}">Log in</a> `;
       }
     }
   }
