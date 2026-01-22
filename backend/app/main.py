@@ -47,6 +47,7 @@ app.add_middleware(
         "https://fair.hotosm.test",
         "https://openaerialmap.hotosm.test",
         "https://chatmap.hotosm.test",
+        "https://umap.hotosm.test/",
         # Production domains
         "https://portal.hotosm.org",
         "https://dev.login.hotosm.org",
