@@ -111,6 +111,20 @@ async def proxy_request(
             if response.status_code == 204:
                 return None
 
+            # Handle non-2xx responses
+            if response.status_code >= 400:
+                try:
+                    error_data = response.json()
+                    raise HTTPException(
+                        status_code=response.status_code,
+                        detail=error_data.get("detail", f"Error from {app}"),
+                    )
+                except ValueError:
+                    raise HTTPException(
+                        status_code=response.status_code,
+                        detail=f"Error from {app}: {response.text[:200]}",
+                    )
+
             return response.json()
 
         except httpx.TimeoutException:
