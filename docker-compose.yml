@@ -155,7 +155,7 @@ services:
       - OSM_URL=${OSM_URL:-https://www.openstreetmap.org}
       - OSM_SCOPE=${OSM_SCOPE:-read_prefs}
       - LOG_LEVEL=INFO
-      - ADMIN_EMAILS=hernangigena@gmail.com
+      - ADMIN_EMAILS=hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org
       # App URLs for admin proxy (public URLs, not internal Docker)
       - DRONETM_BACKEND_URL=https://testlogin.dronetm.hotosm.org
       - FAIR_BACKEND_URL=https://testlogin.fair.hotosm.org
