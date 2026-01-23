@@ -47,7 +47,7 @@ app.add_middleware(
         "https://fair.hotosm.test",
         "https://openaerialmap.hotosm.test",
         "https://chatmap.hotosm.test",
-        "https://umap.hotosm.test/",
+        "https://umap.hotosm.test",
         # Production domains
         "https://portal.hotosm.org",
         "https://dev.login.hotosm.org",
@@ -57,6 +57,7 @@ app.add_middleware(
         # Test environments
         "https://testlogin.dronetm.hotosm.org",
         "https://testlogin.fair.hotosm.org",
+        "https://testlogin.umap.hotosm.org",
         "https://dronetm.hotosm.org",
     ],
     allow_credentials=True,

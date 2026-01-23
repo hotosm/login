@@ -20,7 +20,7 @@ interface MappingsResponse {
   page_size: number;
 }
 
-const APPS = ['drone-tm', 'fair', 'oam'];
+const APPS = ['drone-tm', 'fair', 'oam', 'umap'];
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -72,8 +72,8 @@ function AdminPage() {
           throw new Error(data.detail || 'Failed to fetch mappings');
         }
         const data: MappingsResponse = await response.json();
-        setMappings(data.items);
-        setTotal(data.total);
+        setMappings(data.items || []);
+        setTotal(data.total || 0);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch mappings');
         setMappings([]);

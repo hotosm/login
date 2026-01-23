@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     dronetm_backend_url: str = "http://dronetm-backend:8000"
     fair_backend_url: str = "http://fair-backend:8000"
     oam_backend_url: str = "http://oam-backend:8080"
+    umap_backend_url: str = "http://umap-app:8000"
 
     # Hanko database for admin lookups
     hanko_db_url: str = "postgresql://hanko:hanko@hanko-db:5432/hanko"
@@ -48,6 +49,7 @@ class Settings(BaseSettings):
             "drone-tm": self.dronetm_backend_url,
             "fair": self.fair_backend_url,
             "oam": self.oam_backend_url,
+            "umap": self.umap_backend_url,
         }
 
 
