@@ -20,7 +20,7 @@ interface MappingsResponse {
   page_size: number;
 }
 
-const APPS = ['drone-tm', 'fair', 'oam', 'umap'];
+const APPS = ['drone-tm', 'fair', 'umap'];
 
 function AdminPage() {
   const navigate = useNavigate();
