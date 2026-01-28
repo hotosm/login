@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import hotLogo from '../assets/images/hot-logo.svg';
+import { useLanguage } from '../contexts/LanguageContext';
+import { LANGUAGES } from '../translations';
 
 interface UserProfile {
   hanko_user_id: string;
@@ -16,16 +18,9 @@ interface UserProfile {
   updated_at: string | null;
 }
 
-const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Español' },
-  { code: 'fr', name: 'Français' },
-  { code: 'pt', name: 'Português' },
-  { code: 'id', name: 'Bahasa Indonesia' },
-];
-
 function ProfilePage() {
   const navigate = useNavigate();
+  const { t, currentLanguage, setLanguage: setContextLanguage } = useLanguage();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -95,6 +90,9 @@ function ProfilePage() {
       setLastName(data.last_name || '');
       setPictureUrl(data.picture_url || '');
       setLanguage(data.language || 'en');
+      
+      // Set the context language to match user's profile language
+      setContextLanguage(data.language || 'en');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -129,7 +127,15 @@ function ProfilePage() {
 
       const data = await response.json();
       setProfile(data);
-      setSuccess('Profile updated successfully');
+      setSuccess(t('profileUpdated'));
+      
+      // Update context language when user changes it
+      setContextLanguage(data.language || 'en');
+      
+      // Dispatch event for other apps to listen to language changes
+      window.dispatchEvent(new CustomEvent('user-language-changed', {
+        detail: { language: data.language },
+      }));
 
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -155,7 +161,7 @@ function ProfilePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img src={hotLogo} alt="HOT" className="h-10" />
-              <h1 className="text-2xl font-bold text-hot-gray-900">My Profile</h1>
+              <h1 className="text-2xl font-bold text-hot-gray-900">{t('myProfile')}</h1>
             </div>
             <button
               onClick={() => {
@@ -167,7 +173,7 @@ function ProfilePage() {
               }}
               className="text-hot-gray-600 hover:text-hot-red-600 text-sm transition-colors"
             >
-              ← Back to {backInfo.label}
+              ← {t('backTo')} {backInfo.label}
             </button>
           </div>
         </div>
@@ -186,7 +192,7 @@ function ProfilePage() {
 
         {/* Profile Form */}
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-hot-gray-900 mb-4">Profile Information</h2>
+          <h2 className="text-lg font-semibold text-hot-gray-900 mb-4">{t('profileInformation')}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Profile Picture */}
@@ -198,7 +204,7 @@ function ProfilePage() {
               />
               <div className="flex-1">
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  Picture URL
+                  {t('pictureUrl')}
                 </label>
                 <input
                   type="url"
@@ -214,7 +220,7 @@ function ProfilePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  First Name
+                  {t('firstName')}
                 </label>
                 <input
                   type="text"
@@ -225,7 +231,7 @@ function ProfilePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  Last Name
+                  {t('lastName')}
                 </label>
                 <input
                   type="text"
@@ -239,7 +245,7 @@ function ProfilePage() {
             {/* Email (read-only) */}
             <div>
               <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                Email
+                {t('email')}
               </label>
               <input
                 type="email"
@@ -248,14 +254,14 @@ function ProfilePage() {
                 className="input-field-disabled"
               />
               <p className="text-xs text-hot-gray-400 mt-1">
-                Email is managed by your login provider
+                {t('emailManagedBy')}
               </p>
             </div>
 
             {/* Language */}
             <div>
               <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                Language
+                {t('language')}
               </label>
               <select
                 value={language}
@@ -281,7 +287,7 @@ function ProfilePage() {
                   />
                   <div>
                     <p className="text-sm font-medium text-green-800">
-                      Connected to OpenStreetMap
+                      {t('connectedToOsm')}
                     </p>
                     <p className="text-sm text-green-600">@{profile.osm_username}</p>
                   </div>
@@ -296,7 +302,7 @@ function ProfilePage() {
                 disabled={saving}
                 className="w-full btn-primary-hot disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? t('saving') : t('saveChanges')}
               </button>
             </div>
           </form>
@@ -304,9 +310,9 @@ function ProfilePage() {
 
         {/* Security Section - Hanko Profile */}
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-hot-gray-900 mb-4">Security</h2>
+          <h2 className="text-lg font-semibold text-hot-gray-900 mb-4">{t('security')}</h2>
           <p className="text-sm text-hot-gray-600 mb-4">
-            Manage your password, passkeys, and active sessions.
+            {t('managePasswordPasskeys')}
           </p>
 
           {/* Hanko Profile Component */}
@@ -315,27 +321,27 @@ function ProfilePage() {
 
         {/* Danger Zone */}
         <div className="bg-white rounded-xl shadow-xl p-6 border-2 border-hot-red-200">
-          <h2 className="text-lg font-semibold text-hot-red-700 mb-4">Danger Zone</h2>
+          <h2 className="text-lg font-semibold text-hot-red-700 mb-4">{t('dangerZone')}</h2>
           <p className="text-sm text-hot-gray-600 mb-4">
-            Permanently delete your account and all associated data.
+            {t('deleteAccountWarning')}
           </p>
           <button
             onClick={() => {
-              if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+              if (confirm(t('deleteConfirm'))) {
                 // TODO: Implement account deletion via Hanko API
-                alert('Account deletion will be available soon.');
+                alert(t('deleteComingSoon'));
               }
             }}
             className="px-4 py-2 bg-hot-red-600 text-white rounded-lg hover:bg-hot-red-700 transition-colors"
           >
-            Delete Account
+            {t('deleteAccount')}
           </button>
         </div>
 
         {/* Footer */}
         <div className="mt-6 text-center text-xs text-hot-gray-500">
           <p>
-            Account created: {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
+            {t('accountCreated')}: {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
           </p>
         </div>
       </div>

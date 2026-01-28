@@ -1,28 +1,31 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import hotLogo from '../assets/images/hot-logo.svg';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import hotLogo from "../assets/images/hot-logo.svg";
+import { useLanguage } from "../contexts/LanguageContext";
 
-type OnboardingStep = 'question' | 'osm_connect' | 'redirecting';
+type OnboardingStep = "question" | "osm_connect" | "redirecting";
 
-const ONBOARDING_STEP_KEY = 'hotosm_onboarding_step';
+const ONBOARDING_STEP_KEY = "hotosm_onboarding_step";
 
 function LoginPage() {
   const [searchParams] = useSearchParams();
+  const { t, currentLanguage } = useLanguage();
 
   // Restore step from sessionStorage (survives OAuth redirects)
   const getInitialStep = (): OnboardingStep => {
     const saved = sessionStorage.getItem(ONBOARDING_STEP_KEY);
-    if (saved === 'osm_connect' || saved === 'redirecting') {
+    if (saved === "osm_connect" || saved === "redirecting") {
       return saved;
     }
-    return 'question';
+    return "question";
   };
 
-  const [onboardingStep, setOnboardingStepState] = useState<OnboardingStep>(getInitialStep);
+  const [onboardingStep, setOnboardingStepState] =
+    useState<OnboardingStep>(getInitialStep);
 
   // Wrapper to save step to sessionStorage
   const setOnboardingStep = (step: OnboardingStep) => {
-    if (step === 'question') {
+    if (step === "question") {
       sessionStorage.removeItem(ONBOARDING_STEP_KEY);
     } else {
       sessionStorage.setItem(ONBOARDING_STEP_KEY, step);
@@ -31,19 +34,19 @@ function LoginPage() {
   };
 
   // Get all search params
-  const onboardingApp = searchParams.get('onboarding');
+  const onboardingApp = searchParams.get("onboarding");
   const isOnboarding = !!onboardingApp;
-  const returnTo = searchParams.get('return_to');
-  const osmRequired = searchParams.get('osm_required') === 'true';
-  const autoConnect = searchParams.get('auto_connect') === 'true';
-  const errorMessage = searchParams.get('error');
+  const returnTo = searchParams.get("return_to");
+  const osmRequired = searchParams.get("osm_required") === "true";
+  const autoConnect = searchParams.get("auto_connect") === "true";
+  const errorMessage = searchParams.get("error");
 
   // Show error toast if there's an error param
   const [showError, setShowError] = useState(!!errorMessage);
 
   // Track if user is logged in and their profile
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [_displayName, setDisplayName] = useState('');
+  const [_displayName, setDisplayName] = useState("");
 
   // Listen for login/logout events from hotosm-auth
   useEffect(() => {
@@ -51,31 +54,33 @@ function LoginPage() {
       setIsLoggedIn(true);
       // Fetch profile to get display name
       try {
-        const response = await fetch('/api/profile/me', {
-          credentials: 'include',
+        const response = await fetch("/api/profile/me", {
+          credentials: "include",
         });
         if (response.ok) {
           const profile = await response.json();
           if (profile.first_name || profile.last_name) {
-            setDisplayName(`${profile.first_name || ''} ${profile.last_name || ''}`.trim());
+            setDisplayName(
+              `${profile.first_name || ""} ${profile.last_name || ""}`.trim(),
+            );
           }
         }
       } catch (error) {
-        console.log('Could not fetch profile:', error);
+        console.log("Could not fetch profile:", error);
       }
     };
 
     const handleLogout = () => {
       setIsLoggedIn(false);
-      setDisplayName('');
+      setDisplayName("");
     };
 
-    document.addEventListener('hanko-login', handleLogin);
-    document.addEventListener('logout', handleLogout);
+    document.addEventListener("hanko-login", handleLogin);
+    document.addEventListener("logout", handleLogout);
 
     return () => {
-      document.removeEventListener('hanko-login', handleLogin);
-      document.removeEventListener('logout', handleLogout);
+      document.removeEventListener("hanko-login", handleLogin);
+      document.removeEventListener("logout", handleLogout);
     };
   }, []);
 
@@ -83,7 +88,7 @@ function LoginPage() {
   useEffect(() => {
     if (errorMessage && isOnboarding) {
       sessionStorage.removeItem(ONBOARDING_STEP_KEY);
-      setOnboardingStepState('question');
+      setOnboardingStepState("question");
     }
   }, [errorMessage, isOnboarding]);
 
@@ -96,14 +101,18 @@ function LoginPage() {
 
   // Listen for OSM connected event and redirect to onboarding
   useEffect(() => {
-    if (!isOnboarding || onboardingStep !== 'osm_connect') return;
+    if (!isOnboarding || onboardingStep !== "osm_connect") return;
 
     const handleOSMConnected = () => {
-      console.log('🎯 OSM connected event received, redirecting to onboarding...');
-      setOnboardingStep('redirecting');
+      console.log(
+        "🎯 OSM connected event received, redirecting to onboarding...",
+      );
+      setOnboardingStep("redirecting");
       sessionStorage.removeItem(ONBOARDING_STEP_KEY);
 
-      const baseUrl = returnTo ? new URL(returnTo).origin : window.location.origin;
+      const baseUrl = returnTo
+        ? new URL(returnTo).origin
+        : window.location.origin;
       const callbackUrl = `${baseUrl}/api/v1/auth/onboarding/`;
 
       setTimeout(() => {
@@ -112,27 +121,29 @@ function LoginPage() {
     };
 
     // Listen to the custom event from web component
-    document.addEventListener('osm-connected', handleOSMConnected);
+    document.addEventListener("osm-connected", handleOSMConnected);
 
     return () => {
-      document.removeEventListener('osm-connected', handleOSMConnected);
+      document.removeEventListener("osm-connected", handleOSMConnected);
     };
   }, [isOnboarding, onboardingStep, returnTo]);
 
-  const hankoUrl = import.meta.env.VITE_HANKO_URL || 'http://login.localhost';
-  const hankoBaseUrl = hankoUrl.replace(/\/login$/, '') || 'http://localhost';
+  const hankoUrl = import.meta.env.VITE_HANKO_URL || "http://login.localhost";
+  const hankoBaseUrl = hankoUrl.replace(/\/login$/, "") || "http://localhost";
 
   const handleLegacyUser = () => {
     // User says they had an account - need to connect OSM
-    setOnboardingStep('osm_connect');
+    setOnboardingStep("osm_connect");
   };
 
   const handleNewUser = () => {
     // User is new - redirect back to app with new_user flag
-    setOnboardingStep('redirecting');
+    setOnboardingStep("redirecting");
 
     // Build callback URL for the app
-    const baseUrl = returnTo ? new URL(returnTo).origin : window.location.origin;
+    const baseUrl = returnTo
+      ? new URL(returnTo).origin
+      : window.location.origin;
     const callbackUrl = `${baseUrl}/api/v1/auth/onboarding/?new_user=true`;
 
     setTimeout(() => {
@@ -141,7 +152,8 @@ function LoginPage() {
   };
 
   // Get app display name
-  const appDisplayName = onboardingApp === 'fair' ? 'fAIr' : onboardingApp || 'the app';
+  const appDisplayName =
+    onboardingApp === "fair" ? "fAIr" : onboardingApp || "the app";
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-hot-gray-50 p-4">
@@ -151,7 +163,9 @@ function LoginPage() {
           <div className="toast-content">
             <span className="toast-icon">⚠️</span>
             <span className="toast-message">{errorMessage}</span>
-            <button className="toast-close" onClick={() => setShowError(false)}>×</button>
+            <button className="toast-close" onClick={() => setShowError(false)}>
+              ×
+            </button>
           </div>
         </div>
       )}
@@ -169,51 +183,51 @@ function LoginPage() {
           </div>
 
           {/* Onboarding: Question step */}
-          {isOnboarding && onboardingStep === 'question' && (
+          {isOnboarding && onboardingStep === "question" && (
             <div className="max-w-[400px] mx-auto">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-semibold text-hot-gray-900 mb-2">
-                  Welcome to {appDisplayName}!
+                  {t('welcomeTo')} {appDisplayName}!
                 </h2>
                 <p className="text-sm text-hot-gray-600">
-                  We need to set up your account.
+                  {t('needToSetup')}
                 </p>
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6">
                 <p className="text-center text-hot-gray-900 font-medium mb-3">
-                  Did you have an existing {appDisplayName} account?
+                  {t('didYouHaveAccount')} {appDisplayName} account?
                 </p>
                 <p className="text-center text-sm text-hot-gray-600">
-                  If you previously used {appDisplayName} with OpenStreetMap,
-                  we can recover your data.
+                  {t('ifPreviouslyUsed')} {appDisplayName} with OpenStreetMap, we
+                  can recover your data.
                 </p>
               </div>
 
               <div className="flex flex-col gap-3">
                 <button onClick={handleLegacyUser} className="btn-primary-hot">
-                  Yes, recover my account
+                  {t('yesRecoverAccount')}
                 </button>
                 <button onClick={handleNewUser} className="btn-secondary-hot">
-                  No, I'm new here
+                  {t('noImNew')}
                 </button>
               </div>
 
               <p className="mt-5 text-xs text-center text-hot-gray-400">
-                Not sure? Select "Yes" and we'll check for you.
+                {t('notSure')}
               </p>
             </div>
           )}
 
           {/* Onboarding: OSM Connect step */}
-          {isOnboarding && onboardingStep === 'osm_connect' && (
+          {isOnboarding && onboardingStep === "osm_connect" && (
             <div className="max-w-[400px] mx-auto">
               <div className="text-center mb-6">
                 <h2 className="text-lg font-semibold text-hot-gray-900 mb-2">
-                  Connect your OpenStreetMap account
+                  {t('connectOsmAccount')}
                 </h2>
                 <p className="text-sm text-hot-gray-600">
-                  Connect with the same OSM account you used before to recover your {appDisplayName} data.
+                  {t('connectSameOsm')}{' '}{appDisplayName} data.
                 </p>
               </div>
 
@@ -222,23 +236,24 @@ function LoginPage() {
                 show-profile={true}
                 osm-required={true}
                 auto-connect={true}
-                redirect-after-login={`${returnTo ? new URL(returnTo).origin : ''}/api/v1/auth/onboarding/`}
+                lang={currentLanguage}
+                redirect-after-login={`${returnTo ? new URL(returnTo).origin : ""}/api/v1/auth/onboarding/`}
               />
 
               <button
-                onClick={() => setOnboardingStep('question')}
+                onClick={() => setOnboardingStep("question")}
                 className="btn-back mt-4"
               >
-                ← Go back
+                {t('goBack')}
               </button>
             </div>
           )}
 
           {/* Onboarding: Redirecting step */}
-          {isOnboarding && onboardingStep === 'redirecting' && (
+          {isOnboarding && onboardingStep === "redirecting" && (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-600 border-t-transparent mx-auto mb-4"></div>
-              <p className="text-hot-gray-600">Setting up your account...</p>
+              <p className="text-hot-gray-600">{t('settingUpAccount')}</p>
             </div>
           )}
 
@@ -247,29 +262,18 @@ function LoginPage() {
             <div className="max-w-[400px] mx-auto">
               <div className="text-center px-5">
                 <p className="text-sm text-hot-gray-600">
-                  Access all HOT tools and services
+                  {t('accessAllTools')}
                 </p>
               </div>
 
               <hotosm-auth
                 hanko-url={hankoBaseUrl}
                 show-profile={true}
+                lang={currentLanguage}
                 redirect-after-login={returnTo || undefined}
                 osm-required={osmRequired || undefined}
                 auto-connect={autoConnect || undefined}
               />
-
-              {/* Profile link when logged in */}
-              {isLoggedIn && (
-                <div className="mt-4 text-center">
-                  <a
-                    href="/app/profile"
-                    className="text-sm text-hot-red-600 hover:text-hot-red-700 font-medium transition-colors"
-                  >
-                    Manage my profile →
-                  </a>
-                </div>
-              )}
             </div>
           )}
 
@@ -277,9 +281,9 @@ function LoginPage() {
             <div className="mt-6 pt-6 border-t border-hot-gray-200 text-center">
               <a
                 href={returnTo}
-                className="text-sm text-hot-gray-600 hover:text-hot-red-600 inline-flex items-center gap-2 transition-colors"
+                className="text-sm text-hot-gray-600 hover:text-hot-gray-900 inline-flex items-center gap-2 transition-colors"
               >
-                <span>←</span> Back to previous page
+                <span>←</span> {t('backToPreviousPage')}
               </a>
             </div>
           )}
@@ -288,7 +292,7 @@ function LoginPage() {
         {/* Footer */}
         <div className="mt-6 text-center text-xs text-hot-gray-500">
           <p>
-            Powered by{' '}
+            {t('poweredBy')}{" "}
             <a
               href="https://www.hotosm.org"
               target="_blank"

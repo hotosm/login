@@ -87,6 +87,7 @@ export class HankoAuth extends LitElement {
   @state() private error: string | null = null;
   @state() private profileDisplayName: string = "";
   @state() private hasAppMapping = false; // True if user has mapping in the app
+  @state() private userProfileLanguage: string | null = null; // Language from user profile
   // dropdown
   @state() private isOpen = false;
 
@@ -643,9 +644,12 @@ export class HankoAuth extends LitElement {
   /**
    * Get translated string for the current language
    * Falls back to English if translation not found
+   * When user is logged in, uses their profile language instead of the lang prop
    */
   private t(key: keyof typeof translations.en): string {
-    const langTranslations = translations[this.lang] || translations.en;
+    // When user is logged in, use their profile language
+    const effectiveLang = this.user && this.userProfileLanguage ? this.userProfileLanguage : this.lang;
+    const langTranslations = translations[effectiveLang] || translations.en;
     return langTranslations[key] || translations.en[key] || key;
   }
 
@@ -1102,7 +1106,7 @@ export class HankoAuth extends LitElement {
     }
   }
 
-  // Fetch profile display name from login backend
+  // Fetch profile display name and language from login backend
   private async fetchProfileDisplayName() {
     try {
       const profileUrl = `${this.hankoUrl}/api/profile/me`;
@@ -1120,6 +1124,12 @@ export class HankoAuth extends LitElement {
           this.profileDisplayName =
             `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
           this.log("👤 Display name set to:", this.profileDisplayName);
+        }
+        
+        // Set language from user profile if available
+        if (profile.language) {
+          this.userProfileLanguage = profile.language;
+          this.log("🌐 Language set from profile:", this.userProfileLanguage);
         }
       }
     } catch (error) {
@@ -1456,6 +1466,7 @@ export class HankoAuth extends LitElement {
     this.osmConnected = false;
     this.osmData = null;
     this.hasAppMapping = false;
+    this.userProfileLanguage = null; // Clear user's language preference
 
     // Broadcast state changes to other instances
     if (this._isPrimary) {
@@ -1840,7 +1851,7 @@ export class HankoAuth extends LitElement {
         const loginBase = this.loginUrl || `${baseUrl}/app`;
         const loginUrl = `${loginBase}?return_to=${encodeURIComponent(
           returnTo,
-        )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}`;
+        )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}&lang=${this.lang}`;
 
         return html`<a class="login-link" href="${loginUrl}">${this.t("logIn")}</a> `;
       }
