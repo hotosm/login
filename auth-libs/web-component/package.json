@@ -46,11 +46,7 @@
     "@teamhanko/hanko-elements": "^1.0.0",
     "lit": "^3.3.1"
   },
-  "peerDependencies": {
-    "@awesome.me/webawesome": "^3.0.0-beta.1"
-  },
   "devDependencies": {
-    "@awesome.me/webawesome": "3.0.0-beta.1",
     "vite": "^5.0.0"
   }
 }

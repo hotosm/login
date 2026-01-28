@@ -12,6 +12,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { register } from "@teamhanko/hanko-elements";
+import { translations } from "./translations";
 //Icons
 import accountIcon from "../assets/icon-account.svg";
 import logoutIcon from "../assets/icon-logout.svg";
@@ -74,6 +75,8 @@ export class HankoAuth extends LitElement {
   @property({ type: String, attribute: "app-id" }) appId = "";
   // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
   @property({ type: String, attribute: "login-url" }) loginUrl = "";
+  // Language code (en, es, fr, pt, etc.)
+  @property({ type: String }) lang = "en";
 
   // Internal state
   @state() private user: UserState | null = null;
@@ -89,10 +92,20 @@ export class HankoAuth extends LitElement {
 
   private toggleDropdown() {
     this.isOpen = !this.isOpen;
+    if (this.isOpen) {
+      // Add listener when dropdown opens
+      setTimeout(() => {
+        document.addEventListener("click", this.handleOutsideClick);
+      }, 0);
+    } else {
+      // Remove listener when dropdown closes
+      document.removeEventListener("click", this.handleOutsideClick);
+    }
   }
 
   private closeDropdown() {
     this.isOpen = false;
+    document.removeEventListener("click", this.handleOutsideClick);
   }
   private handleOutsideClick = (event: MouseEvent) => {
     if (!this.contains(event.target as Node)) {
@@ -141,6 +154,14 @@ export class HankoAuth extends LitElement {
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
+    .spinner-small {
+      width: var(--hot-spacing-x-large);
+      height: var(--hot-spacing-x-large);
+      border: var(--hot-spacing-2x-small) solid var(--hot-color-gray-50);
+      border-top: var(--hot-spacing-2x-small) solid var(--hot-color-gray-600);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
 
     @keyframes spin {
       0% {
@@ -169,7 +190,7 @@ export class HankoAuth extends LitElement {
     }
 
     .btn-primary {
-      background: var(--hot-color-gray-700);
+      background: var(--hot-color-red-700);
       color: white;
     }
 
@@ -617,6 +638,15 @@ export class HankoAuth extends LitElement {
     if (this._debugMode) {
       console.log(...args);
     }
+  }
+
+  /**
+   * Get translated string for the current language
+   * Falls back to English if translation not found
+   */
+  private t(key: keyof typeof translations.en): string {
+    const langTranslations = translations[this.lang] || translations.en;
+    return langTranslations[key] || translations.en[key] || key;
   }
 
   private warn(...args: any[]) {
@@ -1590,7 +1620,7 @@ export class HankoAuth extends LitElement {
     );
 
     if (this.loading) {
-      return html` <button disabled>Log in</button> `;
+      return html`<div class="spinner-small"></div>`;
     }
 
     if (this.error) {
@@ -1631,7 +1661,7 @@ export class HankoAuth extends LitElement {
               ${this.osmRequired && this.osmLoading
                 ? html`
                     <div class="osm-section">
-                      <div class="loading">Checking OSM connection...</div>
+                      <div class="loading">${this.t("checkingOsmConnection")}</div>
                     </div>
                   `
                 : this.osmRequired && this.osmConnected
@@ -1641,7 +1671,7 @@ export class HankoAuth extends LitElement {
                           <div class="osm-badge">
                             <span class="osm-badge-icon">🗺️</span>
                             <div>
-                              <div>Connected to OpenStreetMap</div>
+                              <div>${this.t("connectedToOpenStreetMap")}</div>
                               ${this.osmData?.osm_username
                                 ? html`
                                     <div class="osm-username">
@@ -1663,20 +1693,20 @@ export class HankoAuth extends LitElement {
                             <div class="osm-connecting">
                               <div class="spinner"></div>
                               <div class="connecting-text">
-                                🗺️ Connecting to OpenStreetMap...
+                                🗺️ ${this.t("connectingToOpenStreetMap")}
                               </div>
                             </div>
                           `
                         : html`
-                            <div class="osm-prompt-title">🌍 OSM Required</div>
+                            <div class="osm-prompt-title">🌍 ${this.t("osmRequired")}</div>
                             <div class="osm-prompt-text">
-                              This endpoint requires OSM connection.
+                              ${this.t("osmRequiredText")}
                             </div>
                             <button
                               @click=${this.handleOSMConnect}
                               class="btn-primary"
                             >
-                              Connect OSM Account
+                              ${this.t("connectOsmAccount")}
                             </button>
                           `}
                     </div>
@@ -1684,7 +1714,7 @@ export class HankoAuth extends LitElement {
                 : ""}
 
               <button @click=${this.handleLogout} class="btn-secondary">
-                Log out
+                ${this.t("logOut")}
               </button>
             </div>
           </div>
@@ -1695,7 +1725,7 @@ export class HankoAuth extends LitElement {
           <div class="dropdown">
             <button
               @click=${this.toggleDropdown}
-              aria-label="Open account menu"
+              aria-label="${this.t("openAccountMenu")}"
               aria-expanded=${this.isOpen}
               aria-haspopup="true"
               class="dropdown-trigger"
@@ -1706,7 +1736,7 @@ export class HankoAuth extends LitElement {
                 ? html`
                     <span
                       class="osm-status-badge connected"
-                      title="Connected to OSM as @${this.osmData?.osm_username}"
+                      title="${this.t("connectedToOsmAs")} @${this.osmData?.osm_username}"
                       >✓</span
                     >
                   `
@@ -1714,7 +1744,7 @@ export class HankoAuth extends LitElement {
                   ? html`
                       <span
                         class="osm-status-badge required"
-                        title="OSM connection required"
+                        title="${this.t("osmConnectionRequired")}"
                         >!</span
                       >
                     `
@@ -1728,14 +1758,14 @@ export class HankoAuth extends LitElement {
               </div>
               <button data-action="profile" @click=${this.handleDropdownSelect}>
                 <img src="${accountIcon}" class="icon" alt="Account icon" />
-                My HOT Account
+                ${this.t("myHotAccount")}
               </button>
               ${this.osmRequired
                 ? this.osmConnected
                   ? html`
                       <button class="osm-connected" disabled>
                         <img src="${checkIcon}" alt="Check icon" class="icon" />
-                        Connected to OSM (@${this.osmData?.osm_username})
+                        ${this.t("connectedToOsm")} (@${this.osmData?.osm_username})
                       </button>
                     `
                   : html`
@@ -1744,13 +1774,13 @@ export class HankoAuth extends LitElement {
                         @click=${this.handleDropdownSelect}
                       >
                         <img src="${mapIcon}" alt="Check icon" class="icon" />
-                        Connect to OSM
+                        ${this.t("connectToOsm")}
                       </button>
                     `
                 : ""}
               <button data-action="logout" @click=${this.handleDropdownSelect}>
                 <img src="${logoutIcon}" alt="Log out icon" class="icon" />
-                Log Out
+                ${this.t("logOut")}
               </button>
             </div>
           </div>
@@ -1812,7 +1842,7 @@ export class HankoAuth extends LitElement {
           returnTo,
         )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}`;
 
-        return html`<a class="login-link" href="${loginUrl}">Log in</a> `;
+        return html`<a class="login-link" href="${loginUrl}">${this.t("logIn")}</a> `;
       }
     }
   }
