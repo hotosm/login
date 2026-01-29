@@ -73,11 +73,13 @@ export function AuthButton({ hankoUrl, onLogin }) {
 
 ### Display
 
-| Attribute      | Type    | Default | Description                          |
-| -------------- | ------- | ------- | ------------------------------------ |
-| `show-profile` | boolean | `false` | Show full profile (vs header button) |
-| `display-name` | string  | `""`    | Override display name                |
-| `lang`         | string  | `"en"`  | Language/locale code (e.g., "en", "es", "fr") |
+| Attribute        | Type    | Default    | Description                                                       |
+| ---------------- | ------- | ---------- | ----------------------------------------------------------------- |
+| `show-profile`   | boolean | `false`    | Show full profile (vs header button)                              |
+| `display-name`   | string  | `""`       | Override display name                                             |
+| `lang`           | string  | `"en"`     | Language/locale code (e.g., "en", "es", "fr"). Enlish as fallback |
+| `button-variant` | string  | `"filled"` | Button style: `filled`, `outline`, or `plain`                     |
+| `button-color`   | string  | `"primary"`| Button color: `primary`, `neutral`, or `danger`                   |
 
 ### Redirects
 
@@ -137,6 +139,36 @@ Shows a compact login button in the header:
     redirect-after-login="/"
   ></hotosm-auth>
 </header>
+```
+
+#### Button Styling
+
+Customize the login button appearance with `button-variant` and `button-color`:
+
+```html
+<!-- Filled primary button (default) -->
+<hotosm-auth hanko-url="https://login.hotosm.org"></hotosm-auth>
+
+<!-- Outline button -->
+<hotosm-auth
+  hanko-url="https://login.hotosm.org"
+  button-variant="outline"
+  button-color="primary"
+></hotosm-auth>
+
+<!-- Plain text button -->
+<hotosm-auth
+  hanko-url="https://login.hotosm.org"
+  button-variant="plain"
+  button-color="neutral"
+></hotosm-auth>
+
+<!-- Filled danger button -->
+<hotosm-auth
+  hanko-url="https://login.hotosm.org"
+  button-variant="filled"
+  button-color="danger"
+></hotosm-auth>
 ```
 
 ### Profile Mode

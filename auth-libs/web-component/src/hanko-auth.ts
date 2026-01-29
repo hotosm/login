@@ -77,6 +77,16 @@ export class HankoAuth extends LitElement {
   @property({ type: String, attribute: "login-url" }) loginUrl = "";
   // Language code (en, es, fr, pt, etc.)
   @property({ type: String }) lang = "en";
+  // Button variant (filled, outline, plain)
+  @property({ type: String, attribute: "button-variant" }) buttonVariant:
+    | "filled"
+    | "outline"
+    | "plain" = "plain";
+  // Button color (primary, neutral, danger)
+  @property({ type: String, attribute: "button-color" }) buttonColor:
+    | "primary"
+    | "neutral"
+    | "danger" = "primary";
 
   // Internal state
   @state() private user: UserState | null = null;
@@ -359,14 +369,93 @@ export class HankoAuth extends LitElement {
     }
 
     .login-link {
-      color: var(--hot-color-neutral-950);
-      font-size: var(--hot-font-size-small);
+      color: white;
+      font-size: var(--hot-font-size-medium);
       border-radius: var(--hot-border-radius-medium);
       text-decoration: none;
-      padding: 14px;
+      padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+      display: inline-block;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: var(--hot-font-weight-medium);
     }
-    .login-link:hover {
-      background: var(--hot-color-gray-50);
+
+    /* Button variants - filled */
+    .login-link.filled {
+      border: none;
+    }
+    .login-link.filled.primary {
+      background: var(--hot-color-primary-1000);
+      color: white;
+    }
+    .login-link.filled.primary:hover {
+      background: var(--hot-color-primary-900);
+    }
+    .login-link.filled.neutral {
+      background: var(--hot-color-neutral-600);
+      color: white;
+    }
+    .login-link.filled.neutral:hover {
+      background: var(--hot-color-neutral-700);
+    }
+    .login-link.filled.danger {
+      background: var(--hot-color-red-600);
+      color: white;
+    }
+    .login-link.filled.danger:hover {
+      background: var(--hot-color-red-700);
+    }
+
+    /* Button variants - outline */
+    .login-link.outline {
+      background: transparent;
+      border: 1px solid;
+    }
+    .login-link.outline.primary {
+      border-color: var(--hot-color-primary-1000);
+      color: var(--hot-color-primary-1000);
+    }
+    .login-link.outline.primary:hover {
+      background: var(--hot-color-primary-50);
+    }
+    .login-link.outline.neutral {
+      border-color: var(--hot-color-neutral-700);
+      color: var(--hot-color-neutral-700);
+    }
+    .login-link.outline.neutral:hover {
+      background: var(--hot-color-neutral-50);
+    }
+    .login-link.outline.danger {
+      border-color: var(--hot-color-red-600);
+      color: var(--hot-color-red-600);
+    }
+    .login-link.outline.danger:hover {
+      background: var(--hot-color-red-50);
+    }
+
+    /* Button variants - plain */
+    .login-link.plain {
+      background: transparent;
+      border: none;
+      padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+    }
+    .login-link.plain.primary {
+      color: var(--hot-color-primary-1000);
+    }
+    .login-link.plain.primary:hover {
+      background: var(--hot-color-primary-50);
+    }
+    .login-link.plain.neutral {
+      color: var(--hot-color-neutral-700);
+    }
+    .login-link.plain.neutral:hover {
+      background: var(--hot-color-neutral-50);
+    }
+    .login-link.plain.danger {
+      color: var(--hot-color-red-600);
+    }
+    .login-link.plain.danger:hover {
+      background: var(--hot-color-red-50);
     }
     /* Dropdown styles */
     .dropdown {
@@ -648,7 +737,10 @@ export class HankoAuth extends LitElement {
    */
   private t(key: keyof typeof translations.en): string {
     // When user is logged in, use their profile language
-    const effectiveLang = this.user && this.userProfileLanguage ? this.userProfileLanguage : this.lang;
+    const effectiveLang =
+      this.user && this.userProfileLanguage
+        ? this.userProfileLanguage
+        : this.lang;
     const langTranslations = translations[effectiveLang] || translations.en;
     return langTranslations[key] || translations.en[key] || key;
   }
@@ -1125,7 +1217,7 @@ export class HankoAuth extends LitElement {
             `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
           this.log("👤 Display name set to:", this.profileDisplayName);
         }
-        
+
         // Set language from user profile if available
         if (profile.language) {
           this.userProfileLanguage = profile.language;
@@ -1672,7 +1764,9 @@ export class HankoAuth extends LitElement {
               ${this.osmRequired && this.osmLoading
                 ? html`
                     <div class="osm-section">
-                      <div class="loading">${this.t("checkingOsmConnection")}</div>
+                      <div class="loading">
+                        ${this.t("checkingOsmConnection")}
+                      </div>
                     </div>
                   `
                 : this.osmRequired && this.osmConnected
@@ -1709,7 +1803,9 @@ export class HankoAuth extends LitElement {
                             </div>
                           `
                         : html`
-                            <div class="osm-prompt-title">🌍 ${this.t("osmRequired")}</div>
+                            <div class="osm-prompt-title">
+                              🌍 ${this.t("osmRequired")}
+                            </div>
                             <div class="osm-prompt-text">
                               ${this.t("osmRequiredText")}
                             </div>
@@ -1747,7 +1843,8 @@ export class HankoAuth extends LitElement {
                 ? html`
                     <span
                       class="osm-status-badge connected"
-                      title="${this.t("connectedToOsmAs")} @${this.osmData?.osm_username}"
+                      title="${this.t("connectedToOsmAs")} @${this.osmData
+                        ?.osm_username}"
                       >✓</span
                     >
                   `
@@ -1776,7 +1873,8 @@ export class HankoAuth extends LitElement {
                   ? html`
                       <button class="osm-connected" disabled>
                         <img src="${checkIcon}" alt="Check icon" class="icon" />
-                        ${this.t("connectedToOsm")} (@${this.osmData?.osm_username})
+                        ${this.t("connectedToOsm")}
+                        (@${this.osmData?.osm_username})
                       </button>
                     `
                   : html`
@@ -1853,7 +1951,11 @@ export class HankoAuth extends LitElement {
           returnTo,
         )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}&lang=${this.lang}`;
 
-        return html`<a class="login-link" href="${loginUrl}">${this.t("logIn")}</a> `;
+        return html`<a
+          class="login-link ${this.buttonVariant} ${this.buttonColor}"
+          href="${loginUrl}"
+          >${this.t("logIn")}</a
+        > `;
       }
     }
   }
