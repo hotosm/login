@@ -19,7 +19,7 @@ yarn add @hotosm/hanko-auth
 
 ### Import the component
 
-```javascript
+```js
 import "@hotosm/hanko-auth";
 ```
 
@@ -77,6 +77,7 @@ export function AuthButton({ hankoUrl, onLogin }) {
 | -------------- | ------- | ------- | ------------------------------------ |
 | `show-profile` | boolean | `false` | Show full profile (vs header button) |
 | `display-name` | string  | `""`    | Override display name                |
+| `lang`         | string  | `"en"`  | Language/locale code (e.g., "en", "es", "fr") |
 
 ### Redirects
 
@@ -106,7 +107,7 @@ The component dispatches the following custom events:
 
 ### Event Handling Example
 
-```javascript
+```js
 const auth = document.querySelector("hotosm-auth");
 
 auth.addEventListener("hanko-login", (e) => {
