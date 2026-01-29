@@ -176,14 +176,6 @@ export const styles = css`
     color: var(--hot-color-success-700);
     margin-top: var(--hot-spacing-2x-small);
   }
-  .osm-prompt {
-    background: var(--hot-color-warning-50);
-    border: var(--hot-border-width, 1px) solid var(--hot-color-warning-200);
-    border-radius: var(--hot-border-radius-large);
-    padding: var(--hot-spacing-large);
-    margin-bottom: var(--hot-spacing-medium);
-    text-align: center;
-  }
 
   .osm-prompt-title {
     font-weight: var(--hot-font-weight-semibold);
@@ -339,9 +331,9 @@ export const styles = css`
     position: relative;
   }
 
-  .dropdown-trigger.no-hover:hover,
-  .dropdown-trigger.no-hover:active,
-  .dropdown-trigger.no-hover:focus {
+  .dropdown-trigger:hover,
+  .dropdown-trigger:active,
+  .dropdown-trigger:focus {
     background: none;
     outline: none;
   }
