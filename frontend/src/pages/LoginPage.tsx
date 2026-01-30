@@ -52,6 +52,7 @@ function LoginPage() {
   useEffect(() => {
     const handleLogin = async () => {
       setIsLoggedIn(true);
+      console.log(isLoggedIn);
       // Fetch profile to get display name
       try {
         const response = await fetch("/api/profile/me", {
@@ -187,34 +188,32 @@ function LoginPage() {
             <div className="max-w-[400px] mx-auto">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-semibold text-hot-gray-900 mb-2">
-                  {t('welcomeTo')} {appDisplayName}!
+                  {t("welcomeTo")} {appDisplayName}!
                 </h2>
-                <p className="text-sm text-hot-gray-600">
-                  {t('needToSetup')}
-                </p>
+                <p className="text-sm text-hot-gray-600">{t("needToSetup")}</p>
               </div>
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6">
                 <p className="text-center text-hot-gray-900 font-medium mb-3">
-                  {t('didYouHaveAccount')} {appDisplayName} account?
+                  {t("didYouHaveAccount")} {appDisplayName} account?
                 </p>
                 <p className="text-center text-sm text-hot-gray-600">
-                  {t('ifPreviouslyUsed')} {appDisplayName} with OpenStreetMap, we
-                  can recover your data.
+                  {t("ifPreviouslyUsed")} {appDisplayName} with OpenStreetMap,
+                  we can recover your data.
                 </p>
               </div>
 
               <div className="flex flex-col gap-3">
                 <button onClick={handleLegacyUser} className="btn-primary-hot">
-                  {t('yesRecoverAccount')}
+                  {t("yesRecoverAccount")}
                 </button>
                 <button onClick={handleNewUser} className="btn-secondary-hot">
-                  {t('noImNew')}
+                  {t("noImNew")}
                 </button>
               </div>
 
               <p className="mt-5 text-xs text-center text-hot-gray-400">
-                {t('notSure')}
+                {t("notSure")}
               </p>
             </div>
           )}
@@ -224,10 +223,10 @@ function LoginPage() {
             <div className="max-w-[400px] mx-auto">
               <div className="text-center mb-6">
                 <h2 className="text-lg font-semibold text-hot-gray-900 mb-2">
-                  {t('connectOsmAccount')}
+                  {t("connectOsmAccount")}
                 </h2>
                 <p className="text-sm text-hot-gray-600">
-                  {t('connectSameOsm')}{' '}{appDisplayName} data.
+                  {t("connectSameOsm")} {appDisplayName} data.
                 </p>
               </div>
 
@@ -244,7 +243,7 @@ function LoginPage() {
                 onClick={() => setOnboardingStep("question")}
                 className="btn-back mt-4"
               >
-                {t('goBack')}
+                {t("goBack")}
               </button>
             </div>
           )}
@@ -253,7 +252,7 @@ function LoginPage() {
           {isOnboarding && onboardingStep === "redirecting" && (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-600 border-t-transparent mx-auto mb-4"></div>
-              <p className="text-hot-gray-600">{t('settingUpAccount')}</p>
+              <p className="text-hot-gray-600">{t("settingUpAccount")}</p>
             </div>
           )}
 
@@ -262,7 +261,7 @@ function LoginPage() {
             <div className="max-w-[400px] mx-auto">
               <div className="text-center px-5">
                 <p className="text-sm text-hot-gray-600">
-                  {t('accessAllTools')}
+                  {t("accessAllTools")}
                 </p>
               </div>
 
@@ -283,7 +282,7 @@ function LoginPage() {
                 href={returnTo}
                 className="text-sm text-hot-gray-600 hover:text-hot-gray-900 inline-flex items-center gap-2 transition-colors"
               >
-                <span>←</span> {t('backToPreviousPage')}
+                <span>←</span> {t("backToPreviousPage")}
               </a>
             </div>
           )}
@@ -292,7 +291,7 @@ function LoginPage() {
         {/* Footer */}
         <div className="mt-6 text-center text-xs text-hot-gray-500">
           <p>
-            {t('poweredBy')}{" "}
+            {t("poweredBy")}{" "}
             <a
               href="https://www.hotosm.org"
               target="_blank"
