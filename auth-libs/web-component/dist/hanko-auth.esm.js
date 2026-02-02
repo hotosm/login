@@ -4506,7 +4506,7 @@ let ce = class extends Nt {
     [
       {
         id: "hot-design-system",
-        href: "https://cdn.jsdelivr.net/npm/hotosm-ui-design@latest/dist/hot.css"
+        href: "https://cdn.jsdelivr.net/npm/@hotosm/ui-design@latest/dist/hot.css"
       },
       {
         id: "google-font-archivo",
