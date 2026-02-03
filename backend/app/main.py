@@ -59,6 +59,7 @@ app.add_middleware(
         "https://testlogin.dronetm.hotosm.org",
         "https://testlogin.fair.hotosm.org",
         "https://testlogin.umap.hotosm.org",
+        "https://testlogin.export.hotosm.org",
         "https://dronetm.hotosm.org",
     ],
     allow_credentials=True,

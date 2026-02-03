@@ -162,6 +162,7 @@ services:
       - PORTAL_BACKEND_URL=https://portal.hotosm.org
       - OAM_BACKEND_URL=https://openaerialmap.org
       - UMAP_BACKEND_URL=https://testlogin.umap.hotosm.org
+      - EXPORT_TOOL_BACKEND_URL=https://testlogin.export.hotosm.org
     networks:
       - hotosm
     labels:
