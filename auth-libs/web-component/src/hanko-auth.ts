@@ -12,6 +12,10 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { register } from "@teamhanko/hanko-elements";
+import { en } from "@teamhanko/hanko-elements/i18n/en";
+import { es } from "./hanko-i18n-es";
+import { fr } from "./hanko-i18n-fr";
+import { pt } from "./hanko-i18n-pt";
 import { styles } from "./hanko-auth.styles";
 import { translations } from "./translations";
 //Icons
@@ -394,10 +398,16 @@ export class HankoAuth extends LitElement {
       return;
     }
 
+    // DEBUG: Add delay to see loading state longer (remove in production)
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     try {
       await register(this.hankoUrl, {
         enablePasskeys: false,
         hidePasskeyButtonOnLogin: true,
+        translations: { en, es, fr, pt },
+        translationsLocation: null,
+        fallbackLanguage: "en",
       });
 
       // Create persistent Hanko instance and set up session event listeners
@@ -1313,7 +1323,7 @@ export class HankoAuth extends LitElement {
     );
 
     if (this.loading) {
-      return html`<div class="spinner-small"></div>`;
+      return html`<span class="loading-placeholder"><span class="loading-placeholder-text">${this.t("logIn")}</span><span class="spinner-small"></span></span>`;
     }
 
     if (this.error) {
@@ -1514,7 +1524,7 @@ export class HankoAuth extends LitElement {
             --headline2-font-weight: var(--hot-font-weight-semibold);
           "
           >
-            <hanko-auth></hanko-auth>
+            <hanko-auth lang="${this.lang}"></hanko-auth>
           </div>
         `;
       } else {

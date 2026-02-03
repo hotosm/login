@@ -185,6 +185,38 @@ Shows full authentication form (for login pages):
 ></hotosm-auth>
 ```
 
+## Styling
+
+The component uses Shadow DOM and can be customized using CSS custom properties.
+
+### CSS Custom Properties
+
+| Property                      | Description                        | Default                              |
+| ----------------------------- | ---------------------------------- | ------------------------------------ |
+| `--login-btn-margin`          | Margin around the login button     | `0`                                  |
+| `--login-btn-padding`         | Padding inside the login button    | `var(--hot-spacing-x-small) var(--hot-spacing-medium)` |
+| `--login-btn-bg-color`        | Background color of login button   | `var(--hot-color-primary-1000)`      |
+| `--login-btn-hover-bg-color`  | Background color on hover          | `var(--hot-color-primary-900)`       |
+| `--login-btn-border-radius`   | Border radius of login button      | `var(--hot-border-radius-medium)`    |
+| `--login-btn-text-color`      | Text color of login button         | `white`                              |
+| `--login-btn-text-size`       | Font size of login button text     | `var(--hot-font-size-medium)`        |
+| `--login-btn-font-family`     | Font family of login button        | `inherit`                            |
+
+**Example:**
+
+```css
+hotosm-auth {
+  --login-btn-margin: 8px;
+  --login-btn-padding: 12px 24px;
+  --login-btn-bg-color: #d73f3f;
+  --login-btn-hover-bg-color: #b83333;
+  --login-btn-border-radius: 8px;
+  --login-btn-text-color: #ffffff;
+  --login-btn-text-size: 16px;
+  --login-btn-font-family: 'Arial', sans-serif;
+}
+```
+
 ## Configuration
 
 ### Hanko URL Detection

@@ -13,7 +13,10 @@ export const styles = css`
   }
 
   .loading {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
     padding: var(--hot-spacing-3x-large);
     color: var(--hot-color-gray-600);
   }
@@ -27,18 +30,38 @@ export const styles = css`
   }
 
   .spinner {
-    width: var(--hot-spacing-3x-large);
-    height: var(--hot-spacing-3x-large);
-    border: var(--hot-spacing-2x-small) solid var(--hot-color-gray-50);
-    border-top: var(--hot-spacing-2x-small) solid var(--hot-color-red-600);
+    width: clamp(40px, 10%, 60px);
+    height: clamp(40px, 10%, 60px);
+    border: 4px solid var(--hot-color-gray-50);
+    border-top: 4px solid var(--hot-color-red-600);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    margin: 0 auto;
   }
+  /* Container that mimics the login button dimensions */
+  .loading-placeholder {
+    display: inline-grid;
+    place-items: center;
+    /* Use same styling as login-link button */
+    padding: var(--login-btn-padding, var(--hot-spacing-x-small) var(--hot-spacing-medium));
+    margin: var(--login-btn-margin, 0);
+    font-size: var(--login-btn-text-size, var(--hot-font-size-medium));
+    font-family: var(--login-btn-font-family, inherit);
+    border-radius: var(--login-btn-border-radius, var(--hot-border-radius-medium));
+  }
+
+  /* Invisible text to reserve button width */
+  .loading-placeholder-text {
+    visibility: hidden;
+    grid-area: 1 / 1;
+  }
+
   .spinner-small {
-    width: var(--hot-spacing-x-large);
-    height: var(--hot-spacing-x-large);
-    border: var(--hot-spacing-2x-small) solid var(--hot-color-gray-50);
-    border-top: var(--hot-spacing-2x-small) solid var(--hot-color-gray-600);
+    grid-area: 1 / 1;
+    width: 1em;
+    height: 1em;
+    border: 2px solid var(--hot-color-gray-200);
+    border-top: 2px solid var(--hot-color-gray-600);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -230,15 +253,17 @@ export const styles = css`
   }
 
   .login-link {
-    color: white;
-    font-size: var(--hot-font-size-medium);
-    border-radius: var(--hot-border-radius-medium);
+    color: var(--login-btn-text-color, white);
+    font-size: var(--login-btn-text-size, var(--hot-font-size-medium));
+    border-radius: var(--login-btn-border-radius, var(--hot-border-radius-medium));
     text-decoration: none;
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+    padding: var(--login-btn-padding, var(--hot-spacing-x-small) var(--hot-spacing-medium));
+    margin: var(--login-btn-margin, 0);
     display: inline-block;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: var(--hot-font-weight-medium);
+    font-family: var(--login-btn-font-family, inherit);
   }
 
   /* Button variants - filled */
@@ -246,77 +271,76 @@ export const styles = css`
     border: none;
   }
   .login-link.filled.primary {
-    background: var(--hot-color-primary-1000);
-    color: white;
+    background: var(--login-btn-bg-color, var(--hot-color-primary-1000));
+    color: var(--login-btn-text-color, white);
   }
   .login-link.filled.primary:hover {
-    background: var(--hot-color-primary-900);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-primary-900));
   }
   .login-link.filled.neutral {
-    background: var(--hot-color-neutral-600);
-    color: white;
+    background: var(--login-btn-bg-color, var(--hot-color-neutral-600));
+    color: var(--login-btn-text-color, white);
   }
   .login-link.filled.neutral:hover {
-    background: var(--hot-color-neutral-700);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-neutral-700));
   }
   .login-link.filled.danger {
-    background: var(--hot-color-red-600);
-    color: white;
+    background: var(--login-btn-bg-color, var(--hot-color-red-600));
+    color: var(--login-btn-text-color, white);
   }
   .login-link.filled.danger:hover {
-    background: var(--hot-color-red-700);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-red-700));
   }
 
   /* Button variants - outline */
   .login-link.outline {
-    background: transparent;
+    background: var(--login-btn-bg-color, transparent);
     border: 1px solid;
   }
   .login-link.outline.primary {
-    border-color: var(--hot-color-primary-1000);
-    color: var(--hot-color-primary-1000);
+    border-color: var(--login-btn-bg-color, var(--hot-color-primary-1000));
+    color: var(--login-btn-text-color, var(--hot-color-primary-1000));
   }
   .login-link.outline.primary:hover {
-    background: var(--hot-color-primary-50);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-primary-50));
   }
   .login-link.outline.neutral {
-    border-color: var(--hot-color-neutral-700);
-    color: var(--hot-color-neutral-700);
+    border-color: var(--login-btn-bg-color, var(--hot-color-neutral-700));
+    color: var(--login-btn-text-color, var(--hot-color-neutral-700));
   }
   .login-link.outline.neutral:hover {
-    background: var(--hot-color-neutral-50);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-neutral-50));
   }
   .login-link.outline.danger {
-    border-color: var(--hot-color-red-600);
-    color: var(--hot-color-red-600);
+    border-color: var(--login-btn-bg-color, var(--hot-color-red-600));
+    color: var(--login-btn-text-color, var(--hot-color-red-600));
   }
   .login-link.outline.danger:hover {
-    background: var(--hot-color-red-50);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-red-50));
   }
 
   /* Button variants - plain */
   .login-link.plain {
-    background: transparent;
+    background: var(--login-btn-bg-color, transparent);
     border: none;
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
   }
   .login-link.plain.primary {
-    color: var(--hot-color-primary-1000);
+    color: var(--login-btn-text-color, var(--hot-color-primary-1000));
   }
   .login-link.plain.primary:hover {
-    background: var(--hot-color-primary-50);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-primary-50));
   }
   .login-link.plain.neutral {
-    color: var(--hot-color-neutral-700);
+    color: var(--login-btn-text-color, var(--hot-color-neutral-700));
   }
   .login-link.plain.neutral:hover {
-    background: var(--hot-color-neutral-50);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-neutral-50));
   }
   .login-link.plain.danger {
-    color: var(--hot-color-red-600);
+    color: var(--login-btn-text-color, var(--hot-color-red-600));
   }
   .login-link.plain.danger:hover {
-    background: var(--hot-color-red-50);
+    background: var(--login-btn-hover-bg-color, var(--hot-color-red-50));
   }
   /* Dropdown styles */
   .dropdown {
