@@ -112,6 +112,9 @@ def create_admin_urlpatterns(
     class MappingsListCreateView(AdminPermissionMixin, APIView):
         """List all user mappings (GET) or create a new one (POST)."""
 
+        # Disable DRF auth - we use is_admin_user() which checks request.hotosm.user
+        authentication_classes = []
+
         def get(self, request: Request) -> Response:
             """List all user mappings (paginated)."""
             error = self.check_admin(request)
@@ -243,6 +246,9 @@ def create_admin_urlpatterns(
 
     class MappingDetailView(AdminPermissionMixin, APIView):
         """Get (GET), update (PUT), or delete (DELETE) a single user mapping."""
+
+        # Disable DRF auth - we use is_admin_user() which checks request.hotosm.user
+        authentication_classes = []
 
         def get(self, request: Request, hanko_user_id: str) -> Response:
             """Get a single user mapping by Hanko user ID."""
