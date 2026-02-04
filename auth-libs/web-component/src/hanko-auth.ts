@@ -1546,6 +1546,10 @@ export class HankoAuth extends LitElement {
         return html`<a
           class="login-link ${this.buttonVariant} ${this.buttonColor}"
           href="${loginUrl}"
+          @click=${(e: Event) => {
+            e.preventDefault();
+            window.location.href = loginUrl;
+          }}
           >${this.t("logIn")}</a
         > `;
       }

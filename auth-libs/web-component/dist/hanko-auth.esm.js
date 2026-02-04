@@ -5745,6 +5745,9 @@ let ce = class extends Nt {
         return qe`<a
           class="login-link ${this.buttonVariant} ${this.buttonColor}"
           href="${u}"
+          @click=${(h) => {
+          h.preventDefault(), window.location.href = u;
+        }}
           >${this.t("logIn")}</a
         > `;
       }
