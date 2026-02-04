@@ -736,9 +736,14 @@ export class HankoAuth extends LitElement {
       return true; // No check needed, proceed normally
     }
 
-    // Prevent redirect loops - if we already tried onboarding this session, don't redirect again
+    // If user already completed onboarding this session, skip the check
     const onboardingKey = getSessionOnboardingKey(window.location.hostname);
-    const alreadyTriedOnboarding = sessionStorage.getItem(onboardingKey);
+    const onboardingCompleted = sessionStorage.getItem(onboardingKey);
+    if (onboardingCompleted) {
+      this.log("✅ Onboarding already completed this session, skipping check");
+      this.hasAppMapping = true;
+      return true;
+    }
 
     this.log("🔍 Checking app mapping at:", this.mappingCheckUrl);
 
@@ -752,36 +757,23 @@ export class HankoAuth extends LitElement {
         this.log("📡 Mapping check response:", data);
 
         if (data.needs_onboarding) {
-          if (alreadyTriedOnboarding) {
-            this.log(
-              "⚠️ Already tried onboarding this session, skipping redirect",
-            );
-            return true; // Don't loop, let user continue
-          }
           // User has Hanko session but no app mapping - redirect to onboarding
+          // Don't set flag here - only set it when onboarding completes
           this.log("⚠️ User needs onboarding, redirecting...");
-          sessionStorage.setItem(onboardingKey, "true");
           const returnTo = encodeURIComponent(window.location.origin);
           const appParam = this.appId ? `onboarding=${this.appId}` : "";
           window.location.href = `${this.hankoUrl}/app?${appParam}&return_to=${returnTo}`;
           return false; // Redirect in progress, don't proceed
         }
 
-        // User has mapping - clear the onboarding flag
-        sessionStorage.removeItem(onboardingKey);
+        // User has mapping - mark onboarding as completed
+        sessionStorage.setItem(onboardingKey, "true");
         this.hasAppMapping = true;
-        this.log("✅ User has app mapping");
+        this.log("✅ User has app mapping, onboarding marked complete");
         return true;
       } else if (response.status === 401 || response.status === 403) {
-        if (alreadyTriedOnboarding) {
-          this.log(
-            "⚠️ Already tried onboarding this session, skipping redirect",
-          );
-          return true;
-        }
         // Needs onboarding
         this.log("⚠️ 401/403 - User needs onboarding, redirecting...");
-        sessionStorage.setItem(onboardingKey, "true");
         const returnTo = encodeURIComponent(window.location.origin);
         const appParam = this.appId ? `onboarding=${this.appId}` : "";
         window.location.href = `${this.hankoUrl}/app?${appParam}&return_to=${returnTo}`;

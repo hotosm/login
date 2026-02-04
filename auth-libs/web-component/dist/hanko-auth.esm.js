@@ -5270,7 +5270,9 @@ let ce = class extends Nt {
   async checkAppMapping() {
     if (!this.mappingCheckUrl || !this.user)
       return !0;
-    const n = oi(window.location.hostname), e = sessionStorage.getItem(n);
+    const n = oi(window.location.hostname);
+    if (sessionStorage.getItem(n))
+      return this.log("✅ Onboarding already completed this session, skipping check"), this.hasAppMapping = !0, !0;
     this.log("🔍 Checking app mapping at:", this.mappingCheckUrl);
     try {
       const t = await fetch(this.mappingCheckUrl, {
@@ -5279,21 +5281,13 @@ let ce = class extends Nt {
       if (t.ok) {
         const o = await t.json();
         if (this.log("📡 Mapping check response:", o), o.needs_onboarding) {
-          if (e)
-            return this.log(
-              "⚠️ Already tried onboarding this session, skipping redirect"
-            ), !0;
-          this.log("⚠️ User needs onboarding, redirecting..."), sessionStorage.setItem(n, "true");
+          this.log("⚠️ User needs onboarding, redirecting...");
           const i = encodeURIComponent(window.location.origin), a = this.appId ? `onboarding=${this.appId}` : "";
           return window.location.href = `${this.hankoUrl}/app?${a}&return_to=${i}`, !1;
         }
-        return sessionStorage.removeItem(n), this.hasAppMapping = !0, this.log("✅ User has app mapping"), !0;
+        return sessionStorage.setItem(n, "true"), this.hasAppMapping = !0, this.log("✅ User has app mapping, onboarding marked complete"), !0;
       } else if (t.status === 401 || t.status === 403) {
-        if (e)
-          return this.log(
-            "⚠️ Already tried onboarding this session, skipping redirect"
-          ), !0;
-        this.log("⚠️ 401/403 - User needs onboarding, redirecting..."), sessionStorage.setItem(n, "true");
+        this.log("⚠️ 401/403 - User needs onboarding, redirecting...");
         const o = encodeURIComponent(window.location.origin), i = this.appId ? `onboarding=${this.appId}` : "";
         return window.location.href = `${this.hankoUrl}/app?${i}&return_to=${o}`, !1;
       }
