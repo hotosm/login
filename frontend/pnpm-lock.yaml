@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@hotosm/hanko-auth':
-        specifier: ^0.3.5
-        version: 0.3.5(@awesome.me/webawesome@3.1.0(@floating-ui/utils@0.2.10)(@types/react@19.2.2))
+        specifier: ^0.4.2
+        version: 0.4.2
       '@teamhanko/hanko-elements':
         specifier: ^2.2.0
         version: 2.2.0
@@ -66,10 +66,6 @@ packages:
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
-
-  '@awesome.me/webawesome@3.1.0':
-    resolution: {integrity: sha512-9XgTxL/6/8Ynb4KvQBjK33RjnsRyqIJO8zYQODu8MDbS/2ecjah+cUOek6DkK0opg1DC6N7X6GStjcrjAuMMyQ==}
-    engines: {node: '>=14.17.0'}
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -206,10 +202,6 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
-
-  '@ctrl/tinycolor@4.1.0':
-    resolution: {integrity: sha512-WyOx8cJQ+FQus4Mm4uPIZA64gbk3Wxh0so5Lcii0aJifqwoVOlfFtorjLE0Hen4OYyHZMXDWqMmaQemBhgxFRQ==}
-    engines: {node: '>=14'}
 
   '@denysvuika/preact-translate@0.5.1':
     resolution: {integrity: sha512-qqKkpjzR8E55nlLA+H3gP9Q99mCCWiTtRupVQBh8YRZljX+Q8YbsaJtV3F+TX4DR4lV8NLgvv2+sSUcHoWvNtQ==}
@@ -510,19 +502,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@floating-ui/core@1.7.3':
-    resolution: {integrity: sha512-sGnvb5dmrJaKEZ+LDIpguvdX3bDlEllmv4/ClQ9awcmCZrlx5jQyyMWFM5kBI+EyNOCDDiKk8il0zeuX3Zlg/w==}
-
-  '@floating-ui/dom@1.7.4':
-    resolution: {integrity: sha512-OOchDgh4F2CchOX94cRVqhvy7b3AFb+/rQXyswmzmGakRfkMgoWVjfnLWkRirfLEfuD4ysVW16eXzwt3jHIzKA==}
-
-  '@floating-ui/utils@0.2.10':
-    resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
-
-  '@hotosm/hanko-auth@0.3.5':
-    resolution: {integrity: sha512-G0l6W9PVHRnvBjCPlY0Z+yiLk+09rSTFvGCowN4UJnVNS7iK3X8k3bzmhiW/amlpDYZqFrY3cC04Rsxbm3HNWA==}
-    peerDependencies:
-      '@awesome.me/webawesome': ^3.0.0-beta.1
+  '@hotosm/hanko-auth@0.4.2':
+    resolution: {integrity: sha512-DAN6r80ane+APwNyQ6P4SDXEh9E8P6EHnOHxNapwfnSSYZrn3ZINzK2yXpD+lwP2u0G9+z7V0mAGs6zg44onoA==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -542,11 +523,6 @@ packages:
 
   '@lit-labs/ssr-dom-shim@1.5.1':
     resolution: {integrity: sha512-Aou5UdlSpr5whQe8AA/bZG0jMj96CoJIWbGfZ91qieWu5AWUMKw8VR/pAkQkJYvBNhmCcWnZlyyk5oze8JIqYA==}
-
-  '@lit/react@1.0.8':
-    resolution: {integrity: sha512-p2+YcF+JE67SRX3mMlJ1TKCSTsgyOVdAwd/nxp3NuV1+Cb6MWALbN6nT7Ld4tpmYofcE5kcaSY1YBB9erY+6fw==}
-    peerDependencies:
-      '@types/react': 17 || 18 || 19
 
   '@lit/reactive-element@2.1.2':
     resolution: {integrity: sha512-pbCDiVMnne1lYUIaYNN5wrwQXDtHaYtg7YEFPeW+hws6U47WeFvISGUWekPGKWOP1ygrs0ef0o1VJMk1exos5A==}
@@ -675,12 +651,6 @@ packages:
     resolution: {integrity: sha512-TAcgQh2sSkykPRWLrdyy2AiceMckNf5loITqXxFI5VuQjS5tSuw3WlwdN8qv8vzjLAUTvYaH/mVjSFpbkFbpTg==}
     cpu: [x64]
     os: [win32]
-
-  '@shoelace-style/animations@1.2.0':
-    resolution: {integrity: sha512-avvo1xxkLbv2dgtabdewBbqcJfV0e0zCwFqkPMnHFGbJbBHorRFfMAHh1NG9ymmXn0jW95ibUVH03E1NYXD6Gw==}
-
-  '@shoelace-style/localize@3.2.1':
-    resolution: {integrity: sha512-r4C9C/5kSfMBIr0D9imvpRdCNXtUNgyYThc4YlS6K5Hchv1UyxNQ9mxwj+BTRH2i1Neits260sR3OjKMnplsFA==}
 
   '@tailwindcss/container-queries@0.1.1':
     resolution: {integrity: sha512-p18dswChx6WnTSaJCSGx6lTmrGzNNvm2FtXmiO6AuA1V4U5REyoqwmT6kgAsIMdjo07QdAfYXHJ4hnMtfHzWgA==}
@@ -847,11 +817,6 @@ packages:
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
     engines: {node: '>= 6'}
-
-  composed-offset-position@0.0.6:
-    resolution: {integrity: sha512-Q7dLompI6lUwd7LWyIcP66r4WcS9u7AL2h8HaeipiRfCRPLMWqRx8fYsjb4OHi6UQFifO7XtNC2IlEJ1ozIFxw==}
-    peerDependencies:
-      '@floating-ui/utils': ^0.2.5
 
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
@@ -1045,11 +1010,6 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.1.6:
-    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
-    engines: {node: ^18 || >=20}
-    hasBin: true
-
   node-releases@2.0.27:
     resolution: {integrity: sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==}
 
@@ -1143,9 +1103,6 @@ packages:
 
   preact@10.27.2:
     resolution: {integrity: sha512-5SYSgFKSyhCbk6SrXyMpqjb5+MQBgfvEKE/OC+PujcY34sOpqtr+0AZQtPYx5IA6VxynQ7rUPCtKzyovpj9Bpg==}
-
-  qr-creator@1.0.0:
-    resolution: {integrity: sha512-C0cqfbS1P5hfqN4NhsYsUXePlk9BO+a45bAQ3xLYjBL3bOIFzoVEjs79Fado9u9BPBD3buHi3+vY+C8tHh4qMQ==}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -1415,21 +1372,6 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
-  '@awesome.me/webawesome@3.1.0(@floating-ui/utils@0.2.10)(@types/react@19.2.2)':
-    dependencies:
-      '@ctrl/tinycolor': 4.1.0
-      '@floating-ui/dom': 1.7.4
-      '@lit/react': 1.0.8(@types/react@19.2.2)
-      '@shoelace-style/animations': 1.2.0
-      '@shoelace-style/localize': 3.2.1
-      composed-offset-position: 0.0.6(@floating-ui/utils@0.2.10)
-      lit: 3.3.2
-      nanoid: 5.1.6
-      qr-creator: 1.0.0
-    transitivePeerDependencies:
-      - '@floating-ui/utils'
-      - '@types/react'
-
   '@babel/code-frame@7.27.1':
     dependencies:
       '@babel/helper-validator-identifier': 7.28.5
@@ -1576,8 +1518,6 @@ snapshots:
 
   '@biomejs/cli-win32-x64@1.9.4':
     optional: true
-
-  '@ctrl/tinycolor@4.1.0': {}
 
   '@denysvuika/preact-translate@0.5.1(preact@10.27.2)':
     dependencies:
@@ -1730,20 +1670,8 @@ snapshots:
   '@esbuild/win32-x64@0.25.11':
     optional: true
 
-  '@floating-ui/core@1.7.3':
+  '@hotosm/hanko-auth@0.4.2':
     dependencies:
-      '@floating-ui/utils': 0.2.10
-
-  '@floating-ui/dom@1.7.4':
-    dependencies:
-      '@floating-ui/core': 1.7.3
-      '@floating-ui/utils': 0.2.10
-
-  '@floating-ui/utils@0.2.10': {}
-
-  '@hotosm/hanko-auth@0.3.5(@awesome.me/webawesome@3.1.0(@floating-ui/utils@0.2.10)(@types/react@19.2.2))':
-    dependencies:
-      '@awesome.me/webawesome': 3.1.0(@floating-ui/utils@0.2.10)(@types/react@19.2.2)
       '@teamhanko/hanko-elements': 1.5.2
       lit: 3.3.2
 
@@ -1767,10 +1695,6 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@lit-labs/ssr-dom-shim@1.5.1': {}
-
-  '@lit/react@1.0.8(@types/react@19.2.2)':
-    dependencies:
-      '@types/react': 19.2.2
 
   '@lit/reactive-element@2.1.2':
     dependencies:
@@ -1855,10 +1779,6 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.52.5':
     optional: true
-
-  '@shoelace-style/animations@1.2.0': {}
-
-  '@shoelace-style/localize@3.2.1': {}
 
   '@tailwindcss/container-queries@0.1.1(tailwindcss@3.4.19)':
     dependencies:
@@ -2059,10 +1979,6 @@ snapshots:
 
   commander@4.1.1: {}
 
-  composed-offset-position@0.0.6(@floating-ui/utils@0.2.10):
-    dependencies:
-      '@floating-ui/utils': 0.2.10
-
   convert-source-map@2.0.0: {}
 
   cookie@1.0.2: {}
@@ -2262,8 +2178,6 @@ snapshots:
 
   nanoid@3.3.11: {}
 
-  nanoid@5.1.6: {}
-
   node-releases@2.0.27: {}
 
   normalize-path@3.0.0: {}
@@ -2326,8 +2240,6 @@ snapshots:
       source-map-js: 1.2.1
 
   preact@10.27.2: {}
-
-  qr-creator@1.0.0: {}
 
   queue-microtask@1.2.3: {}
 
