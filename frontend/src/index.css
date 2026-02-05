@@ -25,7 +25,9 @@ hanko-auth {
   --font-size: 14px;
   --font-weight: 400;
 
-  --border-radius: 0.5rem;
+  --border-radius: 10px;
+  --border-width: 1px;
+  --border-style: solid;
   --item-height: 2.75rem;
   --item-margin: 0.75rem 0;
 
@@ -50,8 +52,8 @@ hanko-auth {
   }
 
   code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-      monospace;
+    font-family:
+      source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
   }
 }
 
@@ -59,7 +61,7 @@ hanko-auth {
 @layer components {
   /* Primary HOT button */
   .btn-primary-hot {
-    @apply w-full py-3 px-6 bg-hot-red-600 text-white text-[15px] font-medium border-none rounded-md cursor-pointer transition-all hover:bg-hot-red-700;
+    @apply w-full py-3 px-6 bg-hot-gray-1000 text-white text-[15px] font-medium border-none rounded-md cursor-pointer transition-all hover:bg-hot-gray-800;
   }
 
   /* Secondary button */

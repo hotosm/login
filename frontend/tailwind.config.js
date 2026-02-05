@@ -28,6 +28,7 @@ export default {
         "hot-red-50": "var(--hot-color-red-50)",
 
         // Grays
+        "hot-gray-1000": "var(--hot-color-gray-1000)",
         "hot-gray-950": "var(--hot-color-gray-950)",
         "hot-gray-900": "var(--hot-color-gray-900)",
         "hot-gray-800": "var(--hot-color-gray-800)",

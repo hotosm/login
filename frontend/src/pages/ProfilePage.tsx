@@ -63,6 +63,30 @@ function ProfilePage() {
     fetchProfile();
   }, []);
 
+  // Listen for account deletion event from Hanko
+  useEffect(() => {
+    const handleUserDeleted = () => {
+      // Clear any local state
+      setProfile(null);
+
+      // Show confirmation
+      alert(t("accountDeleted") || "Your account has been deleted successfully.");
+
+      // Redirect to the return URL (previous app) or login page
+      if (returnTo) {
+        window.location.href = returnTo;
+      } else {
+        window.location.href = "/";
+      }
+    };
+
+    document.addEventListener("hanko-user-deleted", handleUserDeleted);
+
+    return () => {
+      document.removeEventListener("hanko-user-deleted", handleUserDeleted);
+    };
+  }, [t, returnTo]);
+
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -163,9 +187,6 @@ function ProfilePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img src={hotLogo} alt="HOT" className="h-10" />
-              <h1 className="text-2xl font-bold text-hot-gray-900">
-                {t("myProfile")}
-              </h1>
             </div>
             <button
               onClick={() => {
@@ -175,7 +196,7 @@ function ProfilePage() {
                   navigate(backInfo.url);
                 }
               }}
-              className="text-hot-gray-600 hover:text-hot-red-600 text-sm transition-colors"
+              className="text-hot-gray-1000 hover:text-hot-gray-900 text-sm transition-colors"
             >
               ← {t("backTo")} {backInfo.label}
             </button>
@@ -331,27 +352,6 @@ function ProfilePage() {
 
           {/* Hanko Profile Component */}
           <hanko-profile></hanko-profile>
-        </div>
-
-        {/* Danger Zone */}
-        <div className="bg-white rounded-xl shadow-xl p-6 border-2 border-hot-red-200">
-          <h2 className="text-lg font-semibold text-hot-red-700 mb-4">
-            {t("dangerZone")}
-          </h2>
-          <p className="text-sm text-hot-gray-600 mb-4">
-            {t("deleteAccountWarning")}
-          </p>
-          <button
-            onClick={() => {
-              if (confirm(t("deleteConfirm"))) {
-                // TODO: Implement account deletion via Hanko API
-                alert(t("deleteComingSoon"));
-              }
-            }}
-            className="px-4 py-2 bg-hot-red-600 text-white rounded-lg hover:bg-hot-red-700 transition-colors"
-          >
-            {t("deleteAccount")}
-          </button>
         </div>
 
         {/* Footer */}
