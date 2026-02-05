@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -84,7 +85,7 @@ export default defineConfig({
       '@': '/src',
       // In dev: /auth-libs-src is mounted via Docker volume
       // In prod build: resolve to the npm package source
-      '/auth-libs-src': './node_modules/@hotosm/hanko-auth',
+      '/auth-libs-src': path.resolve(__dirname, 'node_modules/@hotosm/hanko-auth'),
     },
   },
 });
