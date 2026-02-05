@@ -23,7 +23,8 @@
     /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "/auth-libs-src/*": ["./node_modules/@hotosm/hanko-auth/*"]
     }
   },
   "include": ["src"]

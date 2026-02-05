@@ -82,6 +82,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
+      // In dev: /auth-libs-src is mounted via Docker volume
+      // In prod build: resolve to the npm package source
+      '/auth-libs-src': './node_modules/@hotosm/hanko-auth',
     },
   },
 });
