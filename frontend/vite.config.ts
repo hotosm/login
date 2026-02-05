@@ -11,6 +11,10 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     allowedHosts: ['login.hotosm.test', 'localhost', '127.0.0.1', '.test', 'dev.login.hotosm.org', 'login.hotosm.org'],
+    fs: {
+      // Allow serving files from auth-libs source
+      allow: ['/app', '/auth-libs-src'],
+    },
     hmr: {
       protocol: 'wss',
       clientPort: 443,
