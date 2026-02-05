@@ -10,7 +10,8 @@
       "import": "./dist/hanko-auth.esm.js",
       "require": "./dist/hanko-auth.umd.js"
     },
-    "./dist/*": "./dist/*"
+    "./dist/*": "./dist/*",
+    "./src/*": "./src/*"
   },
   "files": [
     "dist",
