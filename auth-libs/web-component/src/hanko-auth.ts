@@ -11,18 +11,53 @@
 
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { keyed } from "lit/directives/keyed.js";
 import { register } from "@teamhanko/hanko-elements";
+import { styles } from "./hanko-auth.styles";
+// hanko ui translations
 import { en } from "@teamhanko/hanko-elements/i18n/en";
 import { es } from "./hanko-i18n-es";
 import { fr } from "./hanko-i18n-fr";
 import { pt } from "./hanko-i18n-pt";
-import { styles } from "./hanko-auth.styles";
+// custom component translations
 import { translations } from "./translations";
+
 //Icons
 import accountIcon from "../assets/icon-account.svg";
 import logoutIcon from "../assets/icon-logout.svg";
 import mapIcon from "../assets/icon-map.svg";
 import checkIcon from "../assets/icon-check.svg";
+
+// Track if Hanko has been registered globally
+let hankoRegistered = false;
+let hankoRegistrationPromise: Promise<void> | null = null;
+
+// Pre-register translations at module load time to prevent 404 errors
+// This will be called again with hankoUrl when component initializes
+async function ensureHankoRegistered(hankoUrl: string): Promise<void> {
+  if (hankoRegistered) return;
+  if (hankoRegistrationPromise) return hankoRegistrationPromise;
+
+  hankoRegistrationPromise = (async () => {
+    console.log("[hanko-auth] Pre-registering Hanko translations...");
+    try {
+      await register(hankoUrl, {
+        enablePasskeys: false,
+        hidePasskeyButtonOnLogin: true,
+        translations: { en, es, fr, pt },
+        fallbackLanguage: "en",
+      });
+      hankoRegistered = true;
+      console.log("[hanko-auth] Hanko registration complete");
+    } catch (error) {
+      console.error("[hanko-auth] Hanko registration failed:", error);
+      hankoRegistrationPromise = null;
+      throw error;
+    }
+  })();
+
+  return hankoRegistrationPromise;
+}
 
 // Module-level singleton state - shared across all instances
 const sharedAuth = {
@@ -35,6 +70,7 @@ const sharedAuth = {
   initialized: false,
   instances: new Set<any>(),
   profileDisplayName: "", // Shared profile display name
+  hankoReady: false, // used for translations
 };
 
 // Session storage key generators to avoid duplication
@@ -82,7 +118,7 @@ export class HankoAuth extends LitElement {
   // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
   @property({ type: String, attribute: "login-url" }) loginUrl = "";
   // Language code (en, es, fr, pt, etc.)
-  @property({ type: String }) lang = "en";
+  @property({ type: String, reflect: true }) lang = "en";
   // Button variant (filled, outline, plain)
   @property({ type: String, attribute: "button-variant" }) buttonVariant:
     | "filled"
@@ -101,6 +137,7 @@ export class HankoAuth extends LitElement {
   @state() private osmLoading = false;
   @state() private loading = true;
   @state() private error: string | null = null;
+  @state() private hankoReady = false; // Tracks when Hanko registration is complete
   @state() private profileDisplayName: string = "";
   @state() private hasAppMapping = false; // True if user has mapping in the app
   @state() private userProfileLanguage: string | null = null; // Language from user profile
@@ -245,6 +282,8 @@ export class HankoAuth extends LitElement {
     if (this._hanko !== sharedAuth.hanko) this._hanko = sharedAuth.hanko;
     if (this.profileDisplayName !== sharedAuth.profileDisplayName)
       this.profileDisplayName = sharedAuth.profileDisplayName;
+    if (this.hankoReady !== sharedAuth.hankoReady)
+      this.hankoReady = sharedAuth.hankoReady;
   }
 
   // Update shared state and broadcast to all instances
@@ -254,6 +293,7 @@ export class HankoAuth extends LitElement {
     sharedAuth.osmData = this.osmData;
     sharedAuth.loading = this.loading;
     sharedAuth.profileDisplayName = this.profileDisplayName;
+    sharedAuth.hankoReady = this.hankoReady;
 
     // Sync to all other instances
     sharedAuth.instances.forEach((instance) => {
@@ -398,17 +438,14 @@ export class HankoAuth extends LitElement {
       return;
     }
 
-    // DEBUG: Add delay to see loading state longer (remove in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     try {
-      await register(this.hankoUrl, {
-        enablePasskeys: false,
-        hidePasskeyButtonOnLogin: true,
-        translations: { en, es, fr, pt },
-        translationsLocation: null,
-        fallbackLanguage: "en",
-      });
+      this.log(
+        "Ensuring Hanko is registered with translations for: en, es, fr, pt",
+      );
+      this.log("Current lang prop:", this.lang);
+      await ensureHankoRegistered(this.hankoUrl);
+      this.hankoReady = true;
+      this._broadcastState();
 
       // Create persistent Hanko instance and set up session event listeners
       const { Hanko } = await import("@teamhanko/hanko-elements");
@@ -1312,10 +1349,15 @@ export class HankoAuth extends LitElement {
       !!this.user,
       "loading:",
       this.loading,
+      "lang:",
+      this.lang,
     );
 
     if (this.loading) {
-      return html`<span class="loading-placeholder"><span class="loading-placeholder-text">${this.t("logIn")}</span><span class="spinner-small"></span></span>`;
+      return html`<span class="loading-placeholder"
+        ><span class="loading-placeholder-text">${this.t("logIn")}</span
+        ><span class="spinner-small"></span
+      ></span>`;
     }
 
     if (this.error) {
@@ -1491,6 +1533,16 @@ export class HankoAuth extends LitElement {
       // Not logged in
       if (this.showProfile) {
         // On login page - show full Hanko auth form
+        // Don't render until Hanko is registered to prevent 404 errors
+        if (!this.hankoReady) {
+          this.log(
+            "⏳ Waiting for Hanko registration before rendering form...",
+          );
+          return html`<span class="loading-placeholder"
+            ><span class="loading-placeholder-text">${this.t("logIn")}</span
+            ><span class="spinner-small"></span
+          ></span>`;
+        }
         return html`
           <div
             class="container"
@@ -1516,7 +1568,10 @@ export class HankoAuth extends LitElement {
             --headline2-font-weight: var(--hot-font-weight-semibold);
           "
           >
-            <hanko-auth lang="${this.lang}"></hanko-auth>
+            ${keyed(
+              this.lang,
+              html`<hanko-auth lang="${this.lang}"></hanko-auth>`,
+            )}
           </div>
         `;
       } else {
@@ -1562,3 +1617,6 @@ declare global {
     "hotosm-auth": HankoAuth;
   }
 }
+
+// Re-export Hanko translations for use by consuming apps
+export { en, es, fr, pt };
