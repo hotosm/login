@@ -225,5 +225,7 @@ export const pt = {
       "A solicitação expirou, foi cancelada ou o dispositivo já está registrado. Tente novamente ou tente usar outro dispositivo.",
     platform_authenticator_required:
       "Sua conta está configurada para usar autenticadores de plataforma, mas seu dispositivo ou navegador atual não suporta esse recurso. Tente novamente com um dispositivo ou navegador compatível.",
+    third_party_access_denied:
+      "Acesso negado pelo provedor de terceiros. Por favor, tente novamente.",
   },
 };

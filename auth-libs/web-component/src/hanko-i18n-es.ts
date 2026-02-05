@@ -225,5 +225,7 @@ export const es = {
       "La solicitud expiró, se canceló o el dispositivo ya está registrado. Inténtelo de nuevo o intente usar otro dispositivo.",
     platform_authenticator_required:
       "Su cuenta está configurada para usar autenticadores de plataforma, pero su dispositivo o navegador actual no admite esta función. Inténtelo de nuevo con un dispositivo o navegador compatible.",
+    third_party_access_denied:
+      "Acceso denegado por el proveedor de terceros. Por favor, inténtelo de nuevo.",
   },
 };
