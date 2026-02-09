@@ -1,0 +1,10 @@
+apiVersion: v2
+name: login
+description: HOTOSM Login Service - Hanko SSO + OSM OAuth
+version: "0.1.0"
+appVersion: "1.0.0"
+maintainers:
+  - email: sysadmin@hotosm.org
+    name: HOTOSM
+home: https://github.com/hotosm/login
+icon: https://login.hotosm.org/favicon.png

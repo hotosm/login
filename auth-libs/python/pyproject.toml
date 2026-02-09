@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hotosm-auth"
-version = "0.2.5"
+version = "0.2.7"
 description = "HOTOSM SSO authentication library for Hanko + OSM OAuth"
 readme = "README.md"
 requires-python = ">=3.10"

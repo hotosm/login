@@ -15,36 +15,11 @@ pnpm add @hotosm/hanko-auth
 yarn add @hotosm/hanko-auth
 ```
 
-### Peer Dependencies
-
-This package requires Web Awesome to be installed separately:
-
-```bash
-# npm
-npm install @awesome.me/webawesome
-
-# pnpm
-pnpm add @awesome.me/webawesome
-
-# yarn
-yarn add @awesome.me/webawesome
-```
-
-**Why peer dependencies?**
-
-- Control the Web Awesome version in your project
-- Share Web Awesome across multiple packages without duplication
-- Reduce bundle size when multiple packages use Web Awesome
-
 ## Quick Start
 
 ### Import the component
 
-```javascript
-// Import Web Awesome (required peer dependency)
-import "@awesome.me/webawesome";
-
-// Import the auth component
+```js
 import "@hotosm/hanko-auth";
 ```
 
@@ -61,7 +36,6 @@ import "@hotosm/hanko-auth";
 
 ```tsx
 import { useEffect, useRef } from "react";
-import "@awesome.me/webawesome";
 import "@hotosm/hanko-auth";
 
 export function AuthButton({ hankoUrl, onLogin }) {
@@ -99,10 +73,13 @@ export function AuthButton({ hankoUrl, onLogin }) {
 
 ### Display
 
-| Attribute      | Type    | Default | Description                          |
-| -------------- | ------- | ------- | ------------------------------------ |
-| `show-profile` | boolean | `false` | Show full profile (vs header button) |
-| `display-name` | string  | `""`    | Override display name                |
+| Attribute        | Type    | Default    | Description                                                       |
+| ---------------- | ------- | ---------- | ----------------------------------------------------------------- |
+| `show-profile`   | boolean | `false`    | Show full profile (vs header button)                              |
+| `display-name`   | string  | `""`       | Override display name                                             |
+| `lang`           | string  | `"en"`     | Language/locale code (e.g., "en", "es", "fr"). Enlish as fallback |
+| `button-variant` | string  | `"filled"` | Button style: `filled`, `outline`, or `plain`                     |
+| `button-color`   | string  | `"primary"`| Button color: `primary`, `neutral`, or `danger`                   |
 
 ### Redirects
 
@@ -132,7 +109,7 @@ The component dispatches the following custom events:
 
 ### Event Handling Example
 
-```javascript
+```js
 const auth = document.querySelector("hotosm-auth");
 
 auth.addEventListener("hanko-login", (e) => {
@@ -164,6 +141,36 @@ Shows a compact login button in the header:
 </header>
 ```
 
+#### Button Styling
+
+Customize the login button appearance with `button-variant` and `button-color`:
+
+```html
+<!-- Filled primary button (default) -->
+<hotosm-auth hanko-url="https://login.hotosm.org"></hotosm-auth>
+
+<!-- Outline button -->
+<hotosm-auth
+  hanko-url="https://login.hotosm.org"
+  button-variant="outline"
+  button-color="primary"
+></hotosm-auth>
+
+<!-- Plain text button -->
+<hotosm-auth
+  hanko-url="https://login.hotosm.org"
+  button-variant="plain"
+  button-color="neutral"
+></hotosm-auth>
+
+<!-- Filled danger button -->
+<hotosm-auth
+  hanko-url="https://login.hotosm.org"
+  button-variant="filled"
+  button-color="danger"
+></hotosm-auth>
+```
+
 ### Profile Mode
 
 Shows full authentication form (for login pages):
@@ -176,6 +183,38 @@ Shows full authentication form (for login pages):
   auto-connect
   redirect-after-login="https://portal.hotosm.org"
 ></hotosm-auth>
+```
+
+## Styling
+
+The component uses Shadow DOM and can be customized using CSS custom properties.
+
+### CSS Custom Properties
+
+| Property                      | Description                        | Default                              |
+| ----------------------------- | ---------------------------------- | ------------------------------------ |
+| `--login-btn-margin`          | Margin around the login button     | `0`                                  |
+| `--login-btn-padding`         | Padding inside the login button    | `var(--hot-spacing-x-small) var(--hot-spacing-medium)` |
+| `--login-btn-bg-color`        | Background color of login button   | `var(--hot-color-primary-1000)`      |
+| `--login-btn-hover-bg-color`  | Background color on hover          | `var(--hot-color-primary-900)`       |
+| `--login-btn-border-radius`   | Border radius of login button      | `var(--hot-border-radius-medium)`    |
+| `--login-btn-text-color`      | Text color of login button         | `white`                              |
+| `--login-btn-text-size`       | Font size of login button text     | `var(--hot-font-size-medium)`        |
+| `--login-btn-font-family`     | Font family of login button        | `inherit`                            |
+
+**Example:**
+
+```css
+hotosm-auth {
+  --login-btn-margin: 8px;
+  --login-btn-padding: 12px 24px;
+  --login-btn-bg-color: #d73f3f;
+  --login-btn-hover-bg-color: #b83333;
+  --login-btn-border-radius: 8px;
+  --login-btn-text-color: #ffffff;
+  --login-btn-text-size: 16px;
+  --login-btn-font-family: 'Arial', sans-serif;
+}
 ```
 
 ## Configuration
@@ -202,15 +241,4 @@ The component detects the Hanko URL in the following priority order:
   window.HANKO_URL = "https://login.hotosm.org";
 </script>
 <hotosm-auth></hotosm-auth>
-```
-
-## Styling
-
-The component uses Shadow DOM. Override styles with CSS custom properties:
-
-```css
-hotosm-auth {
-  --primary-color: #d73f3f;
-  --text-color: #333;
-}
 ```

@@ -1,6 +1,6 @@
 {
   "name": "@hotosm/hanko-auth",
-  "version": "0.2.5",
+  "version": "0.4.4",
   "description": "Web component for HOTOSM SSO authentication with Hanko and OSM integration",
   "type": "module",
   "main": "dist/hanko-auth.umd.js",
@@ -10,7 +10,8 @@
       "import": "./dist/hanko-auth.esm.js",
       "require": "./dist/hanko-auth.umd.js"
     },
-    "./dist/*": "./dist/*"
+    "./dist/*": "./dist/*",
+    "./src/*": "./src/*"
   },
   "files": [
     "dist",
@@ -19,6 +20,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "watch": "vite build --watch",
     "preview": "vite preview"
   },
   "keywords": [
@@ -46,11 +48,7 @@
     "@teamhanko/hanko-elements": "^1.0.0",
     "lit": "^3.3.1"
   },
-  "peerDependencies": {
-    "@awesome.me/webawesome": "^3.0.0-beta.1"
-  },
   "devDependencies": {
-    "@awesome.me/webawesome": "3.0.0-beta.1",
     "vite": "^5.0.0"
   }
 }

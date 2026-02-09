@@ -11,8 +11,53 @@
 
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { keyed } from "lit/directives/keyed.js";
 import { register } from "@teamhanko/hanko-elements";
-import "@awesome.me/webawesome";
+import { styles } from "./hanko-auth.styles";
+// hanko ui translations
+import { en } from "@teamhanko/hanko-elements/i18n/en";
+import { es } from "./hanko-i18n-es";
+import { fr } from "./hanko-i18n-fr";
+import { pt } from "./hanko-i18n-pt";
+// custom component translations
+import { translations } from "./translations";
+
+//Icons
+import accountIcon from "../assets/icon-account.svg";
+import logoutIcon from "../assets/icon-logout.svg";
+import mapIcon from "../assets/icon-map.svg";
+import checkIcon from "../assets/icon-check.svg";
+
+// Track if Hanko has been registered globally
+let hankoRegistered = false;
+let hankoRegistrationPromise: Promise<void> | null = null;
+
+// Pre-register translations at module load time to prevent 404 errors
+// This will be called again with hankoUrl when component initializes
+async function ensureHankoRegistered(hankoUrl: string): Promise<void> {
+  if (hankoRegistered) return;
+  if (hankoRegistrationPromise) return hankoRegistrationPromise;
+
+  hankoRegistrationPromise = (async () => {
+    console.log("[hanko-auth] Pre-registering Hanko translations...");
+    try {
+      await register(hankoUrl, {
+        enablePasskeys: false,
+        hidePasskeyButtonOnLogin: true,
+        translations: { en, es, fr, pt },
+        fallbackLanguage: "en",
+      });
+      hankoRegistered = true;
+      console.log("[hanko-auth] Hanko registration complete");
+    } catch (error) {
+      console.error("[hanko-auth] Hanko registration failed:", error);
+      hankoRegistrationPromise = null;
+      throw error;
+    }
+  })();
+
+  return hankoRegistrationPromise;
+}
 
 // Module-level singleton state - shared across all instances
 const sharedAuth = {
@@ -25,6 +70,7 @@ const sharedAuth = {
   initialized: false,
   instances: new Set<any>(),
   profileDisplayName: "", // Shared profile display name
+  hankoReady: false, // used for translations
 };
 
 // Session storage key generators to avoid duplication
@@ -46,6 +92,7 @@ interface OSMData {
 
 @customElement("hotosm-auth")
 export class HankoAuth extends LitElement {
+  static styles = styles;
   // Properties (from attributes)
   @property({ type: String, attribute: "hanko-url" }) hankoUrlAttr = "";
   @property({ type: String, attribute: "base-path" }) basePath = "";
@@ -70,8 +117,18 @@ export class HankoAuth extends LitElement {
   @property({ type: String, attribute: "app-id" }) appId = "";
   // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
   @property({ type: String, attribute: "login-url" }) loginUrl = "";
-  // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
-  @property({ type: String, attribute: "login-url" }) loginUrl = "";
+  // Language code (en, es, fr, pt, etc.)
+  @property({ type: String, reflect: true }) lang = "en";
+  // Button variant (filled, outline, plain)
+  @property({ type: String, attribute: "button-variant" }) buttonVariant:
+    | "filled"
+    | "outline"
+    | "plain" = "plain";
+  // Button color (primary, neutral, danger)
+  @property({ type: String, attribute: "button-color" }) buttonColor:
+    | "primary"
+    | "neutral"
+    | "danger" = "primary";
 
   // Internal state
   @state() private user: UserState | null = null;
@@ -80,8 +137,35 @@ export class HankoAuth extends LitElement {
   @state() private osmLoading = false;
   @state() private loading = true;
   @state() private error: string | null = null;
+  @state() private hankoReady = false; // Tracks when Hanko registration is complete
   @state() private profileDisplayName: string = "";
   @state() private hasAppMapping = false; // True if user has mapping in the app
+  @state() private userProfileLanguage: string | null = null; // Language from user profile
+  // dropdown
+  @state() private isOpen = false;
+
+  private toggleDropdown() {
+    this.isOpen = !this.isOpen;
+    if (this.isOpen) {
+      // Add listener when dropdown opens
+      setTimeout(() => {
+        document.addEventListener("click", this.handleOutsideClick);
+      }, 0);
+    } else {
+      // Remove listener when dropdown closes
+      document.removeEventListener("click", this.handleOutsideClick);
+    }
+  }
+
+  private closeDropdown() {
+    this.isOpen = false;
+    document.removeEventListener("click", this.handleOutsideClick);
+  }
+  private handleOutsideClick = (event: MouseEvent) => {
+    if (!this.contains(event.target as Node)) {
+      this.closeDropdown();
+    }
+  };
 
   // Private fields
   private _trailingSlashCache: Record<string, boolean> = {};
@@ -89,261 +173,6 @@ export class HankoAuth extends LitElement {
   private _lastSessionId: string | null = null;
   private _hanko: any = null;
   private _isPrimary = false; // Is this the primary instance?
-
-  static styles = css`
-    :host {
-      display: block;
-      font-family: var(--hot-font-sans);
-    }
-
-    .container {
-      max-width: 400px;
-      margin: 0 auto;
-      padding: var(--hot-spacing-large);
-    }
-
-    .loading {
-      text-align: center;
-      padding: var(--hot-spacing-3x-large);
-      color: var(--hot-color-gray-600);
-    }
-
-    .osm-connecting {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--hot-spacing-small);
-      padding: var(--hot-spacing-large);
-    }
-
-    .spinner {
-      width: var(--hot-spacing-3x-large);
-      height: var(--hot-spacing-3x-large);
-      border: var(--hot-spacing-2x-small) solid var(--hot-color-gray-50);
-      border-top: var(--hot-spacing-2x-small) solid var(--hot-color-red-600);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .connecting-text {
-      font-size: var(--hot-font-size-small);
-      color: var(--hot-color-gray-600);
-      font-weight: var(--hot-font-weight-semibold);
-    }
-    // TODO replace with WA button
-    button {
-      width: 100%;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #d73f3f;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #c23535;
-    }
-
-    .btn-secondary {
-      background: #f0f0f0;
-      color: #333;
-      margin-top: 8px;
-    }
-
-    .btn-secondary:hover {
-      background: #e0e0e0;
-    }
-
-    .error {
-      background: var(--hot-color-red-50);
-      border: var(--hot-border-width, 1px) solid var(--hot-color-red-200);
-      border-radius: var(--hot-border-radius-medium);
-      padding: var(--hot-spacing-small);
-      color: var(--hot-color-red-700);
-      margin-bottom: var(--hot-spacing-medium);
-    }
-
-    .profile {
-      background: var(--hot-color-gray-50);
-      border-radius: var(--hot-border-radius-large);
-      padding: var(--hot-spacing-large);
-      margin-bottom: var(--hot-spacing-medium);
-    }
-
-    .profile-header {
-      display: flex;
-      align-items: center;
-      gap: var(--hot-spacing-small);
-      margin-bottom: var(--hot-spacing-medium);
-    }
-
-    .profile-avatar {
-      width: var(--hot-spacing-3x-large);
-      height: var(--hot-spacing-3x-large);
-      border-radius: 50%;
-      background: var(--hot-color-gray-200);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--hot-font-size-large);
-      font-weight: var(--hot-font-weight-bold);
-      color: var(--hot-color-gray-600);
-    }
-
-    .profile-info {
-      padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
-    }
-
-    .profile-email {
-      font-size: var(--hot-font-size-small);
-      font-weight: var(--hot-font-weight-bold);
-    }
-
-    .osm-section {
-      border-top: var(--hot-border-width, 1px) solid var(--hot-color-gray-100);
-      padding-top: var(--hot-spacing-medium);
-      padding-bottom: var(--hot-spacing-medium);
-      margin-top: var(--hot-spacing-medium);
-      margin-bottom: var(--hot-spacing-medium);
-      text-align: center;
-    }
-
-    .osm-connected {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--hot-spacing-small);
-      background: linear-gradient(
-        135deg,
-        var(--hot-color-success-50) 0%,
-        var(--hot-color-success-50) 100%
-      );
-      border-radius: var(--hot-border-radius-large);
-      border: var(--hot-border-width, 1px) solid var(--hot-color-success-200);
-    }
-
-    .osm-badge {
-      display: flex;
-      align-items: center;
-      gap: var(--hot-spacing-x-small);
-      color: var(--hot-color-success-800);
-      font-weight: var(--hot-font-weight-semibold);
-      font-size: var(--hot-font-size-small);
-      text-align: left;
-    }
-
-    .osm-badge-icon {
-      font-size: var(--hot-font-size-medium);
-    }
-
-    .osm-username {
-      font-size: var(--hot-font-size-x-small);
-      color: var(--hot-color-success-700);
-      margin-top: var(--hot-spacing-2x-small);
-    }
-    .osm-prompt {
-      background: var(--hot-color-warning-50);
-      border: var(--hot-border-width, 1px) solid var(--hot-color-warning-200);
-      border-radius: var(--hot-border-radius-large);
-      padding: var(--hot-spacing-large);
-      margin-bottom: var(--hot-spacing-medium);
-      text-align: center;
-    }
-
-    .osm-prompt-title {
-      font-weight: var(--hot-font-weight-semibold);
-      font-size: var(--hot-font-size-medium);
-      margin-bottom: var(--hot-spacing-small);
-      color: var(--hot-color-gray-900);
-      text-align: center;
-    }
-
-    .osm-prompt-text {
-      font-size: var(--hot-font-size-small);
-      color: var(--hot-color-gray-600);
-      margin-bottom: var(--hot-spacing-medium);
-      line-height: var(--hot-line-height-normal);
-      text-align: center;
-    }
-
-    .osm-status-badge {
-      position: absolute;
-      top: calc(-1 * var(--hot-spacing-2x-small));
-      right: var(--hot-spacing-x-small);
-      width: var(--hot-font-size-small);
-      height: var(--hot-font-size-small);
-      border-radius: 50%;
-      border: var(--hot-spacing-3x-small) solid white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--hot-font-size-2x-small);
-      color: white;
-      font-weight: var(--hot-font-weight-bold);
-    }
-
-    .osm-status-badge.connected {
-      background-color: var(--hot-color-success-600);
-    }
-
-    .osm-status-badge.required {
-      background-color: var(--hot-color-warning-600);
-    }
-    .header-avatar {
-      width: var(--hot-spacing-2x-large);
-      height: var(--hot-spacing-2x-large);
-      border-radius: 50%;
-      background: var(--hot-color-gray-800);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--hot-font-size-small);
-      font-weight: var(--hot-font-weight-semibold);
-      color: white;
-    }
-
-    /* Remove hover styles from the dropdown trigger button */
-    wa-button.no-hover::part(base) {
-      transition: none;
-    }
-    wa-button.no-hover::part(base):hover,
-    wa-button.no-hover::part(base):focus,
-    wa-button.no-hover::part(base):active {
-      background: transparent !important;
-      box-shadow: none !important;
-    }
-
-    wa-dropdown::part(menu) {
-      /* anchor the right edge of the panel to the right edge of the trigger (0 offset).
-     */
-      right: 0 !important;
-      left: auto !important; /* Ensures 'right' takes precedence */
-    }
-
-    wa-dropdown-item {
-      font-size: var(--hot-font-size-small);
-    }
-
-    wa-dropdown-item:hover {
-      background-color: var(--hot-color-neutral-50);
-    }
-  `;
 
   // Get computed hankoUrl (priority: attribute > meta tag > window.HANKO_URL > origin)
   get hankoUrl(): string {
@@ -378,8 +207,8 @@ export class HankoAuth extends LitElement {
     this._debugMode = this._checkDebugMode();
     this.log("🔌 hanko-auth connectedCallback called");
 
-    // Inject Hanko styles early, before any Hanko elements render
-    this.injectHankoStyles();
+    // Inject Hot styles early, before any Hanko elements render
+    this.injectHotStyles();
     // Register this instance
     sharedAuth.instances.add(this);
 
@@ -421,6 +250,7 @@ export class HankoAuth extends LitElement {
     );
     window.removeEventListener("focus", this._handleWindowFocus);
     document.removeEventListener("hanko-login", this._handleExternalLogin);
+    document.removeEventListener("click", this.handleOutsideClick);
 
     // Unregister this instance
     sharedAuth.instances.delete(this);
@@ -452,6 +282,8 @@ export class HankoAuth extends LitElement {
     if (this._hanko !== sharedAuth.hanko) this._hanko = sharedAuth.hanko;
     if (this.profileDisplayName !== sharedAuth.profileDisplayName)
       this.profileDisplayName = sharedAuth.profileDisplayName;
+    if (this.hankoReady !== sharedAuth.hankoReady)
+      this.hankoReady = sharedAuth.hankoReady;
   }
 
   // Update shared state and broadcast to all instances
@@ -461,6 +293,7 @@ export class HankoAuth extends LitElement {
     sharedAuth.osmData = this.osmData;
     sharedAuth.loading = this.loading;
     sharedAuth.profileDisplayName = this.profileDisplayName;
+    sharedAuth.hankoReady = this.hankoReady;
 
     // Sync to all other instances
     sharedAuth.instances.forEach((instance) => {
@@ -530,6 +363,21 @@ export class HankoAuth extends LitElement {
     }
   }
 
+  /**
+   * Get translated string for the current language
+   * Falls back to English if translation not found
+   * When user is logged in, uses their profile language instead of the lang prop
+   */
+  private t(key: keyof typeof translations.en): string {
+    // When user is logged in, use their profile language
+    const effectiveLang =
+      this.user && this.userProfileLanguage
+        ? this.userProfileLanguage
+        : this.lang;
+    const langTranslations = translations[effectiveLang] || translations.en;
+    return langTranslations[key] || translations.en[key] || key;
+  }
+
   private warn(...args: any[]) {
     console.warn(...args);
   }
@@ -559,35 +407,28 @@ export class HankoAuth extends LitElement {
     return path;
   }
 
-  private injectHankoStyles() {
-    // Inject HOT design system CSS from CDN (only once)
-    if (!document.getElementById("hot-design-system")) {
-      const styleLinks = [
-        "https://cdn.jsdelivr.net/npm/hotosm-ui-design@latest/dist/hot.css",
-        "https://cdn.jsdelivr.net/npm/hotosm-ui-design@latest/dist/hot-font-face.css",
-        "https://cdn.jsdelivr.net/npm/hotosm-ui-design@latest/dist/hot-wa.css",
-      ];
+  // styles injected to ensure global availability
+  private injectHotStyles() {
+    const stylesheets = [
+      {
+        id: "hot-design-system",
+        href: "https://cdn.jsdelivr.net/npm/@hotosm/ui-design@latest/dist/hot.css",
+      },
+      {
+        id: "google-font-archivo",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap",
+      },
+    ];
 
-      styleLinks.forEach((href, index) => {
+    stylesheets.forEach(({ id, href }) => {
+      if (!document.getElementById(id)) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = href;
-        if (index === 0) {
-          link.id = "hot-design-system"; // Mark first one to prevent duplicate injection
-        }
+        link.id = id;
         document.head.appendChild(link);
-      });
-    }
-
-    // Inject Google Fonts - Archivo (only once)
-    if (!document.getElementById("google-font-archivo")) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href =
-        "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap";
-      link.id = "google-font-archivo";
-      document.head.appendChild(link);
-    }
+      }
+    });
   }
 
   private async init() {
@@ -598,10 +439,13 @@ export class HankoAuth extends LitElement {
     }
 
     try {
-      await register(this.hankoUrl, {
-        enablePasskeys: false,
-        hidePasskeyButtonOnLogin: true,
-      });
+      this.log(
+        "Ensuring Hanko is registered with translations for: en, es, fr, pt",
+      );
+      this.log("Current lang prop:", this.lang);
+      await ensureHankoRegistered(this.hankoUrl);
+      this.hankoReady = true;
+      this._broadcastState();
 
       // Create persistent Hanko instance and set up session event listeners
       const { Hanko } = await import("@teamhanko/hanko-elements");
@@ -609,10 +453,17 @@ export class HankoAuth extends LitElement {
       // Configure cookie domain for cross-subdomain SSO
       const hostname = window.location.hostname;
       const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+
+      // Extract base domain for cookie (e.g., "login.hotosm.org" -> ".hotosm.org")
+      // Handles both production (.hotosm.org) and dev (.hotosm.test)
+      const parts = hostname.split(".");
+      const baseDomain =
+        parts.length >= 2 ? `.${parts.slice(-2).join(".")}` : hostname;
+
       const cookieOptions = isLocalhost
         ? {}
         : {
-            cookieDomain: ".hotosm.org",
+            cookieDomain: baseDomain,
             cookieName: "hanko",
             cookieSameSite: "lax",
           };
@@ -820,6 +671,12 @@ export class HankoAuth extends LitElement {
   }
 
   private async checkOSMConnection() {
+    // Skip OSM check if not required
+    if (!this.osmRequired) {
+      this.log("⏭️ OSM not required, skipping connection check");
+      return;
+    }
+
     if (this.osmConnected) {
       this.log("⏭️ Already connected to OSM, skipping check");
       return;
@@ -916,9 +773,14 @@ export class HankoAuth extends LitElement {
       return true; // No check needed, proceed normally
     }
 
-    // Prevent redirect loops - if we already tried onboarding this session, don't redirect again
+    // If user already completed onboarding this session, skip the check
     const onboardingKey = getSessionOnboardingKey(window.location.hostname);
-    const alreadyTriedOnboarding = sessionStorage.getItem(onboardingKey);
+    const onboardingCompleted = sessionStorage.getItem(onboardingKey);
+    if (onboardingCompleted) {
+      this.log("✅ Onboarding already completed this session, skipping check");
+      this.hasAppMapping = true;
+      return true;
+    }
 
     this.log("🔍 Checking app mapping at:", this.mappingCheckUrl);
 
@@ -932,36 +794,23 @@ export class HankoAuth extends LitElement {
         this.log("📡 Mapping check response:", data);
 
         if (data.needs_onboarding) {
-          if (alreadyTriedOnboarding) {
-            this.log(
-              "⚠️ Already tried onboarding this session, skipping redirect",
-            );
-            return true; // Don't loop, let user continue
-          }
           // User has Hanko session but no app mapping - redirect to onboarding
+          // Don't set flag here - only set it when onboarding completes
           this.log("⚠️ User needs onboarding, redirecting...");
-          sessionStorage.setItem(onboardingKey, "true");
           const returnTo = encodeURIComponent(window.location.origin);
           const appParam = this.appId ? `onboarding=${this.appId}` : "";
           window.location.href = `${this.hankoUrl}/app?${appParam}&return_to=${returnTo}`;
           return false; // Redirect in progress, don't proceed
         }
 
-        // User has mapping - clear the onboarding flag
-        sessionStorage.removeItem(onboardingKey);
+        // User has mapping - mark onboarding as completed
+        sessionStorage.setItem(onboardingKey, "true");
         this.hasAppMapping = true;
-        this.log("✅ User has app mapping");
+        this.log("✅ User has app mapping, onboarding marked complete");
         return true;
       } else if (response.status === 401 || response.status === 403) {
-        if (alreadyTriedOnboarding) {
-          this.log(
-            "⚠️ Already tried onboarding this session, skipping redirect",
-          );
-          return true;
-        }
         // Needs onboarding
         this.log("⚠️ 401/403 - User needs onboarding, redirecting...");
-        sessionStorage.setItem(onboardingKey, "true");
         const returnTo = encodeURIComponent(window.location.origin);
         const appParam = this.appId ? `onboarding=${this.appId}` : "";
         window.location.href = `${this.hankoUrl}/app?${appParam}&return_to=${returnTo}`;
@@ -978,7 +827,7 @@ export class HankoAuth extends LitElement {
     }
   }
 
-  // Fetch profile display name from login backend
+  // Fetch profile display name and language from login backend
   private async fetchProfileDisplayName() {
     try {
       const profileUrl = `${this.hankoUrl}/api/profile/me`;
@@ -996,6 +845,12 @@ export class HankoAuth extends LitElement {
           this.profileDisplayName =
             `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
           this.log("👤 Display name set to:", this.profileDisplayName);
+        }
+
+        // Set language from user profile if available
+        if (profile.language) {
+          this.userProfileLanguage = profile.language;
+          this.log("🌐 Language set from profile:", this.userProfileLanguage);
         }
       }
     } catch (error) {
@@ -1294,10 +1149,16 @@ export class HankoAuth extends LitElement {
       "✅ Logout complete - component will re-render with updated state",
     );
 
-    // Redirect after logout if configured
+    // Redirect after logout if configured (but not if already there)
     if (this.redirectAfterLogout) {
-      this.log("🔄 Redirecting after logout to:", this.redirectAfterLogout);
-      window.location.href = this.redirectAfterLogout;
+      const currentUrl = window.location.href.replace(/\/$/, "");
+      const targetUrl = this.redirectAfterLogout.replace(/\/$/, "");
+      if (currentUrl !== targetUrl && !currentUrl.startsWith(targetUrl + "#")) {
+        this.log("🔄 Redirecting after logout to:", this.redirectAfterLogout);
+        window.location.href = this.redirectAfterLogout;
+      } else {
+        this.log("⏭️ Already on logout target, skipping redirect");
+      }
     }
     // Otherwise let Lit's reactivity handle the re-render
   }
@@ -1326,6 +1187,7 @@ export class HankoAuth extends LitElement {
     this.osmConnected = false;
     this.osmData = null;
     this.hasAppMapping = false;
+    this.userProfileLanguage = null; // Clear user's language preference
 
     // Broadcast state changes to other instances
     if (this._isPrimary) {
@@ -1346,7 +1208,15 @@ export class HankoAuth extends LitElement {
     this.log("📊 Current state:", {
       user: this.user,
       osmConnected: this.osmConnected,
+      loading: this.loading,
     });
+
+    // If still loading, wait for session check to complete before acting
+    // The SDK may fire this event for old/stale sessions during init
+    if (this.loading) {
+      this.log("⏳ Still loading, ignoring session expired event during init");
+      return;
+    }
 
     // If we have an active user, the session is still valid
     // The SDK may fire this event for old/stale sessions while a new session exists
@@ -1386,13 +1256,19 @@ export class HankoAuth extends LitElement {
 
     this.log("✅ Session cleanup complete");
 
-    // Redirect after session expired if configured
+    // Redirect after session expired if configured (but not if already there)
     if (this.redirectAfterLogout) {
-      this.log(
-        "🔄 Redirecting after session expired to:",
-        this.redirectAfterLogout,
-      );
-      window.location.href = this.redirectAfterLogout;
+      const currentUrl = window.location.href.replace(/\/$/, ""); // Remove trailing slash
+      const targetUrl = this.redirectAfterLogout.replace(/\/$/, "");
+      if (currentUrl !== targetUrl && !currentUrl.startsWith(targetUrl + "#")) {
+        this.log(
+          "🔄 Redirecting after session expired to:",
+          this.redirectAfterLogout,
+        );
+        window.location.href = this.redirectAfterLogout;
+      } else {
+        this.log("⏭️ Already on logout target, skipping redirect");
+      }
     }
     // Otherwise component will re-render and show login button
   }
@@ -1403,16 +1279,42 @@ export class HankoAuth extends LitElement {
     this.handleSessionExpired();
   }
 
-  private handleDropdownSelect(event: CustomEvent) {
+  private handleDropdownSelect(event: Event) {
+    const target = event.currentTarget as HTMLElement;
+    const action = target.dataset.action;
+    this.log("🎯 Dropdown item selected:", action);
+
+    if (action === "profile") {
+      const baseUrl = this.hankoUrl;
+      const returnTo = this.redirectAfterLogin || window.location.origin;
+      window.location.href = `${baseUrl}/app/profile?return_to=${encodeURIComponent(returnTo)}`;
+    } else if (action === "connect-osm") {
+      const currentPath = window.location.pathname;
+      const isOnLoginPage = currentPath.includes("/app");
+      const returnTo = isOnLoginPage
+        ? window.location.origin
+        : window.location.href;
+      const baseUrl = this.hankoUrl;
+      window.location.href = `${baseUrl}/app?return_to=${encodeURIComponent(returnTo)}&osm_required=true`;
+    } else if (action === "logout") {
+      this.handleLogout();
+    }
+
+    // Close dropdown after selection
+    this.closeDropdown();
+  }
+  private oldHandleDropdownSelect(event: CustomEvent) {
     const selectedValue = event.detail.item.value;
     this.log("🎯 Dropdown item selected:", selectedValue);
 
     if (selectedValue === "profile") {
-      // Profile page lives on the login site
-      // Pass return URL so profile can navigate back to the app
-      const baseUrl = this.hankoUrl;
+      // Profile page: standalone apps have their own, others use central login service
+      // loginUrl already includes /app, hankoUrl doesn't
       const returnTo = this.redirectAfterLogin || window.location.origin;
-      window.location.href = `${baseUrl}/app/profile?return_to=${encodeURIComponent(returnTo)}`;
+      const profileUrl = this.loginUrl
+        ? `${this.loginUrl}/profile`
+        : `${this.hankoUrl}/app/profile`;
+      window.location.href = `${profileUrl}?return_to=${encodeURIComponent(returnTo)}`;
     } else if (selectedValue === "connect-osm") {
       // Smart return_to: if already on a login page, redirect to home instead
       const currentPath = window.location.pathname;
@@ -1447,12 +1349,15 @@ export class HankoAuth extends LitElement {
       !!this.user,
       "loading:",
       this.loading,
+      "lang:",
+      this.lang,
     );
 
     if (this.loading) {
-      return html`
-        <wa-button appearance="plain" size="small" disabled>Log in</wa-button>
-      `;
+      return html`<span class="loading-placeholder"
+        ><span class="loading-placeholder-text">${this.t("logIn")}</span
+        ><span class="spinner-small"></span
+      ></span>`;
     }
 
     if (this.error) {
@@ -1477,6 +1382,7 @@ export class HankoAuth extends LitElement {
 
       if (this.showProfile) {
         // Show full profile view
+        // TODO check use cases
         return html`
           <div class="container">
             <div class="profile">
@@ -1492,7 +1398,9 @@ export class HankoAuth extends LitElement {
               ${this.osmRequired && this.osmLoading
                 ? html`
                     <div class="osm-section">
-                      <div class="loading">Checking OSM connection...</div>
+                      <div class="loading">
+                        ${this.t("checkingOsmConnection")}
+                      </div>
                     </div>
                   `
                 : this.osmRequired && this.osmConnected
@@ -1502,7 +1410,7 @@ export class HankoAuth extends LitElement {
                           <div class="osm-badge">
                             <span class="osm-badge-icon">🗺️</span>
                             <div>
-                              <div>Connected to OpenStreetMap</div>
+                              <div>${this.t("connectedToOpenStreetMap")}</div>
                               ${this.osmData?.osm_username
                                 ? html`
                                     <div class="osm-username">
@@ -1524,53 +1432,53 @@ export class HankoAuth extends LitElement {
                             <div class="osm-connecting">
                               <div class="spinner"></div>
                               <div class="connecting-text">
-                                🗺️ Connecting to OpenStreetMap...
+                                🗺️ ${this.t("connectingToOpenStreetMap")}
                               </div>
                             </div>
                           `
                         : html`
-                            <div class="osm-prompt-title">🌍 OSM Required</div>
+                            <div class="osm-prompt-title">
+                              🌍 ${this.t("osmRequired")}
+                            </div>
                             <div class="osm-prompt-text">
-                              This endpoint requires OSM connection.
+                              ${this.t("osmRequiredText")}
                             </div>
                             <button
                               @click=${this.handleOSMConnect}
                               class="btn-primary"
                             >
-                              Connect OSM Account
+                              ${this.t("connectOsmAccount")}
                             </button>
                           `}
                     </div>
                   `
                 : ""}
 
-              <button @click=${this.handleLogout} class="btn-logout">
-                Logout
+              <button @click=${this.handleLogout} class="btn-secondary">
+                ${this.t("logOut")}
               </button>
             </div>
           </div>
         `;
       } else {
-        // Logged in, show-profile=false: render dropdown with WebAwesome
+        // Logged in, show-profile=false: render dropdown
         return html`
-          <wa-dropdown
-            placement="bottom-end"
-            distance="4"
-            @wa-select=${this.handleDropdownSelect}
-          >
-            <wa-button
-              slot="trigger"
-              class="no-hover"
-              appearance="plain"
-              size="small"
-              style="position: relative;"
+          <div class="dropdown">
+            <button
+              @click=${this.toggleDropdown}
+              aria-label="${this.t("openAccountMenu")}"
+              aria-expanded=${this.isOpen}
+              aria-haspopup="true"
+              class="dropdown-trigger"
             >
               <span class="header-avatar">${initial}</span>
+
               ${this.osmConnected
                 ? html`
                     <span
                       class="osm-status-badge connected"
-                      title="Connected to OSM as @${this.osmData?.osm_username}"
+                      title="${this.t("connectedToOsmAs")} @${this.osmData
+                        ?.osm_username}"
                       >✓</span
                     >
                   `
@@ -1578,48 +1486,63 @@ export class HankoAuth extends LitElement {
                   ? html`
                       <span
                         class="osm-status-badge required"
-                        title="OSM connection required"
+                        title="${this.t("osmConnectionRequired")}"
                         >!</span
                       >
                     `
                   : ""}
-            </wa-button>
-            <div class="profile-info">
-              <div class="profile-name">${displayName}</div>
-              <div class="profile-email">
-                ${this.user.email || this.user.id}
+            </button>
+            <div class="dropdown-content ${this.isOpen ? "open" : ""}">
+              <div class="profile-info">
+                <div class="profile-email">
+                  ${this.user.email || this.user.id}
+                </div>
               </div>
+              <button data-action="profile" @click=${this.handleDropdownSelect}>
+                <img src="${accountIcon}" class="icon" alt="Account icon" />
+                ${this.t("myHotAccount")}
+              </button>
+              ${this.osmRequired
+                ? this.osmConnected
+                  ? html`
+                      <button class="osm-connected" disabled>
+                        <img src="${checkIcon}" alt="Check icon" class="icon" />
+                        ${this.t("connectedToOsm")}
+                        (@${this.osmData?.osm_username})
+                      </button>
+                    `
+                  : html`
+                      <button
+                        data-action="connect-osm"
+                        @click=${this.handleDropdownSelect}
+                      >
+                        <img src="${mapIcon}" alt="Check icon" class="icon" />
+                        ${this.t("connectToOsm")}
+                      </button>
+                    `
+                : ""}
+              <button data-action="logout" @click=${this.handleDropdownSelect}>
+                <img src="${logoutIcon}" alt="Log out icon" class="icon" />
+                ${this.t("logOut")}
+              </button>
             </div>
-            <wa-dropdown-item value="profile">
-              <wa-icon slot="icon" name="address-card"></wa-icon>
-              My HOT Account
-            </wa-dropdown-item>
-            ${this.osmRequired
-              ? this.osmConnected
-                ? html`
-                    <wa-dropdown-item value="osm-connected" disabled>
-                      <wa-icon slot="icon" name="check"></wa-icon>
-                      Connected to OSM (@${this.osmData?.osm_username})
-                    </wa-dropdown-item>
-                  `
-                : html`
-                    <wa-dropdown-item value="connect-osm">
-                      <wa-icon slot="icon" name="map"></wa-icon>
-                      Connect OSM
-                    </wa-dropdown-item>
-                  `
-              : ""}
-            <wa-dropdown-item value="logout" variant="danger">
-              <wa-icon slot="icon" name="right-from-bracket"></wa-icon>
-              Sign Out
-            </wa-dropdown-item>
-          </wa-dropdown>
+          </div>
         `;
       }
     } else {
       // Not logged in
       if (this.showProfile) {
         // On login page - show full Hanko auth form
+        // Don't render until Hanko is registered to prevent 404 errors
+        if (!this.hankoReady) {
+          this.log(
+            "⏳ Waiting for Hanko registration before rendering form...",
+          );
+          return html`<span class="loading-placeholder"
+            ><span class="loading-placeholder-text">${this.t("logIn")}</span
+            ><span class="spinner-small"></span
+          ></span>`;
+        }
         return html`
           <div
             class="container"
@@ -1645,7 +1568,10 @@ export class HankoAuth extends LitElement {
             --headline2-font-weight: var(--hot-font-weight-semibold);
           "
           >
-            <hanko-auth></hanko-auth>
+            ${keyed(
+              this.lang,
+              html`<hanko-auth lang="${this.lang}"></hanko-auth>`,
+            )}
           </div>
         `;
       } else {
@@ -1670,14 +1596,17 @@ export class HankoAuth extends LitElement {
         const loginBase = this.loginUrl || `${baseUrl}/app`;
         const loginUrl = `${loginBase}?return_to=${encodeURIComponent(
           returnTo,
-        )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}`;
+        )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}&lang=${this.lang}`;
 
-        return html`<wa-button
-          appearance="plain"
-          size="small"
+        return html`<a
+          class="login-link ${this.buttonVariant} ${this.buttonColor}"
           href="${loginUrl}"
-          >Log in
-        </wa-button> `;
+          @click=${(e: Event) => {
+            e.preventDefault();
+            window.location.href = loginUrl;
+          }}
+          >${this.t("logIn")}</a
+        > `;
       }
     }
   }
@@ -1688,3 +1617,6 @@ declare global {
     "hotosm-auth": HankoAuth;
   }
 }
+
+// Re-export Hanko translations for use by consuming apps
+export { en, es, fr, pt };

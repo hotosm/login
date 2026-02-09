@@ -112,10 +112,9 @@ jobs:
               echo "✓ Created .env from .env.example"
             fi
 
-            if [ ! -f hanko-config.yaml ]; then
-              cp hanko-config.yaml.example hanko-config.yaml
-              echo "✓ Created hanko-config.yaml from example"
-            fi
+            # Always overwrite hanko-config.yaml from example to pick up changes
+            cp hanko-config.yaml.example hanko-config.yaml
+            echo "✓ Updated hanko-config.yaml from example"
 
             # Fix CORS config in hanko-config.yaml (ensure wildcard is disabled)
             sed -i 's/unsafe_wildcard_origin_allowed: true/unsafe_wildcard_origin_allowed: false/' hanko-config.yaml
@@ -129,7 +128,7 @@ jobs:
             sed -i 's|domain: "\.login\.hotosm\.org"|domain: ".hotosm.org"|g' hanko-config.yaml
             sed -i 's|domain: "\.dev\.login\.hotosm\.org"|domain: ".hotosm.org"|g' hanko-config.yaml
             # Add testlogin domains to all required sections
-            for domain in "testlogin.dronetm.hotosm.org" "testlogin.fair.hotosm.org"; do
+            for domain in "testlogin.dronetm.hotosm.org" "testlogin.fair.hotosm.org" "testlogin.umap.hotosm.org" "chatmap-dev.hotosm.org"; do
               # CORS allow_origins (check specifically in allow_origins section)
               if ! grep -A 10 'allow_origins:' hanko-config.yaml | grep -q "$domain"; then
                 sed -i '/allow_origins:/a\        - "https://'"$domain"'"' hanko-config.yaml

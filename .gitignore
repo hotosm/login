@@ -9,3 +9,5 @@ site/
 
 # Dependencies
 node_modules/
+login.har
+CLAUDE.md
