@@ -6,6 +6,11 @@ server:
         - "https://portal.hotosm.test"
         - "https://login.hotosm.test"
         - "https://dronetm.hotosm.test"
+        - "https://fair.hotosm.test"
+        - "https://openaerialmap.hotosm.test"
+        - "https://chatmap.hotosm.test"
+        - "https://umap.hotosm.test"
+        - "https://export-tool.hotosm.test"
       allow_credentials: true
       unsafe_wildcard_origin_allowed: false
 
@@ -32,6 +37,11 @@ webauthn:
       - "https://portal.hotosm.test"
       - "https://login.hotosm.test"
       - "https://dronetm.hotosm.test"
+      - "https://fair.hotosm.test"
+      - "https://openaerialmap.hotosm.test"
+      - "https://chatmap.hotosm.test"
+      - "https://umap.hotosm.test"
+      - "https://export-tool.hotosm.test"
 
 email:
   require_verification: true
@@ -63,6 +73,11 @@ session:
     - "https://portal.hotosm.test"
     - "https://login.hotosm.test"
     - "https://dronetm.hotosm.test"
+    - "https://fair.hotosm.test"
+    - "https://openaerialmap.hotosm.test"
+    - "https://chatmap.hotosm.test"
+    - "https://umap.hotosm.test"
+    - "https://export-tool.hotosm.test"
   cookie:
     name: "hanko"
     domain: ".hotosm.test"  # .hotosm.test with dot enables cookie sharing across all *.hotosm.test subdomains
@@ -77,6 +92,11 @@ third_party:
     - "https://portal.hotosm.test/**"
     - "https://login.hotosm.test/**"
     - "https://dronetm.hotosm.test/**"
+    - "https://fair.hotosm.test/**"
+    - "https://openaerialmap.hotosm.test/**"
+    - "https://chatmap.hotosm.test/**"
+    - "https://umap.hotosm.test/**"
+    - "https://export-tool.hotosm.test/**"
   cookie:
     domain: ".hotosm.test"  # .hotosm.test with dot enables cookie sharing across all *.hotosm.test subdomains
     http_only: true
