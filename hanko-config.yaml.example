@@ -45,9 +45,10 @@ webauthn:
 
 email:
   require_verification: true
+  use_for_authentication: false
 
 passcode:
-  enabled: true
+  enabled: false
   ttl: 300  # 5 minutes
 
 password:
