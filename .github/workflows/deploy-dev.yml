@@ -112,10 +112,9 @@ jobs:
               echo "✓ Created .env from .env.example"
             fi
 
-            if [ ! -f hanko-config.yaml ]; then
-              cp hanko-config.yaml.example hanko-config.yaml
-              echo "✓ Created hanko-config.yaml from example"
-            fi
+            # Always overwrite hanko-config.yaml from example to pick up changes
+            cp hanko-config.yaml.example hanko-config.yaml
+            echo "✓ Updated hanko-config.yaml from example"
 
             # Fix CORS config in hanko-config.yaml (ensure wildcard is disabled)
             sed -i 's/unsafe_wildcard_origin_allowed: true/unsafe_wildcard_origin_allowed: false/' hanko-config.yaml
