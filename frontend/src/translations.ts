@@ -42,6 +42,7 @@ export interface Translations {
   deleteConfirm: string;
   deleteComingSoon: string;
   accountCreated: string;
+  accountDeleted: string;
   profileUpdated: string;
   
   // Common
@@ -84,6 +85,7 @@ export const translations: Record<string, Translations> = {
     deleteConfirm: "Are you sure you want to delete your account? This action cannot be undone.",
     deleteComingSoon: "Account deletion will be available soon.",
     accountCreated: "Account created",
+    accountDeleted: "Your account has been deleted successfully.",
     profileUpdated: "Profile updated successfully",
     login: "Login",
   },
@@ -122,6 +124,7 @@ export const translations: Record<string, Translations> = {
     deleteConfirm: "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.",
     deleteComingSoon: "La eliminación de cuenta estará disponible pronto.",
     accountCreated: "Cuenta creada",
+    accountDeleted: "Tu cuenta ha sido eliminada exitosamente.",
     profileUpdated: "Perfil actualizado exitosamente",
     login: "Inicio de sesión",
   },
@@ -160,6 +163,7 @@ export const translations: Record<string, Translations> = {
     deleteConfirm: "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action ne peut pas être annulée.",
     deleteComingSoon: "La suppression de compte sera bientôt disponible.",
     accountCreated: "Compte créé",
+    accountDeleted: "Votre compte a été supprimé avec succès.",
     profileUpdated: "Profil mis à jour avec succès",
     login: "Connexion",
   },
@@ -198,6 +202,7 @@ export const translations: Record<string, Translations> = {
     deleteConfirm: "Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita.",
     deleteComingSoon: "A exclusão de conta estará disponível em breve.",
     accountCreated: "Conta criada",
+    accountDeleted: "Sua conta foi excluída com sucesso.",
     profileUpdated: "Perfil atualizado com sucesso",
     login: "Login",
   },
