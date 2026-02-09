@@ -1,0 +1,71 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - chart/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  CHART_NAME: login
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Login to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} \
+            --username ${{ github.actor }} \
+            --password-stdin
+
+      - name: Lint chart
+        run: helm lint chart
+
+      - name: Package chart
+        run: |
+          helm package chart
+          echo "CHART_FILE=$(ls -t ${{ env.CHART_NAME }}-*.tgz | head -1)" >> $GITHUB_ENV
+
+      - name: Check if version exists
+        id: check
+        run: |
+          CHART_VERSION=$(helm show chart ${{ env.CHART_FILE }} | grep '^version:' | awk '{ print $2 }')
+          echo "version=$CHART_VERSION" >> $GITHUB_OUTPUT
+          if helm show chart "oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${{ env.CHART_NAME }}" --version "$CHART_VERSION" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Chart version $CHART_VERSION already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Chart version $CHART_VERSION is new"
+          fi
+
+      - name: Push chart
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          helm push ${{ env.CHART_FILE }} oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts
+          echo "### Chart Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Chart:** ${{ env.CHART_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.check.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry:** oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/${{ env.CHART_NAME }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Skip push (version exists)
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          echo "### Chart Already Exists" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Version ${{ steps.check.outputs.version }} already published. Bump version in Chart.yaml to publish a new version." >> $GITHUB_STEP_SUMMARY

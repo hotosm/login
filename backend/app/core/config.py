@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     oam_backend_url: str = "http://oam-backend:8080"
     umap_backend_url: str = "http://umap-app:8000"
     export_tool_backend_url: str = "http://export-tool-app:8000"
+    chatmap_backend_url: str = "http://chatmap-api:8000"
 
     # Hanko database for admin lookups
     hanko_db_url: str = "postgresql://hanko:hanko@hanko-db:5432/hanko"
@@ -52,6 +53,7 @@ class Settings(BaseSettings):
             "oam": self.oam_backend_url,
             "umap": self.umap_backend_url,
             "osm-export-tool": self.export_tool_backend_url,
+            "chatmap": self.chatmap_backend_url,
         }
 
 

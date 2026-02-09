@@ -20,7 +20,7 @@ interface MappingsResponse {
   page_size: number;
 }
 
-const APPS = ['drone-tm', 'fair', 'umap', 'osm-export-tool'];
+const APPS = ['drone-tm', 'fair', 'umap', 'osm-export-tool', 'chatmap'];
 
 function AdminPage() {
   const navigate = useNavigate();
