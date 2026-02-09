@@ -351,7 +351,7 @@ function ProfilePage() {
           </p>
 
           {/* Hanko Profile Component */}
-          <hanko-profile></hanko-profile>
+          <hanko-profile lang={language}></hanko-profile>
         </div>
 
         {/* Footer */}
