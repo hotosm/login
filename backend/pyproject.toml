@@ -14,7 +14,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "alembic>=1.14.0",
     "psycopg2-binary>=2.9.0",
-    "hotosm-auth[fastapi]==0.2.7",
+    "hotosm-auth[fastapi]==0.2.9",
 ]
 
 [project.optional-dependencies]
