@@ -858,12 +858,35 @@ export class HankoAuth extends LitElement {
     }
   }
 
+  // Track the current hanko-auth element to detect when it changes
+  private _currentHankoAuthElement: Element | null = null;
+
+  updated(changedProperties: Map<string, any>) {
+    super.updated(changedProperties);
+    // Re-attach event listeners when user becomes null (after logout)
+    // because a new <hanko-auth> element is created
+    if (changedProperties.has("user") && this.user === null && this.showProfile) {
+      this.log("🔄 User logged out, re-attaching event listeners...");
+      this._currentHankoAuthElement = null;
+      this.setupEventListeners();
+    }
+  }
+
   private setupEventListeners() {
     // Use updateComplete to ensure DOM is ready
     this.updateComplete.then(() => {
       const hankoAuth = this.shadowRoot?.querySelector("hanko-auth");
 
+      // Skip if already attached to the same element
+      if (hankoAuth && hankoAuth === this._currentHankoAuthElement) {
+        this.log("⏭️ Event listeners already attached to this element");
+        return;
+      }
+
       if (hankoAuth) {
+        this._currentHankoAuthElement = hankoAuth;
+        this.log("🎯 Attaching event listeners to hanko-auth element");
+
         hankoAuth.addEventListener("onSessionCreated", (e: any) => {
           this.log(`🎯 Hanko event: onSessionCreated`, e.detail);
 
