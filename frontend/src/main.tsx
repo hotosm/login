@@ -18,6 +18,8 @@ window.HANKO_URL = import.meta.env.VITE_HANKO_URL || 'http://login.localhost';
 
 // Register Hanko elements with translations (for hanko-profile)
 register(window.HANKO_URL, {
+  enablePasskeys: false,
+  hidePasskeyButtonOnLogin: true,
   translations: { en, es, fr, pt },
   fallbackLanguage: 'en',
 }).catch((error) => {
