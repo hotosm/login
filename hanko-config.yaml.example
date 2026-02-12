@@ -28,6 +28,15 @@ secrets:
 service:
   name: "HOTOSM Portal (Dev)"
 
+passkey:
+  enabled: false
+  acquire_on_login: never
+  acquire_on_registration: never
+
+mfa:
+  security_keys:
+    enabled: false
+
 webauthn:
   enabled: false  # Passkeys disabled - using email/password + Google OAuth only
   relying_party:
