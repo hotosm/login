@@ -248,6 +248,9 @@ def clear_osm_cookie(
     """
     for secure in [True, False]:
         for samesite in ["lax", "strict", "none"]:
+            # SameSite=None requires Secure
+            if samesite == "none" and not secure:
+                continue
             # With domain
             if config.cookie_domain:
                 response.set_cookie(
