@@ -51,6 +51,7 @@ app.add_middleware(
         "https://export-tool.hotosm.test",
         # Production domains
         "https://portal.hotosm.org",
+        "https://dev.portal.hotosm.org",
         "https://dev.login.hotosm.org",
         "https://login.hotosm.org",
         "https://chatmap.hotosm.org",
