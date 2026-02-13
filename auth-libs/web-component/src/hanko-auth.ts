@@ -27,6 +27,8 @@ import accountIcon from "../assets/icon-account.svg";
 import logoutIcon from "../assets/icon-logout.svg";
 import mapIcon from "../assets/icon-map.svg";
 import checkIcon from "../assets/icon-check.svg";
+import chevronDownIcon from "../assets/chevron-down.svg";
+import chevronUpIcon from "../assets/chevron-up.svg";
 
 // Track if Hanko has been registered globally
 let hankoRegistered = false;
@@ -129,6 +131,9 @@ export class HankoAuth extends LitElement {
     | "primary"
     | "neutral"
     | "danger" = "primary";
+  // Display mode: "default" (compact avatar button) or "bar" (full-width bar with avatar + email + chevron)
+  @property({ type: String, reflect: true }) display: "default" | "bar" =
+    "default";
 
   // Internal state
   @state() private user: UserState | null = null;
@@ -166,6 +171,40 @@ export class HankoAuth extends LitElement {
       this.closeDropdown();
     }
   };
+
+  /** Dropdown menu content for bar display mode (no email, only action links) */
+  private renderBarDropdownContent() {
+    return html`
+      <div class="dropdown-content ${this.isOpen ? "open" : ""}">
+        <button data-action="profile" @click=${this.handleDropdownSelect}>
+          <img src="${accountIcon}" class="icon" alt="Account icon" />
+          ${this.t("myHotAccount")}
+        </button>
+        ${this.osmRequired
+          ? this.osmConnected
+            ? html`
+                <button class="osm-connected" disabled>
+                  <img src="${checkIcon}" alt="Check icon" class="icon" />
+                  ${this.t("connectedToOsm")} (@${this.osmData?.osm_username})
+                </button>
+              `
+            : html`
+                <button
+                  data-action="connect-osm"
+                  @click=${this.handleDropdownSelect}
+                >
+                  <img src="${mapIcon}" alt="Check icon" class="icon" />
+                  ${this.t("connectToOsm")}
+                </button>
+              `
+          : ""}
+        <button data-action="logout" @click=${this.handleDropdownSelect}>
+          <img src="${logoutIcon}" alt="Log out icon" class="icon" />
+          ${this.t("logOut")}
+        </button>
+      </div>
+    `;
+  }
 
   // Private fields
   private _trailingSlashCache: Record<string, boolean> = {};
@@ -865,7 +904,11 @@ export class HankoAuth extends LitElement {
     super.updated(changedProperties);
     // Re-attach event listeners when user becomes null (after logout)
     // because a new <hanko-auth> element is created
-    if (changedProperties.has("user") && this.user === null && this.showProfile) {
+    if (
+      changedProperties.has("user") &&
+      this.user === null &&
+      this.showProfile
+    ) {
       this.log("🔄 User logged out, re-attaching event listeners...");
       this._currentHankoAuthElement = null;
       this.setupEventListeners();
@@ -1483,8 +1526,34 @@ export class HankoAuth extends LitElement {
             </div>
           </div>
         `;
+      } else if (this.display === "bar") {
+        // Logged in, show-profile=false, display=bar: render full-width bar trigger
+        return html`
+          <div class="dropdown">
+            <button
+              @click=${this.toggleDropdown}
+              aria-label="${this.t("openAccountMenu")}"
+              aria-expanded=${this.isOpen}
+              aria-haspopup="true"
+              class="bar-trigger"
+            >
+              <div class="bar-info">
+                <span class="header-avatar">${initial}</span>
+                <span class="bar-email"
+                  >${this.user.email || this.user.id}</span
+                >
+              </div>
+              <img
+                src="${this.isOpen ? chevronUpIcon : chevronDownIcon}"
+                class="bar-chevron"
+                alt=""
+              />
+            </button>
+            ${this.renderBarDropdownContent()}
+          </div>
+        `;
       } else {
-        // Logged in, show-profile=false: render dropdown
+        // Logged in, show-profile=false, display=default: render compact dropdown
         return html`
           <div class="dropdown">
             <button
@@ -1620,6 +1689,24 @@ export class HankoAuth extends LitElement {
         const loginUrl = `${loginBase}?return_to=${encodeURIComponent(
           returnTo,
         )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}&lang=${this.lang}`;
+
+        /*  if (this.display === "bar") {
+          return html`<a
+            class="bar-trigger login-link ${this.buttonVariant} ${this.buttonColor}"
+            href="${loginUrl}"
+            @click=${(e: Event) => {
+              e.preventDefault();
+              window.location.href = loginUrl;
+            }}
+          >
+            <span class="bar-email">${this.t("logIn")}</span>
+            <img
+              src="${chevronDownIcon}"
+              class="bar-chevron"
+              alt=""
+            />
+          </a>`;
+        } */
 
         return html`<a
           class="login-link ${this.buttonVariant} ${this.buttonColor}"

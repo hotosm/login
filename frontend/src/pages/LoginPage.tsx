@@ -173,7 +173,7 @@ function LoginPage() {
 
       <div className="w-full max-w-md">
         {/* Login Card */}
-        <div className="bg-white rounded-xl shadow-xl p-8">
+        <div className="bg-white rounded-xl shadow-xl px-2 xl:px-8 py-8">
           {/* Logo */}
           <div className="text-center mb-8">
             <img

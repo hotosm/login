@@ -43,11 +43,17 @@ export const styles = css`
     display: inline-grid;
     place-items: center;
     /* Use same styling as login-link button */
-    padding: var(--login-btn-padding, var(--hot-spacing-x-small) var(--hot-spacing-medium));
+    padding: var(
+      --login-btn-padding,
+      var(--hot-spacing-x-small) var(--hot-spacing-medium)
+    );
     margin: var(--login-btn-margin, 0);
     font-size: var(--login-btn-text-size, var(--hot-font-size-medium));
     font-family: var(--login-btn-font-family, inherit);
-    border-radius: var(--login-btn-border-radius, var(--hot-border-radius-medium));
+    border-radius: var(
+      --login-btn-border-radius,
+      var(--hot-border-radius-medium)
+    );
   }
 
   /* Invisible text to reserve button width */
@@ -255,9 +261,15 @@ export const styles = css`
   .login-link {
     color: var(--login-btn-text-color, white);
     font-size: var(--login-btn-text-size, var(--hot-font-size-medium));
-    border-radius: var(--login-btn-border-radius, var(--hot-border-radius-medium));
+    border-radius: var(
+      --login-btn-border-radius,
+      var(--hot-border-radius-medium)
+    );
     text-decoration: none;
-    padding: var(--login-btn-padding, var(--hot-spacing-x-small) var(--hot-spacing-medium));
+    padding: var(
+      --login-btn-padding,
+      var(--hot-spacing-x-small) var(--hot-spacing-medium)
+    );
     margin: var(--login-btn-margin, 0);
     display: inline-block;
     cursor: pointer;
@@ -365,7 +377,6 @@ export const styles = css`
     position: absolute;
     right: 0;
     background: white;
-    border: 1px solid var(--hot-color-gray-100);
     border-radius: var(--hot-border-radius-medium);
     z-index: 1000;
     opacity: 0;
@@ -386,7 +397,7 @@ export const styles = css`
   .dropdown-content.open {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translateY(-1);
   }
 
   .dropdown-content button {
@@ -426,5 +437,65 @@ export const styles = css`
   .icon {
     width: 20px;
     height: 20px;
+  }
+
+  /* Bar display mode */
+
+  :host([display="bar"]) {
+    width: 100%;
+  }
+
+  :host([display="bar"]) .dropdown {
+    display: block;
+    width: 100%;
+  }
+
+  .bar-trigger {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--hot-spacing-small) var(--hot-spacing-medium);
+    background: none;
+    border: none;
+    cursor: pointer;
+    gap: var(--hot-spacing-small);
+  }
+
+  .bar-trigger:hover,
+  .bar-trigger:active,
+  .bar-trigger:focus {
+    background: none;
+    outline: none;
+  }
+
+  .bar-info {
+    display: flex;
+    align-items: center;
+    gap: var(--hot-spacing-small);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .bar-email {
+    font-size: var(--hot-font-size-medium);
+    color: var(--hot-color-gray-900);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bar-chevron {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--hot-color-gray-900);
+  }
+
+  /* When bar-trigger is used as a login-link, override width behavior */
+  a.bar-trigger.login-link {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    text-decoration: none;
   }
 `;
