@@ -80,6 +80,7 @@ export function AuthButton({ hankoUrl, onLogin }) {
 | `lang`           | string  | `"en"`     | Language/locale code (e.g., "en", "es", "fr"). Enlish as fallback |
 | `button-variant` | string  | `"filled"` | Button style: `filled`, `outline`, or `plain`                     |
 | `button-color`   | string  | `"primary"`| Button color: `primary`, `neutral`, or `danger`                   |
+| `display`        | string  | `"default"`| Display mode: `default` (compact avatar) or `bar` (full-width bar with avatar + email + arrow) |
 
 ### Redirects
 
@@ -168,6 +169,18 @@ Customize the login button appearance with `button-variant` and `button-color`:
   hanko-url="https://login.hotosm.org"
   button-variant="filled"
   button-color="danger"
+></hotosm-auth>
+```
+
+### Bar Mode
+
+Shows a full-width bar with avatar, email, and chevron arrow (ideal for mobile drawers/menus):
+
+```html
+<hotosm-auth
+  hanko-url="https://login.hotosm.org"
+  display="bar"
+  redirect-after-login="/"
 ></hotosm-auth>
 ```
 
