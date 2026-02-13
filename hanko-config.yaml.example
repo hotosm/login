@@ -4,6 +4,7 @@ server:
     cors:
       allow_origins:
         - "https://portal.hotosm.test"
+        - "https://dev.portal.hotosm.org"
         - "https://login.hotosm.test"
         - "https://dronetm.hotosm.test"
         - "https://fair.hotosm.test"
