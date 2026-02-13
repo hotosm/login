@@ -196,6 +196,16 @@ services:
       - hotosm
     labels:
       - "traefik.enable=true"
+      # Redirect root / to /app
+      - "traefik.http.routers.login-root.rule=Host(`dev.login.hotosm.org`) && Path(`/`)"
+      - "traefik.http.routers.login-root.entrypoints=https"
+      - "traefik.http.routers.login-root.tls=true"
+      - "traefik.http.routers.login-root.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.login-root.priority=1"
+      - "traefik.http.routers.login-root.middlewares=login-root-redirect"
+      - "traefik.http.middlewares.login-root-redirect.redirectregex.regex=^https://([^/]+)/?$$"
+      - "traefik.http.middlewares.login-root-redirect.redirectregex.replacement=https://$${1}/app"
+      - "traefik.http.routers.login-root.service=login-frontend"
       # Frontend serves /app and /login paths (GET /login goes to frontend, POST /login has higher priority to Hanko)
       - "traefik.http.routers.login-frontend.rule=Host(`dev.login.hotosm.org`) && (PathPrefix(`/app`) || Path(`/login`))"
       - "traefik.http.routers.login-frontend.entrypoints=https"
