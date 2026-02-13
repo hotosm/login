@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/component: backend
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
+    # CORS handled by backend (credentials require specific origins, not *)
     nginx.ingress.kubernetes.io/enable-access-log: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -62,7 +62,7 @@ metadata:
     app.kubernetes.io/component: frontend
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
+    # CORS handled by backend
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
@@ -107,7 +107,7 @@ metadata:
     app.kubernetes.io/component: frontend
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
+    # CORS handled by backend
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
