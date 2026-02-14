@@ -453,6 +453,7 @@ var HankoAuth=function(B){"use strict";/**
     text-align: left;
     transition: background-color 0.2s ease;
     gap: var(--hot-spacing-small);
+    font-family: var(--hot-font-sans, inherit);
     font-size: var(--hot-font-size-small);
     color: var(--hot-color-gray-900);
   }
@@ -501,6 +502,7 @@ var HankoAuth=function(B){"use strict";/**
     border: none;
     cursor: pointer;
     gap: var(--hot-spacing-small);
+    font-family: var(--hot-font-sans, inherit);
   }
 
   .bar-trigger:hover,

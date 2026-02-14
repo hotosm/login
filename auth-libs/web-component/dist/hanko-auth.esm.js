@@ -4358,6 +4358,7 @@ const ps = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     text-align: left;
     transition: background-color 0.2s ease;
     gap: var(--hot-spacing-small);
+    font-family: var(--hot-font-sans, inherit);
     font-size: var(--hot-font-size-small);
     color: var(--hot-color-gray-900);
   }
@@ -4406,6 +4407,7 @@ const ps = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     border: none;
     cursor: pointer;
     gap: var(--hot-spacing-small);
+    font-family: var(--hot-font-sans, inherit);
   }
 
   .bar-trigger:hover,
