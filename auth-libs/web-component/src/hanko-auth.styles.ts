@@ -397,7 +397,7 @@ export const styles = css`
   .dropdown-content.open {
     opacity: 1;
     visibility: visible;
-    transform: translateY(-1);
+    transform: translateY(-1px);
   }
 
   .dropdown-content button {
