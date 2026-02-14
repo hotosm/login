@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@hotosm/hanko-auth':
-        specifier: ^0.4.4
-        version: 0.4.4
+        specifier: ^0.4.5
+        version: 0.4.6
       '@teamhanko/hanko-elements':
         specifier: ^2.2.0
         version: 2.2.0
@@ -502,8 +502,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@hotosm/hanko-auth@0.4.4':
-    resolution: {integrity: sha512-OGPVad5mBUvp76SwE6TvSbRqp1AzNtzQt5Pc/A2CsiYZXENTnH9t1nq5//RfZJ8TLpIhI1AN222xChEDnKCdPw==}
+  '@hotosm/hanko-auth@0.4.6':
+    resolution: {integrity: sha512-nsMrgxVunc++Y6qm+W9gD6gUd6Qvgp8dip/5C4vTUBU9KFx9aSdwkgQnzoVuUEL6VUmMtQJvYas2C76k9V8uWQ==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1670,7 +1670,7 @@ snapshots:
   '@esbuild/win32-x64@0.25.11':
     optional: true
 
-  '@hotosm/hanko-auth@0.4.4':
+  '@hotosm/hanko-auth@0.4.6':
     dependencies:
       '@teamhanko/hanko-elements': 1.5.2
       lit: 3.3.2
