@@ -204,21 +204,36 @@ The component uses Shadow DOM and can be customized using CSS custom properties.
 
 ### CSS Custom Properties
 
-| Property                      | Description                        | Default                              |
-| ----------------------------- | ---------------------------------- | ------------------------------------ |
-| `--login-btn-margin`          | Margin around the login button     | `0`                                  |
+#### Whole component
+
+| Property          | Description                                   | Default                                 |
+| ----------------- | --------------------------------------------- | --------------------------------------- |
+| `--font-family`   | Font family for all text in the component     | `system-ui, -apple-system, sans-serif`  |
+| `--font-weight`   | Font weight for all text in the component     | `500`                                   |
+
+#### Login button
+
+| Property                      | Description                        | Default                                                |
+| ----------------------------- | ---------------------------------- | ------------------------------------------------------ |
+| `--login-btn-margin`          | Margin around the login button     | `0`                                                    |
 | `--login-btn-padding`         | Padding inside the login button    | `var(--hot-spacing-x-small) var(--hot-spacing-medium)` |
-| `--login-btn-bg-color`        | Background color of login button   | `var(--hot-color-primary-1000)`      |
-| `--login-btn-hover-bg-color`  | Background color on hover          | `var(--hot-color-primary-900)`       |
-| `--login-btn-border-radius`   | Border radius of login button      | `var(--hot-border-radius-medium)`    |
-| `--login-btn-text-color`      | Text color of login button         | `white`                              |
-| `--login-btn-text-size`       | Font size of login button text     | `var(--hot-font-size-medium)`        |
-| `--login-btn-font-family`     | Font family of login button        | `inherit`                            |
+| `--login-btn-bg-color`        | Background color of login button   | `var(--hot-color-primary-1000)`                        |
+| `--login-btn-hover-bg-color`  | Background color on hover          | `var(--hot-color-primary-900)`                         |
+| `--login-btn-border-radius`   | Border radius of login button      | `var(--hot-border-radius-medium)`                      |
+| `--login-btn-text-color`      | Text color of login button         | `white`                                                |
+| `--login-btn-text-size`       | Font size of login button text     | `var(--hot-font-size-medium)`                          |
+| `--login-btn-font-family`     | Font family of login button        | falls back to `--font-family`                          |
+| `--login-btn-font-weight`     | Font weight of login button        | falls back to `--font-weight`                          |
 
 **Example:**
 
 ```css
 hotosm-auth {
+  /* Whole component */
+  --font-family: 'Inter', sans-serif;
+  --font-weight: 400;
+
+  /* Login button overrides */
   --login-btn-margin: 8px;
   --login-btn-padding: 12px 24px;
   --login-btn-bg-color: #d73f3f;
@@ -227,6 +242,7 @@ hotosm-auth {
   --login-btn-text-color: #ffffff;
   --login-btn-text-size: 16px;
   --login-btn-font-family: 'Arial', sans-serif;
+  --login-btn-font-weight: 700;
 }
 ```
 

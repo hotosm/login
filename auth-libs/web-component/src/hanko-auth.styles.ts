@@ -3,7 +3,7 @@ import { css } from "lit";
 export const styles = css`
   :host {
     display: block;
-    font-family: var(--hot-font-sans);
+    font-family: var(--font-family, var(--hot-font-sans));
   }
 
   .container {
@@ -38,34 +38,26 @@ export const styles = css`
     animation: spin 1s linear infinite;
     margin: 0 auto;
   }
-  /* Container that mimics the login button dimensions */
+  /* Container that mimics the avatar/dropdown-trigger dimensions */
   .loading-placeholder {
     display: inline-grid;
     place-items: center;
-    /* Use same styling as login-link button */
-    padding: var(
-      --login-btn-padding,
-      var(--hot-spacing-x-small) var(--hot-spacing-medium)
-    );
-    margin: var(--login-btn-margin, 0);
-    font-size: var(--login-btn-text-size, var(--hot-font-size-medium));
-    font-family: var(--login-btn-font-family, inherit);
-    border-radius: var(
-      --login-btn-border-radius,
-      var(--hot-border-radius-medium)
-    );
+    /* Match dropdown-trigger padding so size is stable pre/post load */
+    padding: var(--hot-spacing-x-small);
+    width: var(--hot-spacing-2x-large);
+    height: var(--hot-spacing-2x-large);
+    box-sizing: content-box;
   }
 
   /* Invisible text to reserve button width */
   .loading-placeholder-text {
-    visibility: hidden;
-    grid-area: 1 / 1;
+    display: none;
   }
 
   .spinner-small {
     grid-area: 1 / 1;
-    width: 1em;
-    height: 1em;
+    width: var(--hot-spacing-2x-large);
+    height: var(--hot-spacing-2x-large);
     border: 2px solid var(--hot-color-gray-200);
     border-top: 2px solid var(--hot-color-gray-600);
     border-radius: 50%;
@@ -93,7 +85,8 @@ export const styles = css`
     border: none;
     border-radius: 6px;
     font-size: 14px;
-    font-weight: 500;
+    font-family: var(--font-family, var(--hot-font-sans));
+    font-weight: var(--font-weight, 500);
     cursor: pointer;
     transition: all 0.2s;
   }
@@ -274,8 +267,8 @@ export const styles = css`
     display: inline-block;
     cursor: pointer;
     transition: all 0.2s;
-    font-weight: var(--hot-font-weight-medium);
-    font-family: var(--login-btn-font-family, inherit);
+    font-weight: var(--login-btn-font-weight, var(--font-weight, var(--hot-font-weight-medium)));
+    font-family: var(--login-btn-font-family, var(--font-family, var(--hot-font-sans)));
   }
 
   /* Button variants - filled */
@@ -411,7 +404,7 @@ export const styles = css`
     text-align: left;
     transition: background-color 0.2s ease;
     gap: var(--hot-spacing-small);
-    font-family: var(--hot-font-sans, inherit);
+    font-family: var(--font-family, var(--hot-font-sans, inherit));
     font-size: var(--hot-font-size-small);
     color: var(--hot-color-gray-900);
   }
@@ -460,7 +453,7 @@ export const styles = css`
     border: none;
     cursor: pointer;
     gap: var(--hot-spacing-small);
-    font-family: var(--hot-font-sans, inherit);
+    font-family: var(--font-family, var(--hot-font-sans, inherit));
   }
 
   .bar-trigger:hover,
