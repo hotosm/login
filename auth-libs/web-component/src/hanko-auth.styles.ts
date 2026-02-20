@@ -146,6 +146,7 @@ export const styles = css`
     font-size: var(--hot-font-size-large);
     font-weight: var(--hot-font-weight-bold);
     color: var(--hot-color-gray-600);
+    overflow: hidden;
   }
 
   .profile-info {
@@ -238,6 +239,15 @@ export const styles = css`
   .osm-status-badge.required {
     background-color: var(--hot-color-warning-600);
   }
+  /* Avatar image — fills the circle, hides the initial letter */
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+  }
+
   .header-avatar {
     width: var(--hot-spacing-2x-large);
     height: var(--hot-spacing-2x-large);
@@ -247,6 +257,7 @@ export const styles = css`
     align-items: center;
     justify-content: center;
     font-size: var(--hot-font-size-small);
+    overflow: hidden;
     font-weight: var(--hot-font-weight-semibold);
     color: white;
   }
@@ -267,8 +278,14 @@ export const styles = css`
     display: inline-block;
     cursor: pointer;
     transition: all 0.2s;
-    font-weight: var(--login-btn-font-weight, var(--font-weight, var(--hot-font-weight-medium)));
-    font-family: var(--login-btn-font-family, var(--font-family, var(--hot-font-sans)));
+    font-weight: var(
+      --login-btn-font-weight,
+      var(--font-weight, var(--hot-font-weight-medium))
+    );
+    font-family: var(
+      --login-btn-font-family,
+      var(--font-family, var(--hot-font-sans))
+    );
   }
 
   /* Button variants - filled */
@@ -492,5 +509,10 @@ export const styles = css`
     width: 100%;
     box-sizing: border-box;
     text-decoration: none;
+  }
+
+  /* Style Hanko's internal link button (e.g. "Create account") */
+  hanko-auth::part(link) {
+    font-weight: bold;
   }
 `;

@@ -70,7 +70,9 @@ function ProfilePage() {
       setProfile(null);
 
       // Show confirmation
-      alert(t("accountDeleted") || "Your account has been deleted successfully.");
+      alert(
+        t("accountDeleted") || "Your account has been deleted successfully.",
+      );
 
       // Redirect to the return URL (previous app) or login page
       if (returnTo) {
@@ -198,7 +200,7 @@ function ProfilePage() {
               }}
               className="text-hot-gray-1000 hover:text-hot-gray-900 text-sm transition-colors"
             >
-              ← {t("backTo")} {backInfo.label}
+              ← {t("back")}
             </button>
           </div>
         </div>

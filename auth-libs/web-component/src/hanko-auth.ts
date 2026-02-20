@@ -72,6 +72,7 @@ const sharedAuth = {
   initialized: false,
   instances: new Set<any>(),
   profileDisplayName: "", // Shared profile display name
+  profilePictureUrl: "", // Shared profile picture URL
   hankoReady: false, // used for translations
 };
 
@@ -144,6 +145,7 @@ export class HankoAuth extends LitElement {
   @state() private error: string | null = null;
   @state() private hankoReady = false; // Tracks when Hanko registration is complete
   @state() private profileDisplayName: string = "";
+  @state() private profilePictureUrl: string = "";
   @state() private hasAppMapping = false; // True if user has mapping in the app
   @state() private userProfileLanguage: string | null = null; // Language from user profile
   // dropdown
@@ -321,6 +323,8 @@ export class HankoAuth extends LitElement {
     if (this._hanko !== sharedAuth.hanko) this._hanko = sharedAuth.hanko;
     if (this.profileDisplayName !== sharedAuth.profileDisplayName)
       this.profileDisplayName = sharedAuth.profileDisplayName;
+    if (this.profilePictureUrl !== sharedAuth.profilePictureUrl)
+      this.profilePictureUrl = sharedAuth.profilePictureUrl;
     if (this.hankoReady !== sharedAuth.hankoReady)
       this.hankoReady = sharedAuth.hankoReady;
   }
@@ -332,6 +336,7 @@ export class HankoAuth extends LitElement {
     sharedAuth.osmData = this.osmData;
     sharedAuth.loading = this.loading;
     sharedAuth.profileDisplayName = this.profileDisplayName;
+    sharedAuth.profilePictureUrl = this.profilePictureUrl;
     sharedAuth.hankoReady = this.hankoReady;
 
     // Sync to all other instances
@@ -886,6 +891,13 @@ export class HankoAuth extends LitElement {
           this.log("👤 Display name set to:", this.profileDisplayName);
         }
 
+        // picture_url is always set by the backend (Gravatar fallback); osm_avatar_url as secondary
+        const picUrl = profile.picture_url || profile.osm_avatar_url;
+        if (picUrl) {
+          this.profilePictureUrl = picUrl;
+          this.log("🖼️ Profile picture set to:", this.profilePictureUrl);
+        }
+
         // Set language from user profile if available
         if (profile.language) {
           this.userProfileLanguage = profile.language;
@@ -1254,6 +1266,7 @@ export class HankoAuth extends LitElement {
     this.osmData = null;
     this.hasAppMapping = false;
     this.userProfileLanguage = null; // Clear user's language preference
+    this.profilePictureUrl = ""; // Clear profile picture
 
     // Broadcast state changes to other instances
     if (this._isPrimary) {
@@ -1453,7 +1466,11 @@ export class HankoAuth extends LitElement {
           <div class="container">
             <div class="profile">
               <div class="profile-header">
-                <div class="profile-avatar">${initial}</div>
+                <div class="profile-avatar">
+                  ${this.profilePictureUrl
+                    ? html`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${initial}" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = "none"; }} />`
+                    : initial}
+                </div>
                 <div class="profile-info">
                   <div class="profile-email">
                     ${this.user.email || this.user.id}
@@ -1538,7 +1555,11 @@ export class HankoAuth extends LitElement {
               class="bar-trigger"
             >
               <div class="bar-info">
-                <span class="header-avatar">${initial}</span>
+                <span class="header-avatar">
+                ${this.profilePictureUrl
+                  ? html`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${initial}" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = "none"; }} />`
+                  : initial}
+              </span>
                 <span class="bar-email"
                   >${this.user.email || this.user.id}</span
                 >
@@ -1563,7 +1584,11 @@ export class HankoAuth extends LitElement {
               aria-haspopup="true"
               class="dropdown-trigger"
             >
-              <span class="header-avatar">${initial}</span>
+              <span class="header-avatar">
+                ${this.profilePictureUrl
+                  ? html`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${initial}" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = "none"; }} />`
+                  : initial}
+              </span>
 
               ${this.osmConnected
                 ? html`

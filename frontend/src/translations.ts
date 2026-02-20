@@ -1,6 +1,6 @@
 /**
  * Translations for the login frontend
- * 
+ *
  * To add a new language, add a new key to the translations object
  */
 
@@ -20,10 +20,10 @@ export interface Translations {
   accessAllTools: string;
   backToPreviousPage: string;
   poweredBy: string;
-  
+
   // ProfilePage
   myProfile: string;
-  backTo: string;
+  back: string;
   profileInformation: string;
   pictureUrl: string;
   firstName: string;
@@ -44,7 +44,7 @@ export interface Translations {
   accountCreated: string;
   accountDeleted: string;
   profileUpdated: string;
-  
+
   // Common
   login: string;
 }
@@ -59,14 +59,15 @@ export const translations: Record<string, Translations> = {
     noImNew: "No, I'm new here",
     notSure: 'Not sure? Select "Yes" and we\'ll check for you.',
     connectOsmAccount: "Connect your OpenStreetMap account",
-    connectSameOsm: "Connect with the same OSM account you used before to recover your",
+    connectSameOsm:
+      "Connect with the same OSM account you used before to recover your",
     goBack: "← Go back",
     settingUpAccount: "Setting up your account...",
     accessAllTools: "Access all HOT tools and services",
     backToPreviousPage: "Back to previous page",
     poweredBy: "Powered by",
     myProfile: "My Profile",
-    backTo: "Back to",
+    back: "Back",
     profileInformation: "Profile Information",
     pictureUrl: "Picture URL",
     firstName: "First Name",
@@ -78,11 +79,14 @@ export const translations: Record<string, Translations> = {
     saveChanges: "Save Changes",
     saving: "Saving...",
     security: "Security",
-    managePasswordPasskeys: "Manage your password, passkeys, and active sessions.",
+    managePasswordPasskeys:
+      "Manage your password, passkeys, and active sessions.",
     dangerZone: "Danger Zone",
-    deleteAccountWarning: "Permanently delete your account and all associated data.",
+    deleteAccountWarning:
+      "Permanently delete your account and all associated data.",
     deleteAccount: "Delete Account",
-    deleteConfirm: "Are you sure you want to delete your account? This action cannot be undone.",
+    deleteConfirm:
+      "Are you sure you want to delete your account? This action cannot be undone.",
     deleteComingSoon: "Account deletion will be available soon.",
     accountCreated: "Account created",
     accountDeleted: "Your account has been deleted successfully.",
@@ -98,30 +102,35 @@ export const translations: Record<string, Translations> = {
     noImNew: "No, soy nuevo aquí",
     notSure: '¿No estás seguro? Selecciona "Sí" y lo verificaremos por ti.',
     connectOsmAccount: "Conecta tu cuenta de OpenStreetMap",
-    connectSameOsm: "Conéctate con la misma cuenta OSM que usaste antes para recuperar tu",
+    connectSameOsm:
+      "Conéctate con la misma cuenta OSM que usaste antes para recuperar tu",
     goBack: "← Volver",
     settingUpAccount: "Configurando tu cuenta...",
     accessAllTools: "Accede a todas las herramientas y servicios de HOT",
     backToPreviousPage: "Volver a la página anterior",
     poweredBy: "Desarrollado por",
     myProfile: "Mi Perfil",
-    backTo: "Volver a",
+    back: "Volver",
     profileInformation: "Información del Perfil",
     pictureUrl: "URL de imagen",
     firstName: "Nombre",
     lastName: "Apellido",
     email: "Correo electrónico",
-    emailManagedBy: "El correo es administrado por tu proveedor de inicio de sesión",
+    emailManagedBy:
+      "El correo es administrado por tu proveedor de inicio de sesión",
     language: "Idioma",
     connectedToOsm: "Conectado a OpenStreetMap",
     saveChanges: "Guardar Cambios",
     saving: "Guardando...",
     security: "Seguridad",
-    managePasswordPasskeys: "Administra tu contraseña, passkeys y sesiones activas.",
+    managePasswordPasskeys:
+      "Administra tu contraseña, passkeys y sesiones activas.",
     dangerZone: "Zona de Peligro",
-    deleteAccountWarning: "Elimina permanentemente tu cuenta y todos los datos asociados.",
+    deleteAccountWarning:
+      "Elimina permanentemente tu cuenta y todos los datos asociados.",
     deleteAccount: "Eliminar Cuenta",
-    deleteConfirm: "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.",
+    deleteConfirm:
+      "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.",
     deleteComingSoon: "La eliminación de cuenta estará disponible pronto.",
     accountCreated: "Cuenta creada",
     accountDeleted: "Tu cuenta ha sido eliminada exitosamente.",
@@ -137,14 +146,15 @@ export const translations: Record<string, Translations> = {
     noImNew: "Non, je suis nouveau",
     notSure: 'Pas sûr ? Sélectionnez "Oui" et nous vérifierons pour vous.',
     connectOsmAccount: "Connectez votre compte OpenStreetMap",
-    connectSameOsm: "Connectez-vous avec le même compte OSM que vous avez utilisé auparavant pour récupérer votre",
+    connectSameOsm:
+      "Connectez-vous avec le même compte OSM que vous avez utilisé auparavant pour récupérer votre",
     goBack: "← Retour",
     settingUpAccount: "Configuration de votre compte...",
     accessAllTools: "Accédez à tous les outils et services HOT",
     backToPreviousPage: "Retour à la page précédente",
     poweredBy: "Propulsé par",
     myProfile: "Mon Profil",
-    backTo: "Retour à",
+    back: "Retour",
     profileInformation: "Informations du Profil",
     pictureUrl: "URL de l'image",
     firstName: "Prénom",
@@ -156,11 +166,14 @@ export const translations: Record<string, Translations> = {
     saveChanges: "Enregistrer les Modifications",
     saving: "Enregistrement...",
     security: "Sécurité",
-    managePasswordPasskeys: "Gérez votre mot de passe, passkeys et sessions actives.",
+    managePasswordPasskeys:
+      "Gérez votre mot de passe, passkeys et sessions actives.",
     dangerZone: "Zone Dangereuse",
-    deleteAccountWarning: "Supprimer définitivement votre compte et toutes les données associées.",
+    deleteAccountWarning:
+      "Supprimer définitivement votre compte et toutes les données associées.",
     deleteAccount: "Supprimer le Compte",
-    deleteConfirm: "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action ne peut pas être annulée.",
+    deleteConfirm:
+      "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action ne peut pas être annulée.",
     deleteComingSoon: "La suppression de compte sera bientôt disponible.",
     accountCreated: "Compte créé",
     accountDeleted: "Votre compte a été supprimé avec succès.",
@@ -176,14 +189,15 @@ export const translations: Record<string, Translations> = {
     noImNew: "Não, sou novo aqui",
     notSure: 'Não tem certeza? Selecione "Sim" e verificaremos para você.',
     connectOsmAccount: "Conecte sua conta OpenStreetMap",
-    connectSameOsm: "Conecte-se com a mesma conta OSM que você usou antes para recuperar seu",
+    connectSameOsm:
+      "Conecte-se com a mesma conta OSM que você usou antes para recuperar seu",
     goBack: "← Voltar",
     settingUpAccount: "Configurando sua conta...",
     accessAllTools: "Acesse todas as ferramentas e serviços HOT",
     backToPreviousPage: "Voltar à página anterior",
     poweredBy: "Desenvolvido por",
     myProfile: "Meu Perfil",
-    backTo: "Voltar para",
+    back: "Voltar",
     profileInformation: "Informações do Perfil",
     pictureUrl: "URL da imagem",
     firstName: "Nome",
@@ -197,9 +211,11 @@ export const translations: Record<string, Translations> = {
     security: "Segurança",
     managePasswordPasskeys: "Gerencie sua senha, passkeys e sessões ativas.",
     dangerZone: "Zona de Perigo",
-    deleteAccountWarning: "Excluir permanentemente sua conta e todos os dados associados.",
+    deleteAccountWarning:
+      "Excluir permanentemente sua conta e todos os dados associados.",
     deleteAccount: "Excluir Conta",
-    deleteConfirm: "Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita.",
+    deleteConfirm:
+      "Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita.",
     deleteComingSoon: "A exclusão de conta estará disponível em breve.",
     accountCreated: "Conta criada",
     accountDeleted: "Sua conta foi excluída com sucesso.",

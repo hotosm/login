@@ -278,11 +278,12 @@ function LoginPage() {
 
           {returnTo && !isOnboarding && (
             <div className="mt-6 pt-6 border-t border-hot-gray-200 text-center">
+              <span>← </span>
               <a
                 href={returnTo}
-                className="text-sm text-hot-gray-600 hover:text-hot-gray-900 inline-flex items-center gap-2 transition-colors"
+                className="font-bold text-hot-gray-900 hover:underline inline-flex items-center gap-2 transition-colors "
               >
-                <span>←</span> {t("backToPreviousPage")}
+                {t("backToPreviousPage")}
               </a>
             </div>
           )}
