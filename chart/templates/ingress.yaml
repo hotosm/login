@@ -169,7 +169,7 @@ spec:
     http:
       paths:
       - path: /
-        pathType: Prefix
+        pathType: Exact
         backend:
           service:
             name: {{ include "login.frontend.fullname" . }}
