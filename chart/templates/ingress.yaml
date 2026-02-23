@@ -140,4 +140,39 @@ spec:
             name: {{ include "login.frontend.fullname" . }}
             port:
               number: {{ .Values.frontend.service.port }}
+---
+# Root redirect - / to /app using app-root annotation
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "login.frontend.fullname" . }}-root
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/app-root: /app
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.host }}
+    external-dns.alpha.kubernetes.io/ttl: "300"
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host }}
+    secretName: {{ include "login.frontend.fullname" . }}-root-tls
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "login.frontend.fullname" . }}
+            port:
+              number: {{ .Values.frontend.service.port }}
 {{- end }}
