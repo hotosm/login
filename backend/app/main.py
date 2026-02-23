@@ -15,10 +15,10 @@ from app.schemas.auth import UserInfoResponse
 async def lifespan(app: FastAPI):
     """Lifespan context manager for FastAPI app."""
     # Startup
-    print("🚀 Starting HOTOSM Login Service")
+    print("Starting HOTOSM Login Service")
     yield
     # Shutdown
-    print("👋 Shutting down HOTOSM Login Service")
+    print("Shutting down HOTOSM Login Service")
 
 
 app = FastAPI(
@@ -56,6 +56,8 @@ app.add_middleware(
         "https://login.hotosm.org",
         "https://chatmap.hotosm.org",
         "https://chatmap-dev.hotosm.org",
+        "https://fair.hotosm.org",
+        "https://fair-dev.hotosm.org",
         # Test environments
         "https://testlogin.dronetm.hotosm.org",
         "https://testlogin.fair.hotosm.org",
