@@ -17,6 +17,11 @@ data:
       gzip on;
       gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript;
 
+      # Redirect root to /app
+      location = / {
+        return 302 /app;
+      }
+
       # SPA routing - serve index.html for all non-file requests
       location / {
         try_files $uri $uri/ /index.html;
