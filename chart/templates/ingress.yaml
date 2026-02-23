@@ -152,7 +152,8 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/temporal-redirect: "https://{{ .Values.ingress.host }}/app"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      return 302 https://{{ .Values.ingress.host }}/app;
     nginx.ingress.kubernetes.io/priority: "100"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingress.host }}
