@@ -5134,7 +5134,7 @@ let ie = class extends Mt {
     super(...arguments), this.hankoUrlAttr = "", this.basePath = "", this.authPath = "/api/auth/osm", this.osmRequired = !1, this.osmScopes = "read_prefs", this.showProfile = !1, this.redirectAfterLogin = "", this.autoConnect = !1, this.verifySession = !1, this.redirectAfterLogout = "", this.displayNameAttr = "", this.mappingCheckUrl = "", this.appId = "", this.loginUrl = "", this.lang = "en", this.buttonVariant = "plain", this.buttonColor = "primary", this.display = "default", this.user = null, this.osmConnected = !1, this.osmData = null, this.osmLoading = !1, this.loading = !0, this.error = null, this.hankoReady = !1, this.profileDisplayName = "", this.profilePictureUrl = "", this.hasAppMapping = !1, this.userProfileLanguage = null, this.isOpen = !1, this.handleOutsideClick = (n) => {
       this.contains(n.target) || this.closeDropdown();
     }, this._trailingSlashCache = {}, this._debugMode = !1, this._lastSessionId = null, this._hanko = null, this._isPrimary = !1, this._handleVisibilityChange = () => {
-      this._isPrimary && !document.hidden && !this.showProfile && !this.user && (this.log("👁️ Page visible, re-checking session..."), this.checkSession());
+      this._isPrimary && !document.hidden && !this.showProfile && !this.user && (this.log("Page visible, re-checking session..."), this.checkSession());
     }, this._handleWindowFocus = () => {
       this._isPrimary && !this.showProfile && !this.user && (this.log("🎯 Window focused, re-checking session..."), this.checkSession());
     }, this._handleExternalLogin = (n) => {
@@ -5206,7 +5206,7 @@ let ie = class extends Mt {
   }
   // Use firstUpdated instead of connectedCallback to ensure React props are set
   firstUpdated() {
-    this.log("🔌 hanko-auth firstUpdated called"), this.log("  hankoUrl:", this.hankoUrl), this.log("  basePath:", this.basePath), Y.initialized || Y.primary ? (this.log("🔄 Using shared state from primary instance"), this._syncFromShared(), this._isPrimary = !1) : (this.log("👑 This is the primary instance"), this._isPrimary = !0, Y.primary = this, Y.initialized = !0, this.init());
+    this.log("🔌 hanko-auth firstUpdated called"), this.log("  hankoUrl:", this.hankoUrl), this.log("  basePath:", this.basePath), Y.initialized || Y.primary ? (this.log("Using shared state from primary instance"), this._syncFromShared(), this._isPrimary = !1) : (this.log("This is the primary instance"), this._isPrimary = !0, Y.primary = this, Y.initialized = !0, this.init());
   }
   disconnectedCallback() {
     if (super.disconnectedCallback(), document.removeEventListener(
@@ -5214,7 +5214,7 @@ let ie = class extends Mt {
       this._handleVisibilityChange
     ), window.removeEventListener("focus", this._handleWindowFocus), document.removeEventListener("hanko-login", this._handleExternalLogin), document.removeEventListener("click", this.handleOutsideClick), Y.instances.delete(this), this._isPrimary && Y.instances.size > 0) {
       const n = Y.instances.values().next().value;
-      n && (this.log("👑 Promoting new primary instance"), n._isPrimary = !0, Y.primary = n);
+      n && (this.log("Promoting new primary instance"), n._isPrimary = !0, Y.primary = n);
     }
     Y.instances.size === 0 && (Y.initialized = !1, Y.primary = null);
   }
@@ -5240,11 +5240,7 @@ let ie = class extends Mt {
   log(...n) {
     this._debugMode && console.log(...n);
   }
-  /**
-   * Get translated string for the current language
-   * Falls back to English if translation not found
-   * When user is logged in, uses their profile language instead of the lang prop
-   */
+  /* Translations */
   t(n) {
     const e = this.user && this.userProfileLanguage ? this.userProfileLanguage : this.lang;
     return (Vn[e] || Vn.en)[n] || Vn.en[n] || n;
@@ -5305,11 +5301,11 @@ let ie = class extends Mt {
   }
   async checkSession() {
     if (this.log("🔍 Checking for existing Hanko session..."), !this._hanko) {
-      this.log("⚠️ Hanko instance not initialized yet");
+      this.log("Hanko instance not initialized yet");
       return;
     }
     try {
-      this.log("📡 Checking session validity via cookie...");
+      this.log("Checking session validity via cookie...");
       try {
         const n = await fetch(
           `${this.hankoUrl}/sessions/validate`,
@@ -5326,11 +5322,11 @@ let ie = class extends Mt {
           const e = await n.json();
           if (e.is_valid === !1) {
             this.log(
-              "ℹ️ Session validation returned is_valid:false - no valid session"
+              "Session validation returned is_valid:false - no valid session"
             );
             return;
           }
-          this.log("✅ Valid Hanko session found via cookie"), this.log("📋 Session data:", e);
+          this.log("Valid Hanko session found via cookie"), this.log("Session data:", e);
           try {
             const t = await fetch(`${this.hankoUrl}/me`, {
               method: "GET",
@@ -5343,15 +5339,15 @@ let ie = class extends Mt {
             let o = !0;
             if (t.ok) {
               const i = await t.json();
-              this.log("👤 User data retrieved from /me:", i), i.email ? (this.user = {
+              this.log("User data retrieved from /me:", i), i.email ? (this.user = {
                 id: i.user_id || i.id,
                 email: i.email,
                 username: i.username || null,
                 emailVerified: i.email_verified || i.verified || !1
-              }, o = !1) : this.log("⚠️ /me has no email, will use SDK fallback");
+              }, o = !1) : this.log("/me has no email, will use SDK fallback");
             }
             if (o) {
-              this.log("🔄 Using SDK to get user with email");
+              this.log("Using SDK to get user with email");
               const i = await this._hanko.user.getCurrent();
               this.user = {
                 id: i.id,
@@ -5361,7 +5357,7 @@ let ie = class extends Mt {
               };
             }
           } catch (t) {
-            this.log("⚠️ Failed to get user data:", t), e.user_id && (this.user = {
+            this.log("Failed to get user data:", t), e.user_id && (this.user = {
               id: e.user_id,
               email: e.email || null,
               username: null,
@@ -5372,7 +5368,7 @@ let ie = class extends Mt {
             const t = li(window.location.hostname), o = sessionStorage.getItem(t);
             if (this.verifySession && this.redirectAfterLogin && !o) {
               this.log(
-                "🔄 verify-session enabled, redirecting to callback for app verification..."
+                "verify-session enabled, redirecting to callback for app verification..."
               ), sessionStorage.setItem(t, "true"), window.location.href = this.redirectAfterLogin;
               return;
             }
@@ -5389,40 +5385,40 @@ let ie = class extends Mt {
                 bubbles: !0,
                 composed: !0
               })
-            ), this.osmRequired && await this.checkOSMConnection(), await this.fetchProfileDisplayName(), this.osmRequired && this.autoConnect && !this.osmConnected && (this.log("🔄 Auto-connecting to OSM (from existing session)..."), this.handleOSMConnect());
+            ), this.osmRequired && await this.checkOSMConnection(), await this.fetchProfileDisplayName(), this.osmRequired && this.autoConnect && !this.osmConnected && (this.log("Auto-connecting to OSM (from existing session)..."), this.handleOSMConnect());
           }
         } else
-          this.log("ℹ️ No valid session cookie found - user needs to login");
+          this.log("No valid session cookie found - user needs to login");
       } catch (n) {
-        this.log("⚠️ Session validation failed:", n), this.log("ℹ️ No valid session - user needs to login");
+        this.log("Session validation failed:", n), this.log("No valid session - user needs to login");
       }
     } catch (n) {
-      this.log("⚠️ Session check error:", n), this.log("ℹ️ No existing session - user needs to login");
+      this.log("Session check error:", n), this.log("No existing session - user needs to login");
     } finally {
       this._isPrimary && this._broadcastState();
     }
   }
   async checkOSMConnection() {
     if (!this.osmRequired) {
-      this.log("⏭️ OSM not required, skipping connection check");
+      this.log("OSM not required, skipping connection check");
       return;
     }
     if (this.osmConnected) {
-      this.log("⏭️ Already connected to OSM, skipping check");
+      this.log("Already connected to OSM, skipping check");
       return;
     }
     const n = this.loading;
     n || (this.osmLoading = !0);
     try {
       const e = this.getBasePath(), t = this.authPath, i = `${`${e}${t}/status`}`;
-      this.log("🔍 Checking OSM connection at:", i), this.log("  basePath:", e), this.log("  authPath:", t), this.log("🍪 Current cookies:", document.cookie);
+      this.log("Checking OSM connection at:", i), this.log("  basePath:", e), this.log("  authPath:", t), this.log("Current cookies:", document.cookie);
       const a = await fetch(i, {
         credentials: "include",
         redirect: "follow"
       });
-      if (this.log("📡 OSM status response:", a.status), this.log("📡 Final URL after redirects:", a.url), this.log("📡 Response headers:", [...a.headers.entries()]), a.ok) {
+      if (this.log("OSM status response:", a.status), this.log("Final URL after redirects:", a.url), this.log("Response headers:", [...a.headers.entries()]), a.ok) {
         const s = await a.text();
-        this.log("📡 OSM raw response:", s.substring(0, 200));
+        this.log("OSM raw response:", s.substring(0, 200));
         let c;
         try {
           c = JSON.parse(s);
@@ -5432,13 +5428,13 @@ let ie = class extends Mt {
             s.substring(0, 500)
           ), new Error("Invalid JSON response from OSM status endpoint");
         }
-        this.log("📡 OSM status data:", c), c.connected ? (this.log("✅ OSM is connected:", c.osm_username), this.osmConnected = !0, this.osmData = c, this.dispatchEvent(
+        this.log("OSM status data:", c), c.connected ? (this.log("OSM is connected:", c.osm_username), this.osmConnected = !0, this.osmData = c, this.dispatchEvent(
           new CustomEvent("osm-connected", {
             detail: { osmData: c },
             bubbles: !0,
             composed: !0
           })
-        )) : (this.log("❌ OSM is NOT connected"), this.osmConnected = !1, this.osmData = null);
+        )) : (this.log("OSM is NOT connected"), this.osmConnected = !1, this.osmData = null);
       }
     } catch (e) {
       this.logError("OSM connection check failed:", e);
@@ -5453,46 +5449,46 @@ let ie = class extends Mt {
       return !0;
     const n = ci(window.location.hostname);
     if (sessionStorage.getItem(n))
-      return this.log("✅ Onboarding already completed this session, skipping check"), this.hasAppMapping = !0, !0;
-    this.log("🔍 Checking app mapping at:", this.mappingCheckUrl);
+      return this.log("Onboarding already completed this session, skipping check"), this.hasAppMapping = !0, !0;
+    this.log("Checking app mapping at:", this.mappingCheckUrl);
     try {
       const t = await fetch(this.mappingCheckUrl, {
         credentials: "include"
       });
       if (t.ok) {
         const o = await t.json();
-        if (this.log("📡 Mapping check response:", o), o.needs_onboarding) {
-          this.log("⚠️ User needs onboarding, redirecting...");
+        if (this.log("Mapping check response:", o), o.needs_onboarding) {
+          this.log("User needs onboarding, redirecting...");
           const i = encodeURIComponent(window.location.origin), a = this.appId ? `onboarding=${this.appId}` : "";
           return window.location.href = `${this.hankoUrl}/app?${a}&return_to=${i}`, !1;
         }
-        return sessionStorage.setItem(n, "true"), this.hasAppMapping = !0, this.log("✅ User has app mapping, onboarding marked complete"), !0;
+        return sessionStorage.setItem(n, "true"), this.hasAppMapping = !0, this.log("User has app mapping, onboarding marked complete"), !0;
       } else if (t.status === 401 || t.status === 403) {
-        this.log("⚠️ 401/403 - User needs onboarding, redirecting...");
+        this.log("401/403 - User needs onboarding, redirecting...");
         const o = encodeURIComponent(window.location.origin), i = this.appId ? `onboarding=${this.appId}` : "";
         return window.location.href = `${this.hankoUrl}/app?${i}&return_to=${o}`, !1;
       }
-      return this.log("⚠️ Unexpected status from mapping check:", t.status), !0;
+      return this.log("Unexpected status from mapping check:", t.status), !0;
     } catch (t) {
-      return this.log("⚠️ App mapping check failed:", t), !0;
+      return this.log("App mapping check failed:", t), !0;
     }
   }
   // Fetch profile display name and language from login backend
   async fetchProfileDisplayName() {
     try {
       const n = `${this.hankoUrl}/api/profile/me`;
-      this.log("👤 Fetching profile from:", n);
+      this.log("Fetching profile from:", n);
       const e = await fetch(n, {
         credentials: "include"
       });
       if (e.ok) {
         const t = await e.json();
-        this.log("👤 Profile data:", t), (t.first_name || t.last_name) && (this.profileDisplayName = `${t.first_name || ""} ${t.last_name || ""}`.trim(), this.log("👤 Display name set to:", this.profileDisplayName));
+        this.log("Profile data:", t), (t.first_name || t.last_name) && (this.profileDisplayName = `${t.first_name || ""} ${t.last_name || ""}`.trim(), this.log("Display name set to:", this.profileDisplayName));
         const o = t.picture_url || t.osm_avatar_url;
-        o && (this.profilePictureUrl = o, this.log("🖼️ Profile picture set to:", this.profilePictureUrl)), t.language && (this.userProfileLanguage = t.language, this.log("🌐 Language set from profile:", this.userProfileLanguage));
+        o && (this.profilePictureUrl = o, this.log("Profile picture set to:", this.profilePictureUrl)), t.language && (this.userProfileLanguage = t.language, this.log("Language set from profile:", this.userProfileLanguage));
       }
     } catch (n) {
-      this.log("⚠️ Could not fetch profile:", n);
+      this.log("Could not fetch profile:", n);
     }
   }
   updated(n) {
@@ -5503,15 +5499,15 @@ let ie = class extends Mt {
       var e;
       const n = (e = this.shadowRoot) == null ? void 0 : e.querySelector("hanko-auth");
       if (n && n === this._currentHankoAuthElement) {
-        this.log("⏭️ Event listeners already attached to this element");
+        this.log("Event listeners already attached to this element");
         return;
       }
       n && (this._currentHankoAuthElement = n, this.log("🎯 Attaching event listeners to hanko-auth element"), n.addEventListener("onSessionCreated", (t) => {
         var i, a;
-        this.log("🎯 Hanko event: onSessionCreated", t.detail);
+        this.log("Hanko event: onSessionCreated", t.detail);
         const o = (a = (i = t.detail) == null ? void 0 : i.claims) == null ? void 0 : a.session_id;
         if (o && this._lastSessionId === o) {
-          this.log("⏭️ Skipping duplicate session event");
+          this.log("Skipping duplicate session event");
           return;
         }
         this._lastSessionId = o, this.handleHankoSuccess(t);
@@ -5540,25 +5536,23 @@ let ie = class extends Mt {
       });
       if (clearTimeout(a), s.ok) {
         const c = await s.json();
-        this.log("👤 User data retrieved from /me:", c), c.email ? (this.user = {
+        this.log("User data retrieved from /me:", c), c.email ? (this.user = {
           id: c.user_id || c.id,
           email: c.email,
           username: c.username || null,
           emailVerified: c.email_verified || c.verified || !1
-        }, e = !0) : this.log("⚠️ /me has no email, will try SDK fallback");
+        }, e = !0) : this.log("/me has no email, will try SDK fallback");
       } else
-        this.log(
-          "⚠️ /me endpoint returned non-OK status, will try SDK fallback"
-        );
+        this.log("/me endpoint returned non-OK status, will try SDK fallback");
     } catch (i) {
       this.log(
-        "⚠️ /me endpoint fetch failed (timeout or cross-origin TLS issue):",
+        "/me endpoint fetch failed (timeout or cross-origin TLS issue):",
         i
       );
     }
     if (!e)
       try {
-        this.log("🔄 Trying SDK fallback for user info...");
+        this.log("Trying SDK fallback for user info...");
         const i = new Promise(
           (s, c) => setTimeout(() => c(new Error("SDK timeout")), 5e3)
         ), a = await Promise.race([
@@ -5570,9 +5564,9 @@ let ie = class extends Mt {
           email: a.email,
           username: a.username,
           emailVerified: a.email_verified || !1
-        }, e = !0, this.log("✅ User info retrieved via SDK fallback");
+        }, e = !0, this.log("User info retrieved via SDK fallback");
       } catch (i) {
-        this.log("⚠️ SDK fallback failed, trying JWT claims:", i);
+        this.log("SDK fallback failed, trying JWT claims:", i);
         try {
           const a = (o = n.detail) == null ? void 0 : o.claims;
           if (a != null && a.sub)
@@ -5581,7 +5575,7 @@ let ie = class extends Mt {
               email: a.email || null,
               username: null,
               emailVerified: a.email_verified || !1
-            }, e = !0, this.log("✅ User info extracted from JWT claims");
+            }, e = !0, this.log("User info extracted from JWT claims");
           else {
             this.logError("No user claims available in event"), this.user = null;
             return;
@@ -5594,19 +5588,19 @@ let ie = class extends Mt {
           return;
         }
       }
-    if (this.log("✅ User state updated:", this.user), this._isPrimary && this._broadcastState(), this.dispatchEvent(
+    if (this.log("User state updated:", this.user), this._isPrimary && this._broadcastState(), this.dispatchEvent(
       new CustomEvent("hanko-login", {
         detail: { user: this.user },
         bubbles: !0,
         composed: !0
       })
     ), this.osmRequired && await this.checkOSMConnection(), await this.fetchProfileDisplayName(), this.osmRequired && this.autoConnect && !this.osmConnected) {
-      this.log("🔄 Auto-connecting to OSM..."), this.handleOSMConnect();
+      this.log("Auto-connecting to OSM..."), this.handleOSMConnect();
       return;
     }
     const t = !this.osmRequired || this.osmConnected;
     this.log(
-      "🔄 Checking redirect-after-login:",
+      "Checking redirect-after-login:",
       this.redirectAfterLogin,
       "showProfile:",
       this.showProfile,
@@ -5617,11 +5611,11 @@ let ie = class extends Mt {
         bubbles: !0,
         composed: !0
       })
-    ), this.redirectAfterLogin ? (this.log("✅ Redirecting to:", this.redirectAfterLogin), window.location.href = this.redirectAfterLogin) : this.log("❌ No redirect (redirectAfterLogin not set)")) : this.log("⏸️ Waiting for OSM connection before redirect");
+    ), this.redirectAfterLogin ? (this.log("Redirecting to:", this.redirectAfterLogin), window.location.href = this.redirectAfterLogin) : this.log("No redirect (redirectAfterLogin not set)")) : this.log("Waiting for OSM connection before redirect");
   }
   async handleOSMConnect() {
     const n = this.osmScopes.split(" ").join("+"), e = this.getBasePath(), t = this.authPath, i = `${`${e}${t}/login`}?scopes=${n}`;
-    this.log("🔗 OSM Connect clicked!"), this.log("  basePath:", e), this.log("  authPath:", t), this.log("  Login path:", i), this.log("  Fetching redirect URL from backend...");
+    this.log("OSM Connect clicked!"), this.log("  basePath:", e), this.log("  authPath:", t), this.log("  Login path:", i), this.log("  Fetching redirect URL from backend...");
     try {
       const a = await fetch(i, {
         method: "GET",
@@ -5631,49 +5625,47 @@ let ie = class extends Mt {
       });
       if (this.log("  Response status:", a.status), this.log("  Response type:", a.type), a.status === 0 || a.type === "opaqueredirect") {
         const s = a.headers.get("Location") || a.url;
-        this.log("  ✅ Got redirect URL:", s), window.location.href = s;
+        this.log("Got redirect URL:", s), window.location.href = s;
       } else if (a.status >= 300 && a.status < 400) {
         const s = a.headers.get("Location");
-        this.log("  ✅ Got redirect URL from header:", s), s && (window.location.href = s);
+        this.log("Got redirect URL from header:", s), s && (window.location.href = s);
       } else {
-        this.logError("  ❌ Unexpected response:", a.status);
+        this.logError("Unexpected response:", a.status);
         const s = await a.text();
         this.logError("  Response body:", s.substring(0, 200));
       }
     } catch (a) {
-      this.logError("  ❌ Failed to fetch redirect URL:", a);
+      this.logError("Failed to fetch redirect URL:", a);
     }
   }
   async handleLogout() {
-    this.log("🚪 Logout initiated"), this.log("📊 Current state before logout:", {
+    this.log("Logout initiated"), this.log("Current state before logout:", {
       user: this.user,
       osmConnected: this.osmConnected,
       osmData: this.osmData
-    }), this.log("🍪 Cookies before logout:", document.cookie);
+    }), this.log("Cookies before logout:", document.cookie);
     try {
       const n = this.getBasePath(), e = this.authPath, t = `${n}${e}/disconnect`, o = t.startsWith("http") ? t : `${window.location.origin}${t}`;
-      this.log("🔌 Calling OSM disconnect:", o);
+      this.log("Calling OSM disconnect:", o);
       const i = await fetch(o, {
         method: "POST",
         credentials: "include"
       });
-      this.log("📡 Disconnect response status:", i.status);
+      this.log("Disconnect response status:", i.status);
       const a = await i.json();
-      this.log("📡 Disconnect response data:", a), this.log("✅ OSM disconnected");
+      this.log("Disconnect response data:", a), this.log("OSM disconnected");
     } catch (n) {
-      this.logError("❌ OSM disconnect failed:", n);
+      this.logError("OSM disconnect failed:", n);
     }
     if (this._hanko)
       try {
-        await this._hanko.user.logout(), this.log("✅ Hanko logout successful");
+        await this._hanko.user.logout(), this.log("Hanko logout successful");
       } catch (n) {
         this.logError("Hanko logout failed:", n);
       }
-    if (this._clearAuthState(), this.log(
-      "✅ Logout complete - component will re-render with updated state"
-    ), this.redirectAfterLogout) {
+    if (this._clearAuthState(), this.log("Logout complete - component will re-render with updated state"), this.redirectAfterLogout) {
       const n = window.location.href.replace(/\/$/, ""), e = this.redirectAfterLogout.replace(/\/$/, "");
-      n !== e && !n.startsWith(e + "#") ? (this.log("🔄 Redirecting after logout to:", this.redirectAfterLogout), window.location.href = this.redirectAfterLogout) : this.log("⏭️ Already on logout target, skipping redirect");
+      n !== e && !n.startsWith(e + "#") ? (this.log("Redirecting after logout to:", this.redirectAfterLogout), window.location.href = this.redirectAfterLogout) : this.log("Already on logout target, skipping redirect");
     }
   }
   /**
@@ -5681,9 +5673,9 @@ let ie = class extends Mt {
    */
   _clearAuthState() {
     const n = window.location.hostname;
-    document.cookie = `hanko=; path=/; domain=${n}; max-age=0`, document.cookie = "hanko=; path=/; max-age=0", document.cookie = `osm_connection=; path=/; domain=${n}; max-age=0`, document.cookie = "osm_connection=; path=/; max-age=0", this.log("🍪 Cookies cleared");
+    document.cookie = `hanko=; path=/; domain=${n}; max-age=0`, document.cookie = "hanko=; path=/; max-age=0", document.cookie = `osm_connection=; path=/; domain=${n}; max-age=0`, document.cookie = "osm_connection=; path=/; max-age=0", this.log("Cookies cleared");
     const e = li(n), t = ci(n);
-    sessionStorage.removeItem(e), sessionStorage.removeItem(t), this.log("🔄 Session flags cleared"), this.user = null, this.osmConnected = !1, this.osmData = null, this.hasAppMapping = !1, this.userProfileLanguage = null, this.profilePictureUrl = "", this._isPrimary && this._broadcastState(), this.dispatchEvent(
+    sessionStorage.removeItem(e), sessionStorage.removeItem(t), this.log("Session flags cleared"), this.user = null, this.osmConnected = !1, this.osmData = null, this.hasAppMapping = !1, this.userProfileLanguage = null, this.profilePictureUrl = "", this._isPrimary && this._broadcastState(), this.dispatchEvent(
       new CustomEvent("logout", {
         bubbles: !0,
         composed: !0
@@ -5691,46 +5683,46 @@ let ie = class extends Mt {
     );
   }
   async handleSessionExpired() {
-    if (this.log("🕒 Session expired event received"), this.log("📊 Current state:", {
+    if (this.log("Session expired event received"), this.log("Current state:", {
       user: this.user,
       osmConnected: this.osmConnected,
       loading: this.loading
     }), this.loading) {
-      this.log("⏳ Still loading, ignoring session expired event during init");
+      this.log("Still loading, ignoring session expired event during init");
       return;
     }
     if (this.user) {
-      this.log("✅ User is logged in, ignoring stale session expired event");
+      this.log("User is logged in, ignoring stale session expired event");
       return;
     }
-    this.log("🧹 No active user - cleaning up state");
+    this.log("No active user - cleaning up state");
     try {
       const n = this.getBasePath(), e = this.authPath, t = `${n}${e}/disconnect`, o = t.startsWith("http") ? t : `${window.location.origin}${t}`;
-      this.log("🔌 Calling OSM disconnect (session expired):", o);
+      this.log("Calling OSM disconnect (session expired):", o);
       const i = await fetch(o, {
         method: "POST",
         credentials: "include"
       });
-      this.log("📡 Disconnect response status:", i.status);
+      this.log("Disconnect response status:", i.status);
       const a = await i.json();
-      this.log("📡 Disconnect response data:", a), this.log("✅ OSM disconnected");
+      this.log("Disconnect response data:", a), this.log("OSM disconnected");
     } catch (n) {
-      this.logError("❌ OSM disconnect failed:", n);
+      this.logError("OSM disconnect failed:", n);
     }
-    if (this._clearAuthState(), this.log("✅ Session cleanup complete"), this.redirectAfterLogout) {
+    if (this._clearAuthState(), this.log("Session cleanup complete"), this.redirectAfterLogout) {
       const n = window.location.href.replace(/\/$/, ""), e = this.redirectAfterLogout.replace(/\/$/, "");
       n !== e && !n.startsWith(e + "#") ? (this.log(
-        "🔄 Redirecting after session expired to:",
+        "Redirecting after session expired to:",
         this.redirectAfterLogout
-      ), window.location.href = this.redirectAfterLogout) : this.log("⏭️ Already on logout target, skipping redirect");
+      ), window.location.href = this.redirectAfterLogout) : this.log("Already on logout target, skipping redirect");
     }
   }
   handleUserLoggedOut() {
-    this.log("🚪 User logged out in another window/tab"), this.handleSessionExpired();
+    this.log("User logged out in another window/tab"), this.handleSessionExpired();
   }
   handleDropdownSelect(n) {
     const t = n.currentTarget.dataset.action;
-    if (this.log("🎯 Dropdown item selected:", t), t === "profile") {
+    if (this.log("Dropdown item selected:", t), t === "profile") {
       const o = this.hankoUrl, i = this.redirectAfterLogin || window.location.origin;
       window.location.href = `${o}/app/profile?return_to=${encodeURIComponent(i)}`;
     } else if (t === "connect-osm") {
@@ -5783,9 +5775,14 @@ let ie = class extends Mt {
             <div class="profile">
               <div class="profile-header">
                 <div class="profile-avatar">
-                  ${this.profilePictureUrl ? ye`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${a}" @error=${(s) => {
+                  ${this.profilePictureUrl ? ye`<img
+                        class="avatar-img"
+                        src="${this.profilePictureUrl}"
+                        alt="${a}"
+                        @error=${(s) => {
         s.target.style.display = "none";
-      }} />` : a}
+      }}
+                      />` : a}
                 </div>
                 <div class="profile-info">
                   <div class="profile-email">
@@ -5859,10 +5856,15 @@ let ie = class extends Mt {
             >
               <div class="bar-info">
                 <span class="header-avatar">
-                ${this.profilePictureUrl ? ye`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${a}" @error=${(s) => {
+                  ${this.profilePictureUrl ? ye`<img
+                        class="avatar-img"
+                        src="${this.profilePictureUrl}"
+                        alt="${a}"
+                        @error=${(s) => {
         s.target.style.display = "none";
-      }} />` : a}
-              </span>
+      }}
+                      />` : a}
+                </span>
                 <span class="bar-email"
                   >${this.user.email || this.user.id}</span
                 >
@@ -5885,9 +5887,14 @@ let ie = class extends Mt {
               class="dropdown-trigger"
             >
               <span class="header-avatar">
-                ${this.profilePictureUrl ? ye`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${a}" @error=${(s) => {
+                ${this.profilePictureUrl ? ye`<img
+                      class="avatar-img"
+                      src="${this.profilePictureUrl}"
+                      alt="${a}"
+                      @error=${(s) => {
         s.target.style.display = "none";
-      }} />` : a}
+      }}
+                    />` : a}
               </span>
 
               ${this.osmConnected ? ye`
