@@ -18,7 +18,6 @@ export interface Translations {
   goBack: string;
   settingUpAccount: string;
   accessAllTools: string;
-  backToPreviousPage: string;
   poweredBy: string;
 
   // ProfilePage
@@ -64,7 +63,6 @@ export const translations: Record<string, Translations> = {
     goBack: "← Go back",
     settingUpAccount: "Setting up your account...",
     accessAllTools: "Access all HOT tools and services",
-    backToPreviousPage: "Back to previous page",
     poweredBy: "Powered by",
     myProfile: "My Profile",
     back: "Back",
@@ -107,7 +105,6 @@ export const translations: Record<string, Translations> = {
     goBack: "← Volver",
     settingUpAccount: "Configurando tu cuenta...",
     accessAllTools: "Accede a todas las herramientas y servicios de HOT",
-    backToPreviousPage: "Volver a la página anterior",
     poweredBy: "Desarrollado por",
     myProfile: "Mi Perfil",
     back: "Volver",
@@ -151,7 +148,6 @@ export const translations: Record<string, Translations> = {
     goBack: "← Retour",
     settingUpAccount: "Configuration de votre compte...",
     accessAllTools: "Accédez à tous les outils et services HOT",
-    backToPreviousPage: "Retour à la page précédente",
     poweredBy: "Propulsé par",
     myProfile: "Mon Profil",
     back: "Retour",
@@ -194,7 +190,6 @@ export const translations: Record<string, Translations> = {
     goBack: "← Voltar",
     settingUpAccount: "Configurando sua conta...",
     accessAllTools: "Acesse todas as ferramentas e serviços HOT",
-    backToPreviousPage: "Voltar à página anterior",
     poweredBy: "Desenvolvido por",
     myProfile: "Meu Perfil",
     back: "Voltar",
