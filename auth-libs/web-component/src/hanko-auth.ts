@@ -34,8 +34,7 @@ import chevronUpIcon from "../assets/chevron-up.svg";
 let hankoRegistered = false;
 let hankoRegistrationPromise: Promise<void> | null = null;
 
-// Pre-register translations at module load time to prevent 404 errors
-// This will be called again with hankoUrl when component initializes
+// Pre-register translations
 async function ensureHankoRegistered(hankoUrl: string): Promise<void> {
   if (hankoRegistered) return;
   if (hankoRegistrationPromise) return hankoRegistrationPromise;
@@ -113,26 +112,20 @@ export class HankoAuth extends LitElement {
   redirectAfterLogout = "";
   @property({ type: String, attribute: "display-name" })
   displayNameAttr = "";
-  // URL to check if user has app mapping (for cross-app auth scenarios)
   @property({ type: String, attribute: "mapping-check-url" }) mappingCheckUrl =
     "";
-  // App identifier for onboarding redirect
   @property({ type: String, attribute: "app-id" }) appId = "";
   // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
   @property({ type: String, attribute: "login-url" }) loginUrl = "";
-  // Language code (en, es, fr, pt, etc.)
   @property({ type: String, reflect: true }) lang = "en";
-  // Button variant (filled, outline, plain)
   @property({ type: String, attribute: "button-variant" }) buttonVariant:
     | "filled"
     | "outline"
     | "plain" = "plain";
-  // Button color (primary, neutral, danger)
   @property({ type: String, attribute: "button-color" }) buttonColor:
     | "primary"
     | "neutral"
     | "danger" = "primary";
-  // Display mode: "default" (compact avatar button) or "bar" (full-width bar with avatar + email + chevron)
   @property({ type: String, reflect: true }) display: "default" | "bar" =
     "default";
 
@@ -270,12 +263,12 @@ export class HankoAuth extends LitElement {
 
     // If already initialized or being initialized by another instance, sync state and skip init
     if (sharedAuth.initialized || sharedAuth.primary) {
-      this.log("🔄 Using shared state from primary instance");
+      this.log("Using shared state from primary instance");
       this._syncFromShared();
       this._isPrimary = false;
     } else {
       // This is the first/primary instance - claim it immediately to prevent race conditions
-      this.log("👑 This is the primary instance");
+      this.log("This is the primary instance");
       this._isPrimary = true;
       sharedAuth.primary = this;
       sharedAuth.initialized = true; // Mark as initialized immediately to prevent other instances from also initializing
@@ -300,7 +293,7 @@ export class HankoAuth extends LitElement {
     if (this._isPrimary && sharedAuth.instances.size > 0) {
       const newPrimary = sharedAuth.instances.values().next().value;
       if (newPrimary) {
-        this.log("👑 Promoting new primary instance");
+        this.log("Promoting new primary instance");
         newPrimary._isPrimary = true;
         sharedAuth.primary = newPrimary;
       }
@@ -354,7 +347,7 @@ export class HankoAuth extends LitElement {
     if (!document.hidden && !this.showProfile && !this.user) {
       // Page became visible, we're in header mode, and no user is logged in
       // Re-check session in case user logged in elsewhere
-      this.log("👁️ Page visible, re-checking session...");
+      this.log("Page visible, re-checking session...");
       this.checkSession();
     }
   };
@@ -407,13 +400,8 @@ export class HankoAuth extends LitElement {
     }
   }
 
-  /**
-   * Get translated string for the current language
-   * Falls back to English if translation not found
-   * When user is logged in, uses their profile language instead of the lang prop
-   */
+  /* Translations */
   private t(key: keyof typeof translations.en): string {
-    // When user is logged in, use their profile language
     const effectiveLang =
       this.user && this.userProfileLanguage
         ? this.userProfileLanguage
@@ -552,12 +540,12 @@ export class HankoAuth extends LitElement {
     this.log("🔍 Checking for existing Hanko session...");
 
     if (!this._hanko) {
-      this.log("⚠️ Hanko instance not initialized yet");
+      this.log("Hanko instance not initialized yet");
       return;
     }
 
     try {
-      this.log("📡 Checking session validity via cookie...");
+      this.log("Checking session validity via cookie...");
 
       // First, try to validate the session cookie directly with Hanko
       // This works across subdomains because the cookie has domain: .hotosm.test
@@ -579,13 +567,13 @@ export class HankoAuth extends LitElement {
           // Check if session is actually valid (endpoint returns 200 with is_valid:false when no session)
           if (sessionData.is_valid === false) {
             this.log(
-              "ℹ️ Session validation returned is_valid:false - no valid session",
+              "Session validation returned is_valid:false - no valid session",
             );
             return;
           }
 
-          this.log("✅ Valid Hanko session found via cookie");
-          this.log("📋 Session data:", sessionData);
+          this.log("Valid Hanko session found via cookie");
+          this.log("Session data:", sessionData);
 
           // Now get the full user data from the login backend /me endpoint
           // This endpoint validates the JWT and returns complete user info
@@ -601,7 +589,7 @@ export class HankoAuth extends LitElement {
             let needsSdkFallback = true;
             if (meResponse.ok) {
               const userData = await meResponse.json();
-              this.log("👤 User data retrieved from /me:", userData);
+              this.log("User data retrieved from /me:", userData);
 
               // Only use /me if it has email (login.hotosm.org has it, Hanko vanilla doesn't)
               if (userData.email) {
@@ -614,12 +602,12 @@ export class HankoAuth extends LitElement {
                 };
                 needsSdkFallback = false;
               } else {
-                this.log("⚠️ /me has no email, will use SDK fallback");
+                this.log("/me has no email, will use SDK fallback");
               }
             }
 
             if (needsSdkFallback) {
-              this.log("🔄 Using SDK to get user with email");
+              this.log("Using SDK to get user with email");
               // Fallback to SDK method which has email
               const user = await this._hanko.user.getCurrent();
               this.user = {
@@ -630,7 +618,7 @@ export class HankoAuth extends LitElement {
               };
             }
           } catch (userError) {
-            this.log("⚠️ Failed to get user data:", userError);
+            this.log("Failed to get user data:", userError);
             // Last resort: use session data if available
             if (sessionData.user_id) {
               this.user = {
@@ -655,7 +643,7 @@ export class HankoAuth extends LitElement {
               !alreadyVerified
             ) {
               this.log(
-                "🔄 verify-session enabled, redirecting to callback for app verification...",
+                "verify-session enabled, redirecting to callback for app verification...",
               );
               sessionStorage.setItem(verifyKey, "true");
               window.location.href = this.redirectAfterLogin;
@@ -692,20 +680,20 @@ export class HankoAuth extends LitElement {
             // Fetch profile display name
             await this.fetchProfileDisplayName();
             if (this.osmRequired && this.autoConnect && !this.osmConnected) {
-              this.log("🔄 Auto-connecting to OSM (from existing session)...");
+              this.log("Auto-connecting to OSM (from existing session)...");
               this.handleOSMConnect();
             }
           }
         } else {
-          this.log("ℹ️ No valid session cookie found - user needs to login");
+          this.log("No valid session cookie found - user needs to login");
         }
       } catch (validateError) {
-        this.log("⚠️ Session validation failed:", validateError);
-        this.log("ℹ️ No valid session - user needs to login");
+        this.log("Session validation failed:", validateError);
+        this.log("No valid session - user needs to login");
       }
     } catch (error) {
-      this.log("⚠️ Session check error:", error);
-      this.log("ℹ️ No existing session - user needs to login");
+      this.log("Session check error:", error);
+      this.log("No existing session - user needs to login");
     } finally {
       // Broadcast state changes to other instances
       if (this._isPrimary) {
@@ -717,12 +705,12 @@ export class HankoAuth extends LitElement {
   private async checkOSMConnection() {
     // Skip OSM check if not required
     if (!this.osmRequired) {
-      this.log("⏭️ OSM not required, skipping connection check");
+      this.log("OSM not required, skipping connection check");
       return;
     }
 
     if (this.osmConnected) {
-      this.log("⏭️ Already connected to OSM, skipping check");
+      this.log("Already connected to OSM, skipping check");
       return;
     }
 
@@ -742,23 +730,23 @@ export class HankoAuth extends LitElement {
       const statusPath = `${basePath}${authPath}/status`;
       const statusUrl = `${statusPath}`; // Relative URL for proxy
 
-      this.log("🔍 Checking OSM connection at:", statusUrl);
+      this.log("Checking OSM connection at:", statusUrl);
       this.log("  basePath:", basePath);
       this.log("  authPath:", authPath);
-      this.log("🍪 Current cookies:", document.cookie);
+      this.log("Current cookies:", document.cookie);
 
       const response = await fetch(statusUrl, {
         credentials: "include",
         redirect: "follow",
       });
 
-      this.log("📡 OSM status response:", response.status);
-      this.log("📡 Final URL after redirects:", response.url);
-      this.log("📡 Response headers:", [...response.headers.entries()]);
+      this.log("OSM status response:", response.status);
+      this.log("Final URL after redirects:", response.url);
+      this.log("Response headers:", [...response.headers.entries()]);
 
       if (response.ok) {
         const text = await response.text();
-        this.log("📡 OSM raw response:", text.substring(0, 200));
+        this.log("OSM raw response:", text.substring(0, 200));
 
         let data;
         try {
@@ -771,10 +759,10 @@ export class HankoAuth extends LitElement {
           throw new Error("Invalid JSON response from OSM status endpoint");
         }
 
-        this.log("📡 OSM status data:", data);
+        this.log("OSM status data:", data);
 
         if (data.connected) {
-          this.log("✅ OSM is connected:", data.osm_username);
+          this.log("OSM is connected:", data.osm_username);
           this.osmConnected = true;
           this.osmData = data;
 
@@ -791,7 +779,7 @@ export class HankoAuth extends LitElement {
           // The Login page's onboarding flow listens for 'osm-connected' event
           // and handles the redirect to the app's onboarding endpoint
         } else {
-          this.log("❌ OSM is NOT connected");
+          this.log("OSM is NOT connected");
           this.osmConnected = false;
           this.osmData = null;
         }
@@ -821,12 +809,12 @@ export class HankoAuth extends LitElement {
     const onboardingKey = getSessionOnboardingKey(window.location.hostname);
     const onboardingCompleted = sessionStorage.getItem(onboardingKey);
     if (onboardingCompleted) {
-      this.log("✅ Onboarding already completed this session, skipping check");
+      this.log("Onboarding already completed this session, skipping check");
       this.hasAppMapping = true;
       return true;
     }
 
-    this.log("🔍 Checking app mapping at:", this.mappingCheckUrl);
+    this.log("Checking app mapping at:", this.mappingCheckUrl);
 
     try {
       const response = await fetch(this.mappingCheckUrl, {
@@ -835,12 +823,12 @@ export class HankoAuth extends LitElement {
 
       if (response.ok) {
         const data = await response.json();
-        this.log("📡 Mapping check response:", data);
+        this.log("Mapping check response:", data);
 
         if (data.needs_onboarding) {
           // User has Hanko session but no app mapping - redirect to onboarding
           // Don't set flag here - only set it when onboarding completes
-          this.log("⚠️ User needs onboarding, redirecting...");
+          this.log("User needs onboarding, redirecting...");
           const returnTo = encodeURIComponent(window.location.origin);
           const appParam = this.appId ? `onboarding=${this.appId}` : "";
           window.location.href = `${this.hankoUrl}/app?${appParam}&return_to=${returnTo}`;
@@ -850,11 +838,11 @@ export class HankoAuth extends LitElement {
         // User has mapping - mark onboarding as completed
         sessionStorage.setItem(onboardingKey, "true");
         this.hasAppMapping = true;
-        this.log("✅ User has app mapping, onboarding marked complete");
+        this.log("User has app mapping, onboarding marked complete");
         return true;
       } else if (response.status === 401 || response.status === 403) {
         // Needs onboarding
-        this.log("⚠️ 401/403 - User needs onboarding, redirecting...");
+        this.log("401/403 - User needs onboarding, redirecting...");
         const returnTo = encodeURIComponent(window.location.origin);
         const appParam = this.appId ? `onboarding=${this.appId}` : "";
         window.location.href = `${this.hankoUrl}/app?${appParam}&return_to=${returnTo}`;
@@ -862,10 +850,10 @@ export class HankoAuth extends LitElement {
       }
 
       // Other status codes - proceed without blocking
-      this.log("⚠️ Unexpected status from mapping check:", response.status);
+      this.log("Unexpected status from mapping check:", response.status);
       return true;
     } catch (error) {
-      this.log("⚠️ App mapping check failed:", error);
+      this.log("App mapping check failed:", error);
       // Don't block the user, just log the error
       return true;
     }
@@ -875,7 +863,7 @@ export class HankoAuth extends LitElement {
   private async fetchProfileDisplayName() {
     try {
       const profileUrl = `${this.hankoUrl}/api/profile/me`;
-      this.log("👤 Fetching profile from:", profileUrl);
+      this.log("Fetching profile from:", profileUrl);
 
       const response = await fetch(profileUrl, {
         credentials: "include",
@@ -883,29 +871,29 @@ export class HankoAuth extends LitElement {
 
       if (response.ok) {
         const profile = await response.json();
-        this.log("👤 Profile data:", profile);
+        this.log("Profile data:", profile);
 
         if (profile.first_name || profile.last_name) {
           this.profileDisplayName =
             `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
-          this.log("👤 Display name set to:", this.profileDisplayName);
+          this.log("Display name set to:", this.profileDisplayName);
         }
 
         // picture_url is always set by the backend (Gravatar fallback); osm_avatar_url as secondary
         const picUrl = profile.picture_url || profile.osm_avatar_url;
         if (picUrl) {
           this.profilePictureUrl = picUrl;
-          this.log("🖼️ Profile picture set to:", this.profilePictureUrl);
+          this.log("Profile picture set to:", this.profilePictureUrl);
         }
 
         // Set language from user profile if available
         if (profile.language) {
           this.userProfileLanguage = profile.language;
-          this.log("🌐 Language set from profile:", this.userProfileLanguage);
+          this.log("Language set from profile:", this.userProfileLanguage);
         }
       }
     } catch (error) {
-      this.log("⚠️ Could not fetch profile:", error);
+      this.log("Could not fetch profile:", error);
     }
   }
 
@@ -934,7 +922,7 @@ export class HankoAuth extends LitElement {
 
       // Skip if already attached to the same element
       if (hankoAuth && hankoAuth === this._currentHankoAuthElement) {
-        this.log("⏭️ Event listeners already attached to this element");
+        this.log("Event listeners already attached to this element");
         return;
       }
 
@@ -943,11 +931,11 @@ export class HankoAuth extends LitElement {
         this.log("🎯 Attaching event listeners to hanko-auth element");
 
         hankoAuth.addEventListener("onSessionCreated", (e: any) => {
-          this.log(`🎯 Hanko event: onSessionCreated`, e.detail);
+          this.log(`Hanko event: onSessionCreated`, e.detail);
 
           const sessionId = e.detail?.claims?.session_id;
           if (sessionId && this._lastSessionId === sessionId) {
-            this.log("⏭️ Skipping duplicate session event");
+            this.log("Skipping duplicate session event");
             return;
           }
           this._lastSessionId = sessionId;
@@ -993,7 +981,7 @@ export class HankoAuth extends LitElement {
 
       if (meResponse.ok) {
         const userData = await meResponse.json();
-        this.log("👤 User data retrieved from /me:", userData);
+        this.log("User data retrieved from /me:", userData);
 
         // Only use /me if it has email (login.hotosm.org has it, Hanko vanilla doesn't)
         if (userData.email) {
@@ -1006,17 +994,15 @@ export class HankoAuth extends LitElement {
           };
           userInfoRetrieved = true;
         } else {
-          this.log("⚠️ /me has no email, will try SDK fallback");
+          this.log("/me has no email, will try SDK fallback");
         }
       } else {
-        this.log(
-          "⚠️ /me endpoint returned non-OK status, will try SDK fallback",
-        );
+        this.log("/me endpoint returned non-OK status, will try SDK fallback");
       }
     } catch (error) {
       // NetworkError or timeout on cross-origin fetch is common with mkcert certs
       this.log(
-        "⚠️ /me endpoint fetch failed (timeout or cross-origin TLS issue):",
+        "/me endpoint fetch failed (timeout or cross-origin TLS issue):",
         error,
       );
     }
@@ -1024,7 +1010,7 @@ export class HankoAuth extends LitElement {
     // Fallback to SDK method if /me didn't work
     if (!userInfoRetrieved) {
       try {
-        this.log("🔄 Trying SDK fallback for user info...");
+        this.log("Trying SDK fallback for user info...");
         // Add timeout to SDK call in case it hangs
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error("SDK timeout")), 5000),
@@ -1040,9 +1026,9 @@ export class HankoAuth extends LitElement {
           emailVerified: user.email_verified || false,
         };
         userInfoRetrieved = true;
-        this.log("✅ User info retrieved via SDK fallback");
+        this.log("User info retrieved via SDK fallback");
       } catch (sdkError) {
-        this.log("⚠️ SDK fallback failed, trying JWT claims:", sdkError);
+        this.log("SDK fallback failed, trying JWT claims:", sdkError);
         // Last resort: extract user info from JWT claims in the event
         try {
           const claims = event.detail?.claims;
@@ -1054,7 +1040,7 @@ export class HankoAuth extends LitElement {
               emailVerified: claims.email_verified || false,
             };
             userInfoRetrieved = true;
-            this.log("✅ User info extracted from JWT claims");
+            this.log("User info extracted from JWT claims");
           } else {
             this.logError("No user claims available in event");
             this.user = null;
@@ -1071,7 +1057,7 @@ export class HankoAuth extends LitElement {
       }
     }
 
-    this.log("✅ User state updated:", this.user);
+    this.log("User state updated:", this.user);
 
     // Broadcast state changes to other instances
     if (this._isPrimary) {
@@ -1095,7 +1081,7 @@ export class HankoAuth extends LitElement {
 
     // Auto-connect to OSM if required and auto-connect is enabled
     if (this.osmRequired && this.autoConnect && !this.osmConnected) {
-      this.log("🔄 Auto-connecting to OSM...");
+      this.log("Auto-connecting to OSM...");
       this.handleOSMConnect();
       return; // Exit early - redirect will happen after OSM OAuth callback
     }
@@ -1104,7 +1090,7 @@ export class HankoAuth extends LitElement {
     const canRedirect = !this.osmRequired || this.osmConnected;
 
     this.log(
-      "🔄 Checking redirect-after-login:",
+      "Checking redirect-after-login:",
       this.redirectAfterLogin,
       "showProfile:",
       this.showProfile,
@@ -1121,13 +1107,13 @@ export class HankoAuth extends LitElement {
       );
 
       if (this.redirectAfterLogin) {
-        this.log("✅ Redirecting to:", this.redirectAfterLogin);
+        this.log("Redirecting to:", this.redirectAfterLogin);
         window.location.href = this.redirectAfterLogin;
       } else {
-        this.log("❌ No redirect (redirectAfterLogin not set)");
+        this.log("No redirect (redirectAfterLogin not set)");
       }
     } else {
-      this.log("⏸️ Waiting for OSM connection before redirect");
+      this.log("Waiting for OSM connection before redirect");
     }
   }
 
@@ -1140,7 +1126,7 @@ export class HankoAuth extends LitElement {
     const loginPath = `${basePath}${authPath}/login`;
     const fullUrl = `${loginPath}?scopes=${scopes}`;
 
-    this.log("🔗 OSM Connect clicked!");
+    this.log("OSM Connect clicked!");
     this.log("  basePath:", basePath);
     this.log("  authPath:", authPath);
     this.log("  Login path:", fullUrl);
@@ -1161,32 +1147,32 @@ export class HankoAuth extends LitElement {
       if (response.status === 0 || response.type === "opaqueredirect") {
         // This is a redirect response
         const redirectUrl = response.headers.get("Location") || response.url;
-        this.log("  ✅ Got redirect URL:", redirectUrl);
+        this.log("Got redirect URL:", redirectUrl);
         window.location.href = redirectUrl;
       } else if (response.status >= 300 && response.status < 400) {
         const redirectUrl = response.headers.get("Location");
-        this.log("  ✅ Got redirect URL from header:", redirectUrl);
+        this.log("Got redirect URL from header:", redirectUrl);
         if (redirectUrl) {
           window.location.href = redirectUrl;
         }
       } else {
-        this.logError("  ❌ Unexpected response:", response.status);
+        this.logError("Unexpected response:", response.status);
         const text = await response.text();
         this.logError("  Response body:", text.substring(0, 200));
       }
     } catch (error) {
-      this.logError("  ❌ Failed to fetch redirect URL:", error);
+      this.logError("Failed to fetch redirect URL:", error);
     }
   }
 
   private async handleLogout() {
-    this.log("🚪 Logout initiated");
-    this.log("📊 Current state before logout:", {
+    this.log("Logout initiated");
+    this.log("Current state before logout:", {
       user: this.user,
       osmConnected: this.osmConnected,
       osmData: this.osmData,
     });
-    this.log("🍪 Cookies before logout:", document.cookie);
+    this.log("Cookies before logout:", document.cookie);
 
     try {
       const basePath = this.getBasePath();
@@ -1196,25 +1182,25 @@ export class HankoAuth extends LitElement {
       const disconnectUrl = disconnectPath.startsWith("http")
         ? disconnectPath
         : `${window.location.origin}${disconnectPath}`;
-      this.log("🔌 Calling OSM disconnect:", disconnectUrl);
+      this.log("Calling OSM disconnect:", disconnectUrl);
 
       const response = await fetch(disconnectUrl, {
         method: "POST",
         credentials: "include",
       });
 
-      this.log("📡 Disconnect response status:", response.status);
+      this.log("Disconnect response status:", response.status);
       const data = await response.json();
-      this.log("📡 Disconnect response data:", data);
-      this.log("✅ OSM disconnected");
+      this.log("Disconnect response data:", data);
+      this.log("OSM disconnected");
     } catch (error) {
-      this.logError("❌ OSM disconnect failed:", error);
+      this.logError("OSM disconnect failed:", error);
     }
 
     if (this._hanko) {
       try {
         await this._hanko.user.logout();
-        this.log("✅ Hanko logout successful");
+        this.log("Hanko logout successful");
       } catch (error) {
         this.logError("Hanko logout failed:", error);
       }
@@ -1223,19 +1209,17 @@ export class HankoAuth extends LitElement {
     // Use shared cleanup method
     this._clearAuthState();
 
-    this.log(
-      "✅ Logout complete - component will re-render with updated state",
-    );
+    this.log("Logout complete - component will re-render with updated state");
 
     // Redirect after logout if configured (but not if already there)
     if (this.redirectAfterLogout) {
       const currentUrl = window.location.href.replace(/\/$/, "");
       const targetUrl = this.redirectAfterLogout.replace(/\/$/, "");
       if (currentUrl !== targetUrl && !currentUrl.startsWith(targetUrl + "#")) {
-        this.log("🔄 Redirecting after logout to:", this.redirectAfterLogout);
+        this.log("Redirecting after logout to:", this.redirectAfterLogout);
         window.location.href = this.redirectAfterLogout;
       } else {
-        this.log("⏭️ Already on logout target, skipping redirect");
+        this.log("Already on logout target, skipping redirect");
       }
     }
     // Otherwise let Lit's reactivity handle the re-render
@@ -1251,14 +1235,14 @@ export class HankoAuth extends LitElement {
     document.cookie = "hanko=; path=/; max-age=0";
     document.cookie = `osm_connection=; path=/; domain=${hostname}; max-age=0`;
     document.cookie = "osm_connection=; path=/; max-age=0";
-    this.log("🍪 Cookies cleared");
+    this.log("Cookies cleared");
 
     // Clear session verification and onboarding flags
     const verifyKey = getSessionVerifyKey(hostname);
     const onboardingKey = getSessionOnboardingKey(hostname);
     sessionStorage.removeItem(verifyKey);
     sessionStorage.removeItem(onboardingKey);
-    this.log("🔄 Session flags cleared");
+    this.log("Session flags cleared");
 
     // Reset state
     this.user = null;
@@ -1283,8 +1267,8 @@ export class HankoAuth extends LitElement {
   }
 
   private async handleSessionExpired() {
-    this.log("🕒 Session expired event received");
-    this.log("📊 Current state:", {
+    this.log("Session expired event received");
+    this.log("Current state:", {
       user: this.user,
       osmConnected: this.osmConnected,
       loading: this.loading,
@@ -1293,18 +1277,18 @@ export class HankoAuth extends LitElement {
     // If still loading, wait for session check to complete before acting
     // The SDK may fire this event for old/stale sessions during init
     if (this.loading) {
-      this.log("⏳ Still loading, ignoring session expired event during init");
+      this.log("Still loading, ignoring session expired event during init");
       return;
     }
 
     // If we have an active user, the session is still valid
     // The SDK may fire this event for old/stale sessions while a new session exists
     if (this.user) {
-      this.log("✅ User is logged in, ignoring stale session expired event");
+      this.log("User is logged in, ignoring stale session expired event");
       return;
     }
 
-    this.log("🧹 No active user - cleaning up state");
+    this.log("No active user - cleaning up state");
 
     // Call OSM disconnect endpoint to clear httpOnly cookie
     try {
@@ -1315,25 +1299,25 @@ export class HankoAuth extends LitElement {
       const disconnectUrl = disconnectPath.startsWith("http")
         ? disconnectPath
         : `${window.location.origin}${disconnectPath}`;
-      this.log("🔌 Calling OSM disconnect (session expired):", disconnectUrl);
+      this.log("Calling OSM disconnect (session expired):", disconnectUrl);
 
       const response = await fetch(disconnectUrl, {
         method: "POST",
         credentials: "include",
       });
 
-      this.log("📡 Disconnect response status:", response.status);
+      this.log("Disconnect response status:", response.status);
       const data = await response.json();
-      this.log("📡 Disconnect response data:", data);
-      this.log("✅ OSM disconnected");
+      this.log("Disconnect response data:", data);
+      this.log("OSM disconnected");
     } catch (error) {
-      this.logError("❌ OSM disconnect failed:", error);
+      this.logError("OSM disconnect failed:", error);
     }
 
     // Use shared cleanup method
     this._clearAuthState();
 
-    this.log("✅ Session cleanup complete");
+    this.log("Session cleanup complete");
 
     // Redirect after session expired if configured (but not if already there)
     if (this.redirectAfterLogout) {
@@ -1341,19 +1325,19 @@ export class HankoAuth extends LitElement {
       const targetUrl = this.redirectAfterLogout.replace(/\/$/, "");
       if (currentUrl !== targetUrl && !currentUrl.startsWith(targetUrl + "#")) {
         this.log(
-          "🔄 Redirecting after session expired to:",
+          "Redirecting after session expired to:",
           this.redirectAfterLogout,
         );
         window.location.href = this.redirectAfterLogout;
       } else {
-        this.log("⏭️ Already on logout target, skipping redirect");
+        this.log("Already on logout target, skipping redirect");
       }
     }
     // Otherwise component will re-render and show login button
   }
 
   private handleUserLoggedOut() {
-    this.log("🚪 User logged out in another window/tab");
+    this.log("User logged out in another window/tab");
     // Same cleanup as session expired
     this.handleSessionExpired();
   }
@@ -1361,7 +1345,7 @@ export class HankoAuth extends LitElement {
   private handleDropdownSelect(event: Event) {
     const target = event.currentTarget as HTMLElement;
     const action = target.dataset.action;
-    this.log("🎯 Dropdown item selected:", action);
+    this.log("Dropdown item selected:", action);
 
     if (action === "profile") {
       const baseUrl = this.hankoUrl;
@@ -1468,7 +1452,14 @@ export class HankoAuth extends LitElement {
               <div class="profile-header">
                 <div class="profile-avatar">
                   ${this.profilePictureUrl
-                    ? html`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${initial}" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = "none"; }} />`
+                    ? html`<img
+                        class="avatar-img"
+                        src="${this.profilePictureUrl}"
+                        alt="${initial}"
+                        @error=${(e: Event) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />`
                     : initial}
                 </div>
                 <div class="profile-info">
@@ -1556,10 +1547,17 @@ export class HankoAuth extends LitElement {
             >
               <div class="bar-info">
                 <span class="header-avatar">
-                ${this.profilePictureUrl
-                  ? html`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${initial}" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = "none"; }} />`
-                  : initial}
-              </span>
+                  ${this.profilePictureUrl
+                    ? html`<img
+                        class="avatar-img"
+                        src="${this.profilePictureUrl}"
+                        alt="${initial}"
+                        @error=${(e: Event) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />`
+                    : initial}
+                </span>
                 <span class="bar-email"
                   >${this.user.email || this.user.id}</span
                 >
@@ -1586,7 +1584,14 @@ export class HankoAuth extends LitElement {
             >
               <span class="header-avatar">
                 ${this.profilePictureUrl
-                  ? html`<img class="avatar-img" src="${this.profilePictureUrl}" alt="${initial}" @error=${(e: Event) => { (e.target as HTMLImageElement).style.display = "none"; }} />`
+                  ? html`<img
+                      class="avatar-img"
+                      src="${this.profilePictureUrl}"
+                      alt="${initial}"
+                      @error=${(e: Event) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />`
                   : initial}
               </span>
 
