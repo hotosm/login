@@ -58,6 +58,8 @@ app.add_middleware(
         "https://chatmap-dev.hotosm.org",
         "https://fair.hotosm.org",
         "https://fair-dev.hotosm.org",
+        "https://umap.hotosm.org",
+        "https://umap-dev.hotosm.org",
         # Test environments
         "https://testlogin.dronetm.hotosm.org",
         "https://testlogin.fair.hotosm.org",
