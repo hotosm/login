@@ -343,16 +343,7 @@ function ProfilePage() {
           </form>
         </div>
 
-        {/* Security Section - Hanko Profile */}
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-hot-gray-900 mb-4">
-            {t("security")}
-          </h2>
-          <p className="text-sm text-hot-gray-600 mb-4">
-            {t("managePasswordPasskeys")}
-          </p>
-
-          {/* Hanko Profile Component */}
           <hanko-profile lang={language}></hanko-profile>
         </div>
 

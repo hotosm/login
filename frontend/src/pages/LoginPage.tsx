@@ -283,7 +283,7 @@ function LoginPage() {
                 href={returnTo}
                 className="font-bold text-hot-gray-900 hover:underline inline-flex items-center gap-2 transition-colors "
               >
-                {t("backToPreviousPage")}
+                {t("back")}
               </a>
             </div>
           )}

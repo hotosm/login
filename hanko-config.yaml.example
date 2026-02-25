@@ -29,6 +29,9 @@ secrets:
 service:
   name: "HOTOSM Portal (Dev)"
 
+account:
+  allow_deletion: true
+
 passkey:
   enabled: false
   acquire_on_login: never
