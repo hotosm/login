@@ -63,6 +63,32 @@ function ProfilePage() {
     fetchProfile();
   }, []);
 
+  // Inject styles into hanko-profile
+  useEffect(() => {
+    if (loading) return;
+
+    const el = document.querySelector("hanko-profile");
+    if (
+      !el?.shadowRoot ||
+      el.shadowRoot.querySelector("#hot-profile-overrides")
+    )
+      return;
+
+    const style = document.createElement("style");
+    style.id = "hot-profile-overrides";
+    style.textContent = `
+      .hanko_label.hanko_dropdown .hanko_labelText {
+        margin-top: var(--hot-spacing-small);
+        text-decoration: underline;
+        transition: color 0.2s ease;
+      }
+      .hanko_label.hanko_dropdown:hover .hanko_labelText {
+        color: var(--hot-color-gray-1000);
+      }
+    `;
+    el.shadowRoot.appendChild(style);
+  }, [loading]);
+
   // Listen for account deletion event from Hanko
   useEffect(() => {
     const handleUserDeleted = () => {
