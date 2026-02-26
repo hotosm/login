@@ -85,6 +85,7 @@ interface UserState {
   email: string | null;
   username: string | null;
   emailVerified: boolean;
+  avatarUrl?: string;
 }
 
 interface OSMData {
@@ -207,6 +208,21 @@ export class HankoAuth extends LitElement {
   private _lastSessionId: string | null = null;
   private _hanko: any = null;
   private _isPrimary = false; // Is this the primary instance?
+
+  constructor() {
+    super();
+    try {
+      const cached = localStorage.getItem("hotosm-auth-user");
+      if (cached) {
+        const cachedUser: UserState = JSON.parse(cached);
+        this.user = cachedUser;
+        this.loading = false;
+        if (cachedUser.avatarUrl) {
+          this.profilePictureUrl = cachedUser.avatarUrl;
+        }
+      }
+    } catch {}
+  }
 
   // Get computed hankoUrl (priority: attribute > meta tag > window.HANKO_URL > origin)
   get hankoUrl(): string {
@@ -657,6 +673,10 @@ export class HankoAuth extends LitElement {
               // Redirect to onboarding in progress, don't proceed
               return;
             }
+            await this.fetchProfileDisplayName();
+            if (this.user && this.profilePictureUrl) {
+              this.user = { ...this.user, avatarUrl: this.profilePictureUrl };
+            }
 
             this.dispatchEvent(
               new CustomEvent("hanko-login", {
@@ -677,8 +697,6 @@ export class HankoAuth extends LitElement {
             if (this.osmRequired) {
               await this.checkOSMConnection();
             }
-            // Fetch profile display name
-            await this.fetchProfileDisplayName();
             if (this.osmRequired && this.autoConnect && !this.osmConnected) {
               this.log("Auto-connecting to OSM (from existing session)...");
               this.handleOSMConnect();
@@ -1058,6 +1076,10 @@ export class HankoAuth extends LitElement {
     }
 
     this.log("User state updated:", this.user);
+    await this.fetchProfileDisplayName();
+    if (this.user && this.profilePictureUrl) {
+      this.user = { ...this.user, avatarUrl: this.profilePictureUrl };
+    }
 
     // Broadcast state changes to other instances
     if (this._isPrimary) {
@@ -1076,8 +1098,6 @@ export class HankoAuth extends LitElement {
     if (this.osmRequired) {
       await this.checkOSMConnection();
     }
-    // Fetch profile display name (only works with login.hotosm.org backend)
-    await this.fetchProfileDisplayName();
 
     // Auto-connect to OSM if required and auto-connect is enabled
     if (this.osmRequired && this.autoConnect && !this.osmConnected) {
