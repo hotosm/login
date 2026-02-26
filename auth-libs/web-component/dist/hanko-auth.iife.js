@@ -189,15 +189,19 @@ var HankoAuth=function(B){"use strict";/**
     font-weight: var(--hot-font-weight-bold);
     color: var(--hot-color-gray-600);
     overflow: hidden;
+    flex-shrink: 0;
   }
 
   .profile-info {
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+    min-width: 0;
   }
 
   .profile-email {
     font-size: var(--hot-font-size-small);
     font-weight: var(--hot-font-weight-bold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .osm-section {
@@ -302,6 +306,7 @@ var HankoAuth=function(B){"use strict";/**
     overflow: hidden;
     font-weight: var(--hot-font-weight-semibold);
     color: white;
+    flex-shrink: 0;
   }
 
   .login-link {
