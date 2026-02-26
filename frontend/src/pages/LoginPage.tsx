@@ -251,7 +251,7 @@ function LoginPage() {
           {/* Onboarding: Redirecting step */}
           {isOnboarding && onboardingStep === "redirecting" && (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-600 border-t-transparent mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-200 border-t-hot-red-600 mx-auto mb-4"></div>
               <p className="text-hot-gray-600">{t("settingUpAccount")}</p>
             </div>
           )}
