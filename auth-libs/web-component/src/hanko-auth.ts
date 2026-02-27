@@ -585,6 +585,13 @@ export class HankoAuth extends LitElement {
             this.log(
               "Session validation returned is_valid:false - no valid session",
             );
+            if (this.user) {
+              this.user = null;
+              this.profilePictureUrl = "";
+              this.dispatchEvent(
+                new CustomEvent("logout", { bubbles: true, composed: true }),
+              );
+            }
             return;
           }
 
@@ -897,12 +904,9 @@ export class HankoAuth extends LitElement {
           this.log("Display name set to:", this.profileDisplayName);
         }
 
-        // picture_url is always set by the backend (Gravatar fallback); osm_avatar_url as secondary
-        const picUrl = profile.picture_url || profile.osm_avatar_url;
-        if (picUrl) {
-          this.profilePictureUrl = picUrl;
-          this.log("Profile picture set to:", this.profilePictureUrl);
-        }
+        const picUrl = profile.osm_avatar_url || profile.picture_url;
+        this.profilePictureUrl = picUrl || "";
+        this.log("Profile picture set to:", this.profilePictureUrl);
 
         // Set language from user profile if available
         if (profile.language) {
@@ -1464,8 +1468,6 @@ export class HankoAuth extends LitElement {
       const initial = displayName ? displayName[0].toUpperCase() : "U";
 
       if (this.showProfile) {
-        // Show full profile view
-        // TODO check use cases
         return html`
           <div class="container">
             <div class="profile">
