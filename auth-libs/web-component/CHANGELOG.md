@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.10] - 2026-03-02
+
+### Fixed
+
+- Fix stale avatar URL persisting in `localStorage` after user changes their profile picture.
+- Fix stale logged-in state after cross-app logout.
+
 ## [0.4.9] - 2026-02-26
 
 ### Added
