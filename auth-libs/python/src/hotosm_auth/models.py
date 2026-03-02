@@ -8,7 +8,7 @@ These are simple dataclasses, not database models. They represent:
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
@@ -83,7 +83,15 @@ class OSMConnection:
         """Check if the access token has expired."""
         if not self.expires_at:
             return False
-        return datetime.utcnow() > self.expires_at
+
+        expires_at = self.expires_at
+        now_utc = datetime.now(timezone.utc)
+
+        # Support both naive and timezone-aware datetimes.
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+        return now_utc > expires_at
 
     def has_scope(self, scope: OSMScope | str) -> bool:
         """Check if this connection has a specific scope."""
