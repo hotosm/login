@@ -1,8 +1,4 @@
-"""
-Configuration for HOTOSM authentication.
-
-Apps should create one AuthConfig instance at startup with their settings.
-"""
+"""Configuration models and environment loading for HOTOSM auth."""
 
 import os
 from typing import Optional
@@ -13,16 +9,7 @@ logger = get_logger(__name__)
 
 
 class AuthConfig(BaseModel):
-    """Configuration for hotosm-auth library.
-
-    Example usage:
-        config = AuthConfig(
-            hanko_api_url="https://login.hotosm.org",
-            cookie_secret="your-secret-key-32-bytes-min",
-            cookie_domain=".hotosm.org",
-            osm_enabled=True,
-        )
-    """
+    """Runtime configuration for hotosm-auth."""
 
     # Hanko configuration
     hanko_api_url: HttpUrl = Field(
@@ -134,44 +121,7 @@ class AuthConfig(BaseModel):
 
     @classmethod
     def from_env(cls) -> "AuthConfig":
-        """
-        Load configuration from environment variables.
-
-        This is the recommended way to configure hotosm-auth in production.
-
-        Required environment variables:
-            HANKO_API_URL: Hanko API URL (e.g., https://login.hotosm.org)
-            COOKIE_SECRET: Secret key for encrypting cookies (min 32 bytes)
-
-        Optional environment variables:
-            COOKIE_DOMAIN: Cookie domain (e.g., ".hotosm.org")
-            COOKIE_SECURE: Use secure cookies (default: "true")
-            COOKIE_SAMESITE: SameSite policy (default: "lax")
-            JWT_AUDIENCE: Expected JWT audience
-            JWT_ISSUER: Expected JWT issuer (default: "auto")
-            OSM_CLIENT_ID: OSM OAuth client ID
-            OSM_CLIENT_SECRET: OSM OAuth client secret
-            OSM_REDIRECT_URI: OSM OAuth redirect URI (optional, auto-generated from HANKO_API_URL if not set)
-            OSM_SCOPES: Space-separated OSM scopes (default: "read_prefs")
-            OSM_API_URL: OSM API URL (default: https://www.openstreetmap.org)
-            ADMIN_EMAILS: Comma-separated list of admin email addresses
-
-        Example:
-            # .env file
-            HANKO_API_URL=https://login.hotosm.org
-            COOKIE_SECRET=your-secret-key-min-32-bytes
-            OSM_CLIENT_ID=your-osm-client-id
-            OSM_CLIENT_SECRET=your-osm-client-secret
-
-            # Python code
-            config = AuthConfig.from_env()
-
-        Returns:
-            AuthConfig: Configuration loaded from environment
-
-        Raises:
-            ValueError: If required environment variables are missing
-        """
+        """Build configuration from environment variables."""
         # Try to load .env file from current working directory
         try:
             from dotenv import load_dotenv

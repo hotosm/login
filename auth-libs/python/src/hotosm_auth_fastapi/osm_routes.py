@@ -34,8 +34,7 @@ logger = get_logger(__name__)
 
 router = APIRouter(prefix="/auth/osm", tags=["OSM OAuth"])
 
-# In-memory state storage (use Redis in production)
-# TODO: Make this configurable to use Redis
+# In-memory OAuth state store.
 # Format: {state: {"user_id": str, "redirect_url": str}}
 _oauth_states = {}
 
@@ -112,12 +111,12 @@ async def osm_callback(
     if not state_data:
         raise HTTPException(400, "Invalid OAuth state")
 
-    # Handle both old format (just user_id string) and new format (dict)
+    # Backward compatibility with older state payload format.
     if isinstance(state_data, dict):
         stored_user_id = state_data.get("user_id")
         redirect_url = state_data.get("redirect_url", "/")
     else:
-        # Legacy format: just user_id
+        # Older format: state stored as user_id string only.
         stored_user_id = state_data
         redirect_url = "/"
 
@@ -209,8 +208,8 @@ async def osm_disconnect(
             logger.error(f"Failed to revoke OSM tokens: {e}")
 
     # Clear the cookie regardless of revocation result
-    logger.info(f"Clearing OSM cookie with domain={config.cookie_domain}, secure={config.cookie_secure}, samesite={config.cookie_samesite}")
+    logger.info("Clearing OSM cookie")
     clear_osm_cookie(response, config)
-    logger.info("Cookie clear command sent to response")
+    logger.info("OSM cookie clear command issued")
 
     return {"status": "disconnected", "tokens_revoked": tokens_revoked}

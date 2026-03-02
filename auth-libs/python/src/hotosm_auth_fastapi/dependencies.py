@@ -1,11 +1,4 @@
-"""
-FastAPI dependencies for HOTOSM authentication.
-
-Provides:
-- Dependency injection for HankoUser and OSMConnection
-- Cookie management utilities
-- User mapping helpers
-"""
+"""FastAPI authentication dependencies and helpers."""
 
 from typing import Optional, Annotated
 from datetime import datetime
@@ -38,20 +31,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def init_auth(config: AuthConfig) -> None:
-    """Initialize authentication for FastAPI app.
-
-    Call this once at app startup:
-
-        from hotosm_auth_fastapi import init_auth
-        from hotosm_auth import AuthConfig
-
-        app = FastAPI()
-        config = AuthConfig.from_env()
-        init_auth(config)
-
-    Args:
-        config: Authentication configuration
-    """
+    """Initialize module-level auth dependencies for the app."""
     global _config, _jwt_validator, _cookie_crypto
 
     _config = config
@@ -84,12 +64,7 @@ async def get_token_from_request(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
 ) -> Optional[str]:
-    """Extract JWT token from cookie or Authorization header.
-
-    Priority:
-    1. Authorization header (Bearer token)
-    2. hanko cookie
-    """
+    """Extract JWT token from Authorization header or cookie."""
     # Try Authorization header first
     if credentials and credentials.scheme.lower() == "bearer":
         return credentials.credentials
@@ -104,16 +79,7 @@ async def get_current_user(
     validator: JWTValidator = Depends(get_jwt_validator),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
 ) -> HankoUser:
-    """Get currently authenticated user (dependency).
-
-    Validates JWT token and returns HankoUser.
-    Raises HTTPException if authentication fails.
-
-    Usage:
-        @app.get("/protected")
-        async def protected_route(user: CurrentUser):
-            return {"user_id": user.id, "email": user.email}
-    """
+    """Validate JWT and return the authenticated user."""
     token = await get_token_from_request(request, credentials)
 
     if not token:
@@ -145,10 +111,7 @@ async def get_current_user_optional(
     validator: JWTValidator = Depends(get_jwt_validator),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
 ) -> Optional[HankoUser]:
-    """Get current user if authenticated, None otherwise.
-
-    Like get_current_user but doesn't raise exception if not authenticated.
-    """
+    """Return the current user, or ``None`` when unauthenticated."""
     token = await get_token_from_request(request, credentials)
 
     if not token:
@@ -165,16 +128,10 @@ async def get_osm_connection(
     request: Request,
     crypto: CookieCrypto = Depends(get_cookie_crypto),
 ) -> Optional[OSMConnection]:
-    """Get OSM connection from encrypted cookie (dependency).
-
-    Returns None if no OSM connection cookie found or decryption fails.
-    """
+    """Read and decrypt the OSM connection cookie."""
     encrypted = request.cookies.get("osm_connection")
 
     logger.debug(f"Looking for OSM connection cookie: found={encrypted is not None}")
-    logger.debug(f"All cookies present: {list(request.cookies.keys())}")
-    if encrypted:
-        logger.debug(f"Cookie value (first 50 chars): {encrypted[:50]}...")
 
     if not encrypted:
         logger.debug("No OSM cookie found, returning None")
@@ -193,10 +150,7 @@ async def get_osm_connection(
 async def require_osm_connection(
     osm: Optional[OSMConnection] = Depends(get_osm_connection),
 ) -> OSMConnection:
-    """Require OSM connection (dependency).
-
-    Like get_osm_connection but raises HTTPException if not connected.
-    """
+    """Return OSM connection or raise 403."""
     if not osm:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -220,10 +174,7 @@ def set_osm_cookie(
         delta = osm_connection.expires_at - datetime.utcnow()
         max_age = int(delta.total_seconds())
 
-    logger.debug(
-        f"Setting OSM cookie: domain={config.cookie_domain}, "
-        f"secure={config.cookie_secure}, samesite={config.cookie_samesite}"
-    )
+    logger.debug("Setting OSM cookie")
 
     response.set_cookie(
         key="osm_connection",
@@ -241,11 +192,7 @@ def clear_osm_cookie(
     response: Response,
     config: AuthConfig,
 ) -> None:
-    """Clear OSM connection cookie from response.
-
-    Tries multiple combinations of cookie attributes to ensure deletion
-    regardless of how the cookie was originally set.
-    """
+    """Clear OSM cookie using multiple attribute combinations."""
     for secure in [True, False]:
         for samesite in ["lax", "strict", "none"]:
             # SameSite=None requires Secure
@@ -297,12 +244,7 @@ async def get_mapped_user_id(
     user_creator_fn=None,  # Optional: async (conn, hanko_user) -> user_id
     user_id_generator=None,  # Optional: func() -> str to generate new IDs
 ) -> str:
-    """Get application-specific user ID for a Hanko user.
-
-    This function looks up the mapping table to find the app-specific user ID
-    corresponding to a Hanko user. If no mapping exists and auto_create=True,
-    it attempts to link with existing users via email or creates a new user.
-    """
+    """Get or create an app-specific user ID for a Hanko user."""
     # Look up existing mapping
     async with db_conn.cursor() as cur:
         await cur.execute(
@@ -384,10 +326,7 @@ async def create_user_mapping(
     db_conn,  # psycopg Connection or AsyncConnection
     app_name: str = "default",
 ) -> None:
-    """Manually create a user mapping.
-
-    Useful for data migration when adding Hanko to an existing app.
-    """
+    """Create a mapping entry explicitly."""
     async with db_conn.cursor() as cur:
         await cur.execute(
             """
