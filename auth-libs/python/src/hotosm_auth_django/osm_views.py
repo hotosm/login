@@ -1,22 +1,4 @@
-"""
-Django OSM OAuth views.
-
-Provides ready-to-use views for OSM OAuth 2.0 flow in Django apps.
-
-Routes:
-    GET  /auth/osm/login - Start OSM OAuth flow
-    GET  /auth/osm/callback - Handle OSM OAuth callback
-    GET  /auth/osm/status - Check OSM connection status
-    POST /auth/osm/disconnect - Disconnect OSM account
-
-Usage:
-    # urls.py
-    from hotosm_auth_django import osm_urlpatterns
-
-    urlpatterns = [
-        path('', include(osm_urlpatterns)),
-    ]
-"""
+"""Django views for OSM OAuth connect/disconnect flow."""
 
 import asyncio
 import secrets
@@ -42,29 +24,20 @@ from hotosm_auth.logger import get_logger
 logger = get_logger(__name__)
 
 
-# In-memory state storage (use Redis in production)
-# TODO: Make this configurable to use Redis
+# In-memory OAuth state store.
 # Format: {state: {"user_id": str, "redirect_url": str}}
 _oauth_states = {}
 
 
 @require_http_methods(["GET"])
 def osm_login(request: HttpRequest):
-    """
-    Start OSM OAuth flow.
-
-    Requires Hanko authentication first.
-    Redirects to OSM authorization page.
-    """
+    """Start OSM OAuth flow and redirect to authorization page."""
     # Get current user from middleware (requires Hanko authentication)
     logger.debug(f"OSM login called for {request.path}")
-    logger.debug(f"Has hotosm attribute: {hasattr(request, 'hotosm')}")
 
     user: Optional[HankoUser] = None
     if hasattr(request, 'hotosm') and request.hotosm:
-        logger.debug(f"Accessing request.hotosm.user...")
         user = request.hotosm.user
-        logger.debug(f"User: {user}")
 
     if not user:
         logger.warning("No authenticated user found for OSM login")
@@ -113,12 +86,7 @@ def osm_login(request: HttpRequest):
 
 @require_http_methods(["GET"])
 def osm_callback(request: HttpRequest):
-    """
-    Handle OSM OAuth callback.
-
-    OSM redirects here after user authorizes.
-    Exchanges code for token and stores in httpOnly cookie.
-    """
+    """Handle OSM OAuth callback and set OSM cookie."""
     code = request.GET.get("code")
     state = request.GET.get("state")
 
@@ -155,12 +123,12 @@ def osm_callback(request: HttpRequest):
             status=400,
         )
 
-    # Handle both old format (just user_id string) and new format (dict)
+    # Backward compatibility with older state payload format.
     if isinstance(state_data, dict):
         stored_user_id = state_data.get("user_id")
         redirect_url = state_data.get("redirect_url", "/")
     else:
-        # Legacy format: just user_id
+        # Older format: state stored as user_id string only.
         stored_user_id = state_data
         redirect_url = "/"
 
@@ -203,11 +171,7 @@ def osm_callback(request: HttpRequest):
 
 @require_http_methods(["GET"])
 def osm_status(request: HttpRequest):
-    """
-    Check OSM connection status.
-
-    Returns connection details if connected, or {connected: false} if not.
-    """
+    """Return OSM connection status for current request."""
     osm: Optional[OSMConnection] = get_osm_connection(request)
 
     if not osm:
@@ -224,16 +188,8 @@ def osm_status(request: HttpRequest):
 @csrf_exempt
 @require_http_methods(["POST"])
 def osm_disconnect(request: HttpRequest):
-    """
-    Disconnect OSM account.
-
-    Revokes OAuth tokens on OpenStreetMap and removes OSM connection cookie.
-    User can reconnect later via /auth/osm/login.
-
-    Note: This endpoint does NOT require authentication because it's called
-    during logout when the JWT may have already been cleared.
-    """
-    logger.debug(f"OSM disconnect called for {request.path}")
+    """Disconnect OSM and clear its cookie."""
+    logger.debug("OSM disconnect called")
 
     config = get_auth_config()
     tokens_revoked = False

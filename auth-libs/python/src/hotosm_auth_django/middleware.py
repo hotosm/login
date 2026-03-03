@@ -1,34 +1,4 @@
-"""
-Django middleware and authentication utilities.
-
-Provides:
-- Middleware for automatic JWT validation
-- Decorators for protecting views (@login_required, @osm_required)
-- Request utilities for accessing user and OSM connection
-- Cookie management for OSM tokens
-
-Quick Start:
-    1. Add middleware to settings.py:
-
-    MIDDLEWARE = [
-        ...
-        'hotosm_auth_django.HankoAuthMiddleware',
-    ]
-
-    2. Use in your views:
-
-    from hotosm_auth_django import login_required, osm_required
-
-    @login_required
-    def my_view(request):
-        user = request.hotosm.user  # HankoUser object
-        osm = request.hotosm.osm    # Optional[OSMConnection]
-
-        return JsonResponse({
-            "user": user.email,
-            "osm": osm.osm_username if osm else None
-        })
-"""
+"""Django middleware, decorators, and helpers for HOTOSM auth."""
 
 from typing import Optional, Callable
 from functools import wraps
@@ -59,36 +29,7 @@ _cookie_crypto: Optional[CookieCrypto] = None
 
 
 def get_auth_config() -> AuthConfig:
-    """Get authentication configuration from Django settings or environment.
-
-    Two configuration methods supported:
-
-    Method 1 (Recommended): Environment variables (.env file)
-        # .env file
-        HANKO_API_URL=https://login.hotosm.org
-        COOKIE_SECRET=your-secret-key-min-32-bytes
-        OSM_CLIENT_ID=your-osm-client-id
-        OSM_CLIENT_SECRET=your-osm-client-secret
-        OSM_REDIRECT_URI=https://yourapp.com/auth/osm/callback
-
-        # settings.py
-        # No HOTOSM_AUTH dict needed!
-
-    Method 2 (Legacy): Django settings dict
-        HOTOSM_AUTH = {
-            "hanko_api_url": "https://login.hotosm.org",
-            "cookie_secret": "your-secret-key",
-            "cookie_domain": ".hotosm.org",
-            "osm_enabled": True,
-            # ... other AuthConfig fields
-        }
-
-    Returns:
-        AuthConfig: Configuration from Django settings or environment
-
-    Raises:
-        ValueError: If neither HOTOSM_AUTH nor required env vars are configured
-    """
+    """Load auth config from env, or fallback to ``settings.HOTOSM_AUTH``."""
     # Method 1: Try environment variables first (recommended)
     if not hasattr(settings, "HOTOSM_AUTH"):
         try:
@@ -153,10 +94,7 @@ async def get_current_user(request: HttpRequest) -> Optional[HankoUser]:
 
     try:
         validator = get_jwt_validator()
-        config = get_auth_config()
         logger.debug(f"Validating JWT for {request.path}")
-        logger.debug(f"JWT config: audience={config.jwt_audience}, issuer={config.jwt_issuer}")
-        logger.debug(f"Token: {token[:50]}...")
         user = await validator.validate_token(token)
         logger.info(f"JWT validation successful for {user.email}")
         return user
@@ -194,12 +132,9 @@ class _HOTOSMNamespace:
     @property
     def user(self) -> Optional[HankoUser]:
         """Get authenticated user (lazy-loaded)"""
-        logger.debug(f"User property accessed: loaded={self._user_loaded}, user={self._user}")
         if not self._user_loaded:
-            logger.debug("Loading user...")
             self._user = self._get_user_sync(self._request)
             self._user_loaded = True
-            logger.debug(f"User loaded: {self._user}")
         return self._user
 
     @property
@@ -213,19 +148,14 @@ class _HOTOSMNamespace:
     def _get_user_sync(self, request: HttpRequest) -> Optional[HankoUser]:
         """Synchronous wrapper for get_current_user"""
         import asyncio
-        logger.debug(f"_get_user_sync called for {request.path}")
         try:
             loop = asyncio.get_event_loop()
-            logger.debug("Using existing event loop")
         except RuntimeError:
-            logger.debug("No event loop found, creating new one")
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        logger.debug("Running get_current_user in event loop...")
         try:
             result = loop.run_until_complete(get_current_user(request))
-            logger.debug(f"Result: {result}")
             return result
         except Exception as e:
             logger.error(f"Exception in run_until_complete: {type(e).__name__}: {e}", exc_info=True)
@@ -233,25 +163,7 @@ class _HOTOSMNamespace:
 
 
 class HankoAuthMiddleware:
-    """Django middleware for automatic JWT validation.
-
-    Adds `request.hotosm.user` and `request.hotosm.osm` to all requests.
-
-    Installation:
-        MIDDLEWARE = [
-            ...
-            'hotosm_auth_django.HankoAuthMiddleware',
-        ]
-
-    Usage in views:
-        def my_view(request):
-            user = request.hotosm.user
-            osm = request.hotosm.osm
-
-            if user:
-                return HttpResponse(f"Hello {user.email}")
-            return HttpResponse("Not authenticated")
-    """
+    """Attach lazy ``request.hotosm.user`` and ``request.hotosm.osm``."""
 
     def __init__(self, get_response: Callable):
         self.get_response = get_response
@@ -331,10 +243,7 @@ def clear_osm_cookie(response: HttpResponse) -> None:
     """Clear OSM connection cookie from response."""
     config = get_auth_config()
 
-    logger.debug(
-        f"Clearing OSM cookie: domain={config.cookie_domain}, "
-        f"samesite={config.cookie_samesite}, secure={config.cookie_secure}"
-    )
+    logger.debug("Clearing OSM cookie")
 
     # Must use EXACT same parameters as set_osm_cookie to delete the cookie
     response.set_cookie(
@@ -362,15 +271,7 @@ def get_mapped_user_id(
     auto_create: bool = False,
     user_id_generator: Optional[Callable[[], str]] = None,
 ) -> Optional[str]:
-    """Get application-specific user ID for a Hanko user (Django version).
-
-    This function looks up the mapping table to find the app-specific user ID
-    corresponding to a Hanko user.
-
-    Unlike the FastAPI version, this does NOT auto-create users or mappings.
-    It only looks up existing mappings. The app is responsible for creating
-    users and mappings through its own flow (e.g., after OSM connect).
-    """
+    """Get mapped app user id for a Hanko user (Django variant)."""
     from django.db import connection
 
     with connection.cursor() as cursor:
@@ -428,15 +329,7 @@ def get_mapped_user_id(
 
 
 def get_auth_status(request: HttpRequest, app_name: str = "default") -> dict:
-    """Get authentication status for current request.
-
-    Returns a dict with:
-    - logged_in: True if user has valid Hanko session
-    - has_mapping: True if user has app mapping (fully authenticated)
-    - needs_onboarding: True if logged in but no mapping
-    - user: User info if has_mapping
-    - hanko_user: Hanko user info if logged_in
-    """
+    """Return current auth + mapping status for the request."""
     # Check if hotosm middleware is present
     if not hasattr(request, 'hotosm'):
         return {
@@ -487,11 +380,7 @@ def create_user_mapping(
     app_user_id: str,
     app_name: str = "default",
 ) -> None:
-    """Manually create a user mapping (Django version).
-
-    Useful when user completes onboarding (e.g., after OSM connect or
-    choosing to skip OSM).
-    """
+    """Create a mapping entry explicitly (Django variant)."""
     from django.db import connection
 
     with connection.cursor() as cursor:

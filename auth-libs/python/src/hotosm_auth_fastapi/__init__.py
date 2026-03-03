@@ -1,31 +1,4 @@
-"""
-hotosm_auth_fastapi: FastAPI integration for HOTOSM authentication.
-
-This package provides FastAPI-specific functionality:
-- Dependency injection for authentication
-- SQLAlchemy models for user mapping
-- Admin routes for managing mappings
-- OSM OAuth routes
-
-Quick Start:
-    from fastapi import FastAPI
-    from hotosm_auth_fastapi import setup_auth, Auth
-
-    app = FastAPI()
-    setup_auth(app)  # Loads config from .env
-
-    @app.get("/me")
-    async def me(auth: Auth):
-        return {"user": auth.user.email}
-
-For more control:
-    from hotosm_auth_fastapi import (
-        init_auth,
-        CurrentUser,
-        CurrentUserOptional,
-        OSMConnectionRequired,
-    )
-"""
+"""FastAPI integration package for HOTOSM auth."""
 
 # Core dependencies
 from hotosm_auth_fastapi.dependencies import (

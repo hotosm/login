@@ -11,19 +11,28 @@ Shared authentication libraries for all HOTOSM projects.
 **Installation** (in your `pyproject.toml`):
 
 ```python
+# From PyPI
 dependencies = [
-    "hotosm-auth @ git+https://github.com/LawalCoop/hot-auth-libs.git@v0.1.11#subdirectory=python",
+    "hotosm-auth[fastapi]==0.2.9",
+]
+
+# Or from Git
+dependencies = [
+    "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@v0.2.9#subdirectory=auth-libs/python",
 ]
 ```
 
 **Usage**:
 
 ```python
-from hotosm_auth.integrations.fastapi import CurrentUser
+from hotosm_auth_fastapi import setup_auth, Auth
 
-@router.get("/me")
-async def get_me(user: CurrentUser):
-    return {"id": user.id, "email": user.email}
+app = FastAPI()
+setup_auth(app)
+
+@app.get("/me")
+async def get_me(auth: Auth):
+    return {"id": auth.user.id, "email": auth.user.email}
 ```
 
 Full documentation: [python/README.md](./python/README.md)
@@ -52,10 +61,14 @@ Auth-libs uses two different distribution methods:
 
 **Method**: Git+HTTPS with version tags
 
-Projects reference auth-libs directly from GitHub:
+Projects can use PyPI or reference directly from GitHub:
 
 ```python
-"hotosm-auth @ git+https://github.com/LawalCoop/hot-auth-libs.git@v0.1.11#subdirectory=python",
+# PyPI (recommended)
+"hotosm-auth[fastapi]==0.2.9",
+
+# Git reference
+"hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@v0.2.9#subdirectory=auth-libs/python",
 ```
 
 - No wheels to distribute or commit
@@ -206,6 +219,54 @@ OSM_CLIENT_SECRET=your-osm-client-secret
      login-url="http://localhost:5173/app"
    ></hotosm-auth>
    ```
+
+---
+
+## Development & Testing
+
+### Python Library
+
+```bash
+cd python
+
+# Install dependencies
+uv sync --extra dev
+
+# Run core tests (no framework dependencies)
+uv run pytest
+
+# Run with FastAPI integration tests
+uv run --extra fastapi pytest
+
+# Run with Django integration tests
+uv run --extra django pytest
+
+# Run all tests (127 tests)
+uv run --extra fastapi --extra django pytest
+
+# Run with coverage (72% coverage)
+uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
+```
+
+**Test categories:**
+- Core: config, crypto, JWT validation, OSM OAuth client
+- FastAPI: dependencies, OSM routes, admin routes
+- Django: middleware, OSM views, admin routes
+
+### Web Component
+
+```bash
+cd web-component
+
+# Install dependencies
+pnpm install
+
+# Development server
+pnpm dev
+
+# Build
+pnpm build
+```
 
 ---
 

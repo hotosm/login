@@ -1,15 +1,6 @@
-/**
- * @hotosm/hanko-auth Web Component (Lit Version)
- *
- * Smart authentication component that handles:
- * - Hanko SSO (Google, GitHub, Email)
- * - Optional OSM connection
- * - Session management
- * - Event dispatching
- * - URL fallback chain for production builds
- */
+/** HOTOSM Hanko auth web component. */
 
-import { LitElement, html, css } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { keyed } from "lit/directives/keyed.js";
 import { register } from "@teamhanko/hanko-elements";
@@ -203,7 +194,6 @@ export class HankoAuth extends LitElement {
   }
 
   // Private fields
-  private _trailingSlashCache: Record<string, boolean> = {};
   private _debugMode = false;
   private _lastSessionId: string | null = null;
   private _hanko: any = null;
@@ -234,28 +224,28 @@ export class HankoAuth extends LitElement {
     if (metaTag) {
       const content = metaTag.getAttribute("content");
       if (content) {
-        this.log("🔍 hanko-url auto-detected from <meta> tag:", content);
+        this.log("hanko-url auto-detected from <meta> tag:", content);
         return content;
       }
     }
 
     if ((window as any).HANKO_URL) {
       this.log(
-        "🔍 hanko-url auto-detected from window.HANKO_URL:",
+        "hanko-url auto-detected from window.HANKO_URL:",
         (window as any).HANKO_URL,
       );
       return (window as any).HANKO_URL;
     }
 
     const origin = window.location.origin;
-    this.log("🔍 hanko-url auto-detected from window.location.origin:", origin);
+    this.log("hanko-url auto-detected from window.location.origin:", origin);
     return origin;
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._debugMode = this._checkDebugMode();
-    this.log("🔌 hanko-auth connectedCallback called");
+    this.log("hanko-auth connectedCallback called");
 
     // Inject Hot styles early, before any Hanko elements render
     this.injectHotStyles();
@@ -273,7 +263,7 @@ export class HankoAuth extends LitElement {
 
   // Use firstUpdated instead of connectedCallback to ensure React props are set
   firstUpdated() {
-    this.log("🔌 hanko-auth firstUpdated called");
+    this.log("hanko-auth firstUpdated called");
     this.log("  hankoUrl:", this.hankoUrl);
     this.log("  basePath:", this.basePath);
 
@@ -375,7 +365,7 @@ export class HankoAuth extends LitElement {
     if (!this.showProfile && !this.user) {
       // Window focused, we're in header mode, and no user is logged in
       // Re-check session in case user logged in
-      this.log("🎯 Window focused, re-checking session...");
+      this.log("Window focused, re-checking session...");
       this.checkSession();
     }
   };
@@ -387,7 +377,7 @@ export class HankoAuth extends LitElement {
     const customEvent = event as CustomEvent;
     if (!this.showProfile && !this.user && customEvent.detail?.user) {
       // Another component (e.g., login page) logged in
-      this.log("🔔 External login detected, updating user state...");
+      this.log("External login detected, updating user state...");
       this.user = customEvent.detail.user;
       this._broadcastState();
       // Also re-check OSM connection (only if required)
@@ -426,10 +416,6 @@ export class HankoAuth extends LitElement {
     return langTranslations[key] || translations.en[key] || key;
   }
 
-  private warn(...args: any[]) {
-    console.warn(...args);
-  }
-
   private logError(...args: any[]) {
     console.error(...args);
   }
@@ -437,22 +423,14 @@ export class HankoAuth extends LitElement {
   private getBasePath(): string {
     // Use basePath property directly (works with both attribute and React props)
     if (this.basePath) {
-      this.log("🔍 getBasePath() using basePath:", this.basePath);
+      this.log("getBasePath() using basePath:", this.basePath);
       return this.basePath;
     }
 
     // For single-page apps (like Portal), default to empty base path
     // The authPath already contains the full API path
-    this.log("🔍 getBasePath() using default: empty string");
+    this.log("getBasePath() using default: empty string");
     return "";
-  }
-
-  private addTrailingSlash(path: string, basePath: string): string {
-    const needsSlash = this._trailingSlashCache[basePath];
-    if (needsSlash !== undefined && needsSlash && !path.endsWith("/")) {
-      return path + "/";
-    }
-    return path;
   }
 
   // styles injected to ensure global availability
@@ -482,7 +460,7 @@ export class HankoAuth extends LitElement {
   private async init() {
     // Only primary instance should initialize
     if (!this._isPrimary) {
-      this.log("⏭️ Not primary, skipping init...");
+      this.log("Not primary, skipping init...");
       return;
     }
 
@@ -521,12 +499,12 @@ export class HankoAuth extends LitElement {
 
       // Set up session lifecycle event listeners (these persist across the component lifecycle)
       this._hanko.onSessionExpired(() => {
-        this.log("🕒 Hanko session expired event received");
+        this.log("Hanko session expired event received");
         this.handleSessionExpired();
       });
 
       this._hanko.onUserLoggedOut(() => {
-        this.log("🚪 Hanko user logged out event received");
+        this.log("Hanko user logged out event received");
         this.handleUserLoggedOut();
       });
 
@@ -553,7 +531,7 @@ export class HankoAuth extends LitElement {
   }
 
   private async checkSession() {
-    this.log("🔍 Checking for existing Hanko session...");
+    this.log("Checking for existing Hanko session...");
 
     if (!this._hanko) {
       this.log("Hanko instance not initialized yet");
@@ -931,7 +909,7 @@ export class HankoAuth extends LitElement {
       this.user === null &&
       this.showProfile
     ) {
-      this.log("🔄 User logged out, re-attaching event listeners...");
+      this.log("User logged out, re-attaching event listeners...");
       this._currentHankoAuthElement = null;
       this.setupEventListeners();
     }
@@ -950,7 +928,7 @@ export class HankoAuth extends LitElement {
 
       if (hankoAuth) {
         this._currentHankoAuthElement = hankoAuth;
-        this.log("🎯 Attaching event listeners to hanko-auth element");
+        this.log("Attaching event listeners to hanko-auth element");
 
         hankoAuth.addEventListener("onSessionCreated", (e: any) => {
           this.log(`Hanko event: onSessionCreated`, e.detail);
@@ -1390,47 +1368,9 @@ export class HankoAuth extends LitElement {
     // Close dropdown after selection
     this.closeDropdown();
   }
-  private oldHandleDropdownSelect(event: CustomEvent) {
-    const selectedValue = event.detail.item.value;
-    this.log("🎯 Dropdown item selected:", selectedValue);
-
-    if (selectedValue === "profile") {
-      // Profile page: standalone apps have their own, others use central login service
-      // loginUrl already includes /app, hankoUrl doesn't
-      const returnTo = this.redirectAfterLogin || window.location.origin;
-      const profileUrl = this.loginUrl
-        ? `${this.loginUrl}/profile`
-        : `${this.hankoUrl}/app/profile`;
-      window.location.href = `${profileUrl}?return_to=${encodeURIComponent(returnTo)}`;
-    } else if (selectedValue === "connect-osm") {
-      // Smart return_to: if already on a login page, redirect to home instead
-      const currentPath = window.location.pathname;
-      const isOnLoginPage = currentPath.includes("/app");
-      const returnTo = isOnLoginPage
-        ? window.location.origin
-        : window.location.href;
-
-      // Use the getter which handles all fallbacks correctly
-      const baseUrl = this.hankoUrl;
-      window.location.href = `${baseUrl}/app?return_to=${encodeURIComponent(
-        returnTo,
-      )}&osm_required=true`;
-    } else if (selectedValue === "logout") {
-      this.handleLogout();
-    }
-  }
-
-  private handleSkipOSM() {
-    this.dispatchEvent(new CustomEvent("osm-skipped"));
-    this.dispatchEvent(new CustomEvent("auth-complete"));
-    if (this.redirectAfterLogin) {
-      window.location.href = this.redirectAfterLogin;
-    }
-  }
-
   render() {
     this.log(
-      "🎨 RENDER - showProfile:",
+      "RENDER - showProfile:",
       this.showProfile,
       "user:",
       !!this.user,
@@ -1674,13 +1614,12 @@ export class HankoAuth extends LitElement {
         `;
       }
     } else {
-      // Not logged in
+      // Not logged in.
       if (this.showProfile) {
-        // On login page - show full Hanko auth form
-        // Don't render until Hanko is registered to prevent 404 errors
+        // Login page mode: render full Hanko form after registration is ready.
         if (!this.hankoReady) {
           this.log(
-            "⏳ Waiting for Hanko registration before rendering form...",
+            "Waiting for Hanko registration before rendering form...",
           );
           return html`<span class="loading-placeholder"
             ><span class="loading-placeholder-text">${this.t("logIn")}</span
@@ -1719,9 +1658,7 @@ export class HankoAuth extends LitElement {
           </div>
         `;
       } else {
-        // In header - show login link
-        // Use redirectAfterLogin if set, otherwise use current URL
-        // Smart return_to: if already on a login page, redirect to home instead
+        // Header mode: render login link with a safe return_to target.
         const currentPath = window.location.pathname;
         const isOnLoginPage = currentPath.includes("/app");
         const returnTo =
@@ -1732,33 +1669,14 @@ export class HankoAuth extends LitElement {
         const autoConnectParam =
           urlParams.get("auto_connect") === "true" ? "&auto_connect=true" : "";
 
-        // Use the getter which handles all fallbacks correctly
         const baseUrl = this.hankoUrl;
-        this.log("🔗 Login URL base:", baseUrl);
+        this.log("Login URL base:", baseUrl);
 
-        // Use custom loginUrl if provided (for standalone mode), otherwise use ${hankoUrl}/app
+        // Use custom loginUrl when provided; fallback to {hankoUrl}/app.
         const loginBase = this.loginUrl || `${baseUrl}/app`;
         const loginUrl = `${loginBase}?return_to=${encodeURIComponent(
           returnTo,
         )}${this.osmRequired ? "&osm_required=true" : ""}${autoConnectParam}&lang=${this.lang}`;
-
-        /*  if (this.display === "bar") {
-          return html`<a
-            class="bar-trigger login-link ${this.buttonVariant} ${this.buttonColor}"
-            href="${loginUrl}"
-            @click=${(e: Event) => {
-              e.preventDefault();
-              window.location.href = loginUrl;
-            }}
-          >
-            <span class="bar-email">${this.t("logIn")}</span>
-            <img
-              src="${chevronDownIcon}"
-              class="bar-chevron"
-              alt=""
-            />
-          </a>`;
-        } */
 
         return html`<a
           class="login-link ${this.buttonVariant} ${this.buttonColor}"
