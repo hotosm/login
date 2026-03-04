@@ -195,15 +195,15 @@ function LoginPage() {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6">
                 <p className="text-center text-hot-gray-900 font-medium mb-3">
-                  {t("didYouHaveAccount")} {appDisplayName} account?
+                  {t("didYouHaveAccount")}
                 </p>
                 <p className="text-center text-sm text-hot-gray-600">
-                  {t("ifPreviouslyUsed")} {appDisplayName} with OpenStreetMap,
-                  we can recover your data.
+                  {t("ifPreviouslyUsed")} {appDisplayName}{" "}
+                  {t("withOsmRecoverData")}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 items-center">
                 <button onClick={handleLegacyUser} className="btn-primary-hot">
                   {t("yesRecoverAccount")}
                 </button>

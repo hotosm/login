@@ -10,12 +10,14 @@ export interface Translations {
   needToSetup: string;
   didYouHaveAccount: string;
   ifPreviouslyUsed: string;
+  withOsmRecoverData: string;
   yesRecoverAccount: string;
   noImNew: string;
   notSure: string;
   connectOsmAccount: string;
   connectSameOsm: string;
   goBack: string;
+  cancelOnboarding: string;
   settingUpAccount: string;
   accessAllTools: string;
   poweredBy: string;
@@ -51,9 +53,10 @@ export interface Translations {
 export const translations: Record<string, Translations> = {
   en: {
     welcomeTo: "Welcome to",
-    needToSetup: "We need to set up your account.",
-    didYouHaveAccount: "Did you have an existing",
-    ifPreviouslyUsed: "If you previously used",
+    needToSetup: "Let's set up your account.",
+    didYouHaveAccount: "Do you already have an account?",
+    ifPreviouslyUsed: "If you've previously used",
+    withOsmRecoverData: "with OpenStreetMap, we can recover your data.",
     yesRecoverAccount: "Yes, recover my account",
     noImNew: "No, I'm new here",
     notSure: 'Not sure? Select "Yes" and we\'ll check for you.',
@@ -61,6 +64,7 @@ export const translations: Record<string, Translations> = {
     connectSameOsm:
       "Connect with the same OSM account you used before to recover your",
     goBack: "← Go back",
+    cancelOnboarding: "Cancel",
     settingUpAccount: "Setting up your account...",
     accessAllTools: "Access all HOT tools and services",
     poweredBy: "Powered by",
@@ -92,10 +96,11 @@ export const translations: Record<string, Translations> = {
     login: "Login",
   },
   es: {
-    welcomeTo: "Bienvenido a",
-    needToSetup: "Necesitamos configurar tu cuenta.",
-    didYouHaveAccount: "¿Tenías una cuenta existente de",
-    ifPreviouslyUsed: "Si anteriormente usaste",
+    welcomeTo: "¡Bienvenido a",
+    needToSetup: "Configuremos tu cuenta.",
+    didYouHaveAccount: "¿Ya tienes una cuenta existente?",
+    ifPreviouslyUsed: "Si has usado anteriormente",
+    withOsmRecoverData: "con OpenStreetMap, podemos recuperar tus datos.",
     yesRecoverAccount: "Sí, recuperar mi cuenta",
     noImNew: "No, soy nuevo aquí",
     notSure: '¿No estás seguro? Selecciona "Sí" y lo verificaremos por ti.',
@@ -103,6 +108,7 @@ export const translations: Record<string, Translations> = {
     connectSameOsm:
       "Conéctate con la misma cuenta OSM que usaste antes para recuperar tu",
     goBack: "← Volver",
+    cancelOnboarding: "Cancelar",
     settingUpAccount: "Configurando tu cuenta...",
     accessAllTools: "Accede a todas las herramientas y servicios de HOT",
     poweredBy: "Desarrollado por",
@@ -136,9 +142,11 @@ export const translations: Record<string, Translations> = {
   },
   fr: {
     welcomeTo: "Bienvenue sur",
-    needToSetup: "Nous devons configurer votre compte.",
-    didYouHaveAccount: "Aviez-vous un compte existant sur",
+    needToSetup: "Configurons votre compte.",
+    didYouHaveAccount: "Avez-vous déjà un compte ?",
     ifPreviouslyUsed: "Si vous avez déjà utilisé",
+    withOsmRecoverData:
+      "avec OpenStreetMap, nous pouvons récupérer vos données.",
     yesRecoverAccount: "Oui, récupérer mon compte",
     noImNew: "Non, je suis nouveau",
     notSure: 'Pas sûr ? Sélectionnez "Oui" et nous vérifierons pour vous.',
@@ -146,6 +154,7 @@ export const translations: Record<string, Translations> = {
     connectSameOsm:
       "Connectez-vous avec le même compte OSM que vous avez utilisé auparavant pour récupérer votre",
     goBack: "← Retour",
+    cancelOnboarding: "Annuler",
     settingUpAccount: "Configuration de votre compte...",
     accessAllTools: "Accédez à tous les outils et services HOT",
     poweredBy: "Propulsé par",
@@ -178,9 +187,10 @@ export const translations: Record<string, Translations> = {
   },
   pt: {
     welcomeTo: "Bem-vindo ao",
-    needToSetup: "Precisamos configurar sua conta.",
-    didYouHaveAccount: "Você tinha uma conta existente no",
-    ifPreviouslyUsed: "Se você usou anteriormente",
+    needToSetup: "Vamos configurar sua conta.",
+    didYouHaveAccount: "Você já tem uma conta?",
+    ifPreviouslyUsed: "Se você já usou",
+    withOsmRecoverData: "com OpenStreetMap, podemos recuperar seus dados.",
     yesRecoverAccount: "Sim, recuperar minha conta",
     noImNew: "Não, sou novo aqui",
     notSure: 'Não tem certeza? Selecione "Sim" e verificaremos para você.',
@@ -188,6 +198,7 @@ export const translations: Record<string, Translations> = {
     connectSameOsm:
       "Conecte-se com a mesma conta OSM que você usou antes para recuperar seu",
     goBack: "← Voltar",
+    cancelOnboarding: "Cancelar",
     settingUpAccount: "Configurando sua conta...",
     accessAllTools: "Acesse todas as ferramentas e serviços HOT",
     poweredBy: "Desenvolvido por",
