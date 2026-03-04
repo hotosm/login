@@ -388,7 +388,9 @@ def create_user_mapping(
             """
             INSERT INTO hanko_user_mappings (hanko_user_id, app_user_id, app_name, created_at)
             VALUES (%s, %s, %s, NOW())
-            ON CONFLICT (hanko_user_id) DO NOTHING
+            ON CONFLICT (hanko_user_id) DO UPDATE
+                SET app_user_id = EXCLUDED.app_user_id,
+                    updated_at  = NOW()
             """,
             [hanko_user_id, app_user_id, app_name],
         )
