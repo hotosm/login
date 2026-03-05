@@ -32,13 +32,12 @@ export const styles = css`
   }
 
   .spinner {
-    width: clamp(40px, 10%, 60px);
-    height: clamp(40px, 10%, 60px);
-    border: 4px solid var(--hot-color-gray-50);
+    width: 25px;
+    height: 25px;
+    border: 4px solid var(--hot-color-red-50);
     border-top: 4px solid var(--hot-color-red-600);
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin: 0 auto;
   }
   /* Container that mimics the avatar/dropdown-trigger dimensions */
   .loading-placeholder {
