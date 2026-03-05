@@ -610,12 +610,12 @@ export class HankoAuth extends LitElement {
             if (needsSdkFallback) {
               this.log("Using SDK to get user with email");
               // Fallback to SDK method which has email
-              const user = await this._hanko.user.getCurrent();
+              const user = await this._hanko.getCurrentUser();
               this.user = {
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                emailVerified: user.email_verified || false,
+                id: user.user_id,
+                email: user.emails?.[0]?.address || null,
+                username: user.username?.username || null,
+                emailVerified: user.emails?.[0]?.is_verified || false,
               };
             }
           } catch (userError) {
@@ -1016,14 +1016,14 @@ export class HankoAuth extends LitElement {
           setTimeout(() => reject(new Error("SDK timeout")), 5000),
         );
         const user = (await Promise.race([
-          this._hanko.user.getCurrent(),
+          this._hanko.getCurrentUser(),
           timeoutPromise,
         ])) as any;
         this.user = {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          emailVerified: user.email_verified || false,
+          id: user.user_id,
+          email: user.emails?.[0]?.address || null,
+          username: user.username?.username || null,
+          emailVerified: user.emails?.[0]?.is_verified || false,
         };
         userInfoRetrieved = true;
         this.log("User info retrieved via SDK fallback");
@@ -1201,7 +1201,7 @@ window.location.href = redirectUrl;
 
     if (this._hanko) {
       try {
-        await this._hanko.user.logout();
+        await this._hanko.logout();
         this.log("Hanko logout successful");
       } catch (error) {
         this.logError("Hanko logout failed:", error);

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@teamhanko/hanko-elements':
-        specifier: ^1.0.0
-        version: 1.5.2
+        specifier: ^2.5.0
+        version: 2.5.0
       lit:
         specifier: ^3.3.1
         version: 3.3.2
@@ -21,8 +21,8 @@ importers:
 
 packages:
 
-  '@denysvuika/preact-translate@0.5.1':
-    resolution: {integrity: sha512-qqKkpjzR8E55nlLA+H3gP9Q99mCCWiTtRupVQBh8YRZljX+Q8YbsaJtV3F+TX4DR4lV8NLgvv2+sSUcHoWvNtQ==}
+  '@denysvuika/preact-translate@0.6.0':
+    resolution: {integrity: sha512-LPzcbCc9PD+HghgZe4rjWB3wQm05ibQ37Zvh0K8MwIwbPtMZIz9iBe9+9z9uu8yVFNiuswABvUZKaNrDngqmPw==}
     peerDependencies:
       preact: '>=10.13.0'
 
@@ -295,11 +295,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@teamhanko/hanko-elements@1.5.2':
-    resolution: {integrity: sha512-RrOgSoKwHbysDOOffOHn3p8s/zXxY2qvWwZFQdMeEP8Qp/C/RQBwGOzax0Y2gySWflDHM2uu4+tW8dXB+mZfQg==}
+  '@teamhanko/hanko-elements@2.5.0':
+    resolution: {integrity: sha512-lWh9kWp5+ANIjRdxC/ZbNfLHp42GR6zi6wJol0eyLmlMq2yiWyzdXA2MSEh30KtT256qHRhvu+phYx8UFtpO4A==}
 
-  '@teamhanko/hanko-frontend-sdk@1.5.2':
-    resolution: {integrity: sha512-sSY2NGsJRndrC4HwxBIdog9gOGUzJ3EGKmEn7p+rzXzJaLik3ywJb25DloegPekMZQ8hwOzliF0uJh7kNxFgTA==}
+  '@teamhanko/hanko-frontend-sdk@2.5.0':
+    resolution: {integrity: sha512-JFgQa/FDZZsRPQ4qVKpFWfSbtsiaOtePITXpnQdK8XngKNU+bLnf/9J+TWq1cOADZHdDD2r/dDWdngku7t2JKw==}
 
   '@teamhanko/preact-custom-element@4.2.2':
     resolution: {integrity: sha512-3djCQr25IxQIgpidxD8J0fTQ7/hMuoa5Nmv7delQc6sX4kXgv9e/pE01cywpmGZLi69H1KUH4dmZ4cPPJQrsQQ==}
@@ -394,7 +394,7 @@ packages:
 
 snapshots:
 
-  '@denysvuika/preact-translate@0.5.1(preact@10.28.2)':
+  '@denysvuika/preact-translate@0.6.0(preact@10.28.2)':
     dependencies:
       preact: 10.28.2
 
@@ -548,15 +548,15 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.57.0':
     optional: true
 
-  '@teamhanko/hanko-elements@1.5.2':
+  '@teamhanko/hanko-elements@2.5.0':
     dependencies:
-      '@denysvuika/preact-translate': 0.5.1(preact@10.28.2)
-      '@teamhanko/hanko-frontend-sdk': 1.5.2
+      '@denysvuika/preact-translate': 0.6.0(preact@10.28.2)
+      '@teamhanko/hanko-frontend-sdk': 2.5.0
       '@teamhanko/preact-custom-element': 4.2.2(preact@10.28.2)
       classnames: 2.5.1
       preact: 10.28.2
 
-  '@teamhanko/hanko-frontend-sdk@1.5.2':
+  '@teamhanko/hanko-frontend-sdk@2.5.0':
     dependencies:
       '@types/js-cookie': 3.0.6
 
