@@ -1150,6 +1150,7 @@ export class HankoAuth extends LitElement {
         // This is a redirect response
         const redirectUrl = response.headers.get("Location") || response.url;
         this.log("Got redirect URL:", redirectUrl);
+        debugger; // TEMP: pause here to inspect spinner - remove when done
         window.location.href = redirectUrl;
       } else if (response.status >= 300 && response.status < 400) {
         const redirectUrl = response.headers.get("Location");
