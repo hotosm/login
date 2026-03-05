@@ -20,7 +20,6 @@ export interface Translations {
   cancelOnboarding: string;
   settingUpAccount: string;
   accessAllTools: string;
-  poweredBy: string;
 
   // ProfilePage
   myProfile: string;
@@ -67,7 +66,6 @@ export const translations: Record<string, Translations> = {
     cancelOnboarding: "Cancel",
     settingUpAccount: "Setting up your account...",
     accessAllTools: "Access all HOT tools and services",
-    poweredBy: "Powered by",
     myProfile: "My Profile",
     back: "Back",
     profileInformation: "Profile Information",
@@ -111,7 +109,6 @@ export const translations: Record<string, Translations> = {
     cancelOnboarding: "Cancelar",
     settingUpAccount: "Configurando tu cuenta...",
     accessAllTools: "Accede a todas las herramientas y servicios de HOT",
-    poweredBy: "Desarrollado por",
     myProfile: "Mi Perfil",
     back: "Volver",
     profileInformation: "Información del Perfil",
@@ -157,7 +154,6 @@ export const translations: Record<string, Translations> = {
     cancelOnboarding: "Annuler",
     settingUpAccount: "Configuration de votre compte...",
     accessAllTools: "Accédez à tous les outils et services HOT",
-    poweredBy: "Propulsé par",
     myProfile: "Mon Profil",
     back: "Retour",
     profileInformation: "Informations du Profil",
@@ -201,7 +197,6 @@ export const translations: Record<string, Translations> = {
     cancelOnboarding: "Cancelar",
     settingUpAccount: "Configurando sua conta...",
     accessAllTools: "Acesse todas as ferramentas e serviços HOT",
-    poweredBy: "Desenvolvido por",
     myProfile: "Meu Perfil",
     back: "Voltar",
     profileInformation: "Informações do Perfil",

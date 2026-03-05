@@ -298,21 +298,6 @@ function LoginPage() {
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-xs text-hot-gray-500">
-          <p>
-            {t("poweredBy")}{" "}
-            <a
-              href="https://www.hotosm.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-hot-red-600 hover:text-hot-red-700 transition-colors"
-            >
-              Humanitarian OpenStreetMap Team
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );
