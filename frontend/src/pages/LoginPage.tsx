@@ -7,6 +7,15 @@ type OnboardingStep = "question" | "osm_connect" | "redirecting";
 
 const ONBOARDING_STEP_KEY = "hotosm_onboarding_step";
 
+const APP_DISPLAY_NAMES: Record<string, string> = {
+  fair: "fAIr",
+  umap: "uMap",
+  "drone-tm": "Drone Tasking Manager",
+  "osm-export-tool": "OSM Export Tool",
+  chatmap: "ChatMap",
+  "tasking-manager": "Tasking Manager",
+};
+
 function LoginPage() {
   const [searchParams] = useSearchParams();
   const { t, currentLanguage } = useLanguage();
@@ -152,9 +161,10 @@ function LoginPage() {
     }, 500);
   };
 
-  // Get app display name
   const appDisplayName =
-    onboardingApp === "fair" ? "fAIr" : onboardingApp || "the app";
+    (onboardingApp && APP_DISPLAY_NAMES[onboardingApp]) ||
+    onboardingApp ||
+    "the app";
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-hot-gray-50 p-4">
