@@ -45,14 +45,14 @@ flowchart TB
 ### Core Concepts
 
 | Document | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | [**Overview**](overview.md) | Auth flow, JWT validation, user mapping |
 | [**Web Component**](web-component.md) | `<hotosm-auth>` Lit element |
 
 ### Project Implementations
 
 | Project | Stack | Documentation |
-|---------|-------|---------------|
+| --------- | ------- | --------------- |
 | Portal | FastAPI + React | [Implementation](projects/portal.md) |
 | Drone-TM | FastAPI + React | [Implementation](projects/drone-tm.md) |
 | fAIr | Django + React | [Implementation](projects/fair.md) |
@@ -79,7 +79,7 @@ pip install "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-
 
 Distributed as pre-built JS bundles. Copy from `auth-libs/web-component/dist/`:
 
-```
+```text
 hanko-auth.esm.js    # ES Module
 hanko-auth.iife.js   # Browser global
 hanko-auth.umd.js    # Universal
@@ -169,7 +169,7 @@ COOKIE_SECURE=true
 
 ## Source Repository
 
-```
+```text
 github.com/hotosm/login
 ├── backend/
 ├── frontend/

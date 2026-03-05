@@ -44,7 +44,7 @@ class AuthConfig(BaseModel):
         """Load from environment variables."""
 ```
 
-**Smart Defaults:**
+### Smart Defaults
 
 - `cookie_domain`: `login.hotosm.org` → `.hotosm.org`
 - `cookie_secure`: `https://` → `True`
@@ -215,7 +215,7 @@ async def edit(osm: OSMConnectionRequired):
 ### Dependencies
 
 | Dependency | Type | Raises |
-|------------|------|--------|
+| ------------ | ------ | -------- |
 | `CurrentUser` | `HankoUser` | 401 |
 | `CurrentUserOptional` | `Optional[HankoUser]` | - |
 | `OSMConnectionDep` | `Optional[OSMConnection]` | - |
@@ -223,7 +223,7 @@ async def edit(osm: OSMConnectionRequired):
 
 ### OSM Routes
 
-```
+```text
 GET  /auth/osm/login      → Redirect to OSM authorization
 GET  /auth/osm/callback   → Handle OAuth callback, set cookie
 GET  /auth/osm/status     → {"connected": true, "osm_username": "..."}
@@ -249,7 +249,7 @@ app.include_router(admin_router, prefix="/api/admin")
 
 Endpoints:
 
-```
+```text
 GET    /mappings              → List all mappings (paginated)
 POST   /mappings              → Create mapping
 GET    /mappings/{hanko_id}   → Get single mapping
@@ -320,7 +320,7 @@ class HankoAuthMiddleware:
     """
 ```
 
-### Admin Routes
+### Admin Routes (Alternative)
 
 ```python
 # urls.py

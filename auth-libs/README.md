@@ -154,44 +154,44 @@ OSM_CLIENT_SECRET=your-osm-client-secret
 
 #### Core
 
-| Attribute   | Type   | Default                  | Description                                             |
-| ----------- | ------ | ------------------------ | ------------------------------------------------------- |
-| `hanko-url` | string | `window.location.origin` | Hanko API URL for SDK initialization and JWT validation |
-| `login-url` | string | `${hanko-url}/app`       | Login page URL (override for standalone mode)           |
-| `base-path` | string | `""`                     | Base URL for OSM OAuth endpoints                        |
-| `auth-path` | string | `/api/auth/osm`          | OSM auth endpoints path (appended to base-path)         |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `hanko-url` | string | `window.location.origin` | Hanko API URL |
+| `login-url` | string | `${hanko-url}/app` | Login page URL |
+| `base-path` | string | `""` | Base URL for OSM OAuth |
+| `auth-path` | string | `/api/auth/osm` | OSM auth path (under base-path) |
 
 #### Behavior
 
-| Attribute        | Type    | Default        | Description                        |
-| ---------------- | ------- | -------------- | ---------------------------------- |
-| `osm-required`   | boolean | `false`        | Require OSM connection after login |
-| `osm-scopes`     | string  | `"read_prefs"` | Space-separated OSM scopes         |
-| `auto-connect`   | boolean | `false`        | Auto-redirect to OSM OAuth         |
-| `verify-session` | boolean | `false`        | Verify session on return           |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `osm-required` | boolean | `false` | Require OSM connection |
+| `osm-scopes` | string | `"read_prefs"` | Space-separated OSM scopes |
+| `auto-connect` | boolean | `false` | Auto-redirect to OSM OAuth |
+| `verify-session` | boolean | `false` | Verify session on return |
 
 #### Display
 
-| Attribute      | Type    | Default | Description                          |
+| Attribute | Type | Default | Description |
 | -------------- | ------- | ------- | ------------------------------------ |
 | `show-profile` | boolean | `false` | Show embedded form (login page mode) |
-| `display-name` | string  | `""`    | Override display name                |
+| `display-name` | string | `""` | Override display name |
 
 #### Redirects
 
-| Attribute               | Type   | Default | Description                  |
+| Attribute | Type | Default | Description |
 | ----------------------- | ------ | ------- | ---------------------------- |
-| `redirect-after-login`  | string | `""`    | URL to redirect after login  |
-| `redirect-after-logout` | string | `""`    | URL to redirect after logout |
+| `redirect-after-login` | string | `""` | URL to redirect after login |
+| `redirect-after-logout` | string | `""` | URL to redirect after logout |
 
 #### Cross-app
 
-| Attribute           | Type   | Default | Description                            |
-| ------------------- | ------ | ------- | -------------------------------------- |
-| `mapping-check-url` | string | `""`    | URL to check user mapping              |
-| `app-id`            | string | `""`    | App identifier for onboarding redirect |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `mapping-check-url` | string | `""` | Mapping check URL |
+| `app-id` | string | `""` | App ID for onboarding redirect |
 
-**Usage modes:**
+### Usage modes
 
 1. **SSO Mode** (production): Points to login.hotosm.org
 
@@ -200,6 +200,7 @@ OSM_CLIENT_SECRET=your-osm-client-secret
    ```
 
 2. **Standalone Mode** (development): Local Hanko + local login page
+
    ```html
    <hotosm-auth
      hanko-url="http://localhost:8002"
@@ -213,22 +214,22 @@ OSM_CLIENT_SECRET=your-osm-client-secret
 
 ### Backend (Python)
 
-| Project       | File                              |
+| Project | File |
 | ------------- | --------------------------------- |
-| portal        | `backend/pyproject.toml`          |
-| drone-tm      | `src/backend/pyproject.toml`      |
-| fAIr          | `backend/pyproject.toml`          |
+| portal | `backend/pyproject.toml` |
+| drone-tm | `src/backend/pyproject.toml` |
+| fAIr | `backend/pyproject.toml` |
 | openaerialmap | `backend/stac-api/pyproject.toml` |
 
 ### Frontend (Web Component)
 
-| Project       | Location                                     |
+| Project | Location |
 | ------------- | -------------------------------------------- |
-| portal        | `frontend/auth-libs/web-component/dist/`     |
-| drone-tm      | `src/frontend/auth-libs/web-component/dist/` |
-| fAIr          | `frontend/auth-libs/web-component/dist/`     |
-| openaerialmap | `frontend/auth-libs/web-component/dist/`     |
-| login         | `frontend/auth-libs/web-component/dist/`     |
+| portal | `frontend/auth-libs/web-component/dist/` |
+| drone-tm | `src/frontend/auth-libs/web-component/dist/` |
+| fAIr | `frontend/auth-libs/web-component/dist/` |
+| openaerialmap | `frontend/auth-libs/web-component/dist/` |
+| login | `frontend/auth-libs/web-component/dist/` |
 
 ---
 

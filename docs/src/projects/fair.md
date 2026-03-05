@@ -5,7 +5,7 @@
 ## Overview
 
 | Aspect | Detail |
-|--------|--------|
+| -------- | -------- |
 | Framework | Django |
 | Type | With User Mapping |
 | OSM Required | Yes (legacy) |
@@ -236,7 +236,8 @@ VITE_AUTH_PROVIDER=hanko
 VITE_HANKO_URL=https://login.hotosm.org
 ```
 
-> **Note:** `VITE_HANKO_URL` is the only URL needed. It points to the login service that handles both Hanko authentication and OSM OAuth endpoints.
+> **Note:** `VITE_HANKO_URL` is the only URL needed. It points to the login
+> service that handles both Hanko authentication and OSM OAuth endpoints.
 
 ---
 
@@ -258,22 +259,23 @@ MIDDLEWARE = [
 
 ### Import Order
 
-!!! warning "Django App Registry"
-    `admin_routes` imports from `rest_framework` which requires apps to be ready.
-    Import directly from the module:
+#### Warning: Django App Registry
 
-    ```python
-    # Correct
-    from hotosm_auth_django.admin_routes import create_admin_urlpatterns
+`admin_routes` imports from `rest_framework`, which requires apps to be ready.
+Import directly from the module:
 
-    # Incorrect (causes AppRegistryNotReady)
-    from hotosm_auth_django import create_admin_urlpatterns
-    ```
+```python
+# Correct
+from hotosm_auth_django.admin_routes import create_admin_urlpatterns
+
+# Incorrect (causes AppRegistryNotReady)
+from hotosm_auth_django import create_admin_urlpatterns
+```
 
 ### Middleware vs Mixin
 
 | Component | Purpose |
-|-----------|---------|
+| ----------- | --------- |
 | **Middleware** | Injects `request.hotosm` in each request |
 | **Mixin** | Filters querysets by mapped user |
 
@@ -316,7 +318,7 @@ MIDDLEWARE = [
 
 ## API Endpoints
 
-```
+```text
 # Auth (legacy OSM login)
 POST /api/v1/auth/login/        # Start OSM OAuth
 GET  /api/v1/auth/callback/     # OSM callback

@@ -1,5 +1,4 @@
-"""
-Logging configuration for hotosm-auth library.
+"""Logging configuration for hotosm-auth library.
 
 Provides a simple, configurable logger that respects LOG_LEVEL environment variable.
 """
@@ -13,11 +12,11 @@ LOGGER_NAME = "hotosm_auth"
 
 # Default log level (can be overridden via LOG_LEVEL env var)
 DEFAULT_LOG_LEVEL = logging.WARNING
+SHORT_ID_LEN = 8
 
 
 def get_logger(name: str = LOGGER_NAME) -> logging.Logger:
-    """
-    Get a configured logger for hotosm-auth.
+    """Get a configured logger for hotosm-auth.
 
     The log level can be controlled via the LOG_LEVEL environment variable:
         LOG_LEVEL=DEBUG   - Show all debug messages
@@ -55,7 +54,7 @@ def get_logger(name: str = LOGGER_NAME) -> logging.Logger:
         # Create formatter
         formatter = logging.Formatter(
             fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
         handler.setFormatter(formatter)
 
@@ -102,8 +101,7 @@ def get_auth_event_logger() -> logging.Logger:
 
             # Simple format for auth events
             formatter = logging.Formatter(
-                fmt="%(asctime)s - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S"
+                fmt="%(asctime)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
             )
             handler.setFormatter(formatter)
 
@@ -120,7 +118,7 @@ def log_auth_event(
     hanko_id: str,
     email: str = None,
     app_user_id: str = None,
-    **kwargs
+    **kwargs,
 ) -> None:
     """Log a structured authentication event.
 
@@ -148,7 +146,9 @@ def log_auth_event(
     parts = [
         f"[AUTH] {event_type}",
         f"app={app_name}",
-        f"hanko_id={hanko_id[:8]}..." if len(hanko_id) > 8 else f"hanko_id={hanko_id}",
+        f"hanko_id={hanko_id[:SHORT_ID_LEN]}..."
+        if len(hanko_id) > SHORT_ID_LEN
+        else f"hanko_id={hanko_id}",
     ]
 
     if email:
@@ -167,6 +167,7 @@ def log_auth_event(
     # Try loguru first (used by drone-tm, etc.), fallback to standard logging
     try:
         from loguru import logger as loguru_logger
+
         loguru_logger.info(message)
     except ImportError:
         auth_logger = get_auth_event_logger()

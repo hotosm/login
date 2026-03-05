@@ -1,15 +1,82 @@
-"""
-Configuration for HOTOSM authentication.
+"""Configuration for HOTOSM authentication.
 
 Apps should create one AuthConfig instance at startup with their settings.
 """
 
 import os
 from typing import Optional
+
 from pydantic import BaseModel, Field, HttpUrl
+
 from hotosm_auth.logger import get_logger
 
 logger = get_logger(__name__)
+MIN_DOMAIN_PARTS = 2
+
+
+def _load_dotenv_if_available() -> None:
+    """Load .env from cwd when python-dotenv is installed."""
+    try:
+        import os as _os
+
+        from dotenv import load_dotenv
+
+        load_dotenv(dotenv_path=_os.path.join(_os.getcwd(), ".env"), verbose=False)
+        load_dotenv(verbose=False)
+    except ImportError:
+        pass
+
+
+def _get_required_env(var_name: str, hint: str) -> str:
+    """Read required env var or raise ValueError with hint."""
+    value = os.getenv(var_name)
+    if value:
+        return value
+    raise ValueError(f"{var_name} environment variable is required. {hint}")
+
+
+def _infer_cookie_domain(hanko_api_url: str, cookie_domain: str | None) -> str | None:
+    """Return cookie domain from env or infer from HANKO_API_URL hostname."""
+    if cookie_domain:
+        return cookie_domain
+
+    from urllib.parse import urlparse
+
+    hostname = urlparse(hanko_api_url).hostname or "localhost"
+    if hostname in ["localhost", "127.0.0.1"]:
+        logger.info("COOKIE_DOMAIN not set, auto-detected: localhost")
+        return "localhost"
+
+    parts = hostname.split(".")
+    if len(parts) >= MIN_DOMAIN_PARTS:
+        inferred = f".{'.'.join(parts[-2:])}"
+        logger.info(f"COOKIE_DOMAIN not set, auto-detected: {inferred}")
+        return inferred
+
+    logger.info("COOKIE_DOMAIN not set, using no domain restriction")
+    return None
+
+
+def _resolve_cookie_secure(hanko_api_url: str, cookie_secure_env: str | None) -> bool:
+    """Resolve secure-cookie behavior from env or URL scheme."""
+    if cookie_secure_env is not None:
+        return cookie_secure_env.lower() == "true"
+
+    detected = hanko_api_url.startswith("https://")
+    logger.info(
+        f"COOKIE_SECURE not set, auto-detected: {detected} (from {hanko_api_url})"
+    )
+    return detected
+
+
+def _resolve_jwt_issuer() -> str:
+    """Resolve JWT issuer env value with default to auto."""
+    jwt_issuer_env = os.getenv("JWT_ISSUER")
+    if jwt_issuer_env and jwt_issuer_env.strip():
+        logger.info(f"JWT_ISSUER from env: {jwt_issuer_env}")
+        return jwt_issuer_env
+    logger.info("JWT_ISSUER not set, defaulting to 'auto'")
+    return "auto"
 
 
 class AuthConfig(BaseModel):
@@ -72,7 +139,9 @@ class AuthConfig(BaseModel):
     )
     osm_api_url: HttpUrl = Field(
         default="https://www.openstreetmap.org",
-        description="OSM API base URL (use https://master.apis.dev.openstreetmap.org for dev)",
+        description=(
+            "OSM API base URL (use https://master.apis.dev.openstreetmap.org for dev)"
+        ),
     )
 
     # JWT validation
@@ -82,7 +151,10 @@ class AuthConfig(BaseModel):
     )
     jwt_issuer: Optional[str] = Field(
         "auto",
-        description="Expected JWT issuer claim (optional, 'auto' defaults to hanko_api_url, None skips validation)",
+        description=(
+            "Expected JWT issuer claim "
+            "(optional, 'auto' defaults to hanko_api_url, None skips validation)"
+        ),
     )
 
     # JWKS caching
@@ -116,15 +188,18 @@ class AuthConfig(BaseModel):
                 # Default pattern: {HANKO_API_URL}/auth/osm/callback
                 auto_uri = f"{str(self.hanko_api_url).rstrip('/')}/auth/osm/callback"
                 logger.info(f"OSM_REDIRECT_URI not set, auto-generating: {auto_uri}")
-                logger.info("If this doesn't match your app's path, set OSM_REDIRECT_URI explicitly.")
-                object.__setattr__(self, 'osm_redirect_uri', auto_uri)
+                logger.info(
+                    "If this doesn't match your app's path, "
+                    "set OSM_REDIRECT_URI explicitly."
+                )
+                object.__setattr__(self, "osm_redirect_uri", auto_uri)
 
         # Default JWT issuer to Hanko API URL if set to "auto"
         # Use object.__setattr__ because model is frozen
         if self.jwt_issuer == "auto":
             # Strip trailing slash from HttpUrl (Pydantic adds it automatically)
-            issuer_url = str(self.hanko_api_url).rstrip('/')
-            object.__setattr__(self, 'jwt_issuer', issuer_url)
+            issuer_url = str(self.hanko_api_url).rstrip("/")
+            object.__setattr__(self, "jwt_issuer", issuer_url)
             logger.info(f"JWT issuer set to: {issuer_url} (from hanko_api_url)")
         elif self.jwt_issuer:
             logger.info(f"JWT issuer explicitly set to: {self.jwt_issuer}")
@@ -134,8 +209,7 @@ class AuthConfig(BaseModel):
 
     @classmethod
     def from_env(cls) -> "AuthConfig":
-        """
-        Load configuration from environment variables.
+        """Load configuration from environment variables.
 
         This is the recommended way to configure hotosm-auth in production.
 
@@ -151,7 +225,8 @@ class AuthConfig(BaseModel):
             JWT_ISSUER: Expected JWT issuer (default: "auto")
             OSM_CLIENT_ID: OSM OAuth client ID
             OSM_CLIENT_SECRET: OSM OAuth client secret
-            OSM_REDIRECT_URI: OSM OAuth redirect URI (optional, auto-generated from HANKO_API_URL if not set)
+            OSM_REDIRECT_URI: OSM OAuth redirect URI (optional,
+                auto-generated from HANKO_API_URL if not set)
             OSM_SCOPES: Space-separated OSM scopes (default: "read_prefs")
             OSM_API_URL: OSM API URL (default: https://www.openstreetmap.org)
             ADMIN_EMAILS: Comma-separated list of admin email addresses
@@ -172,76 +247,30 @@ class AuthConfig(BaseModel):
         Raises:
             ValueError: If required environment variables are missing
         """
-        # Try to load .env file from current working directory
-        try:
-            from dotenv import load_dotenv
-            import os as _os
-            # Load from current directory and walk up parent directories
-            load_dotenv(dotenv_path=_os.path.join(_os.getcwd(), '.env'), verbose=False)
-            # Also try parent directories
-            load_dotenv(verbose=False)
-        except ImportError:
-            # dotenv not installed, rely on environment variables being set
-            pass
+        _load_dotenv_if_available()
 
         # Required variables
-        hanko_api_url = os.getenv("HANKO_API_URL")
-        if not hanko_api_url:
-            raise ValueError(
-                "HANKO_API_URL environment variable is required. "
-                "Set it to your Hanko API URL (e.g., https://login.hotosm.org)"
-            )
-
-        cookie_secret = os.getenv("COOKIE_SECRET")
-        if not cookie_secret:
-            raise ValueError(
-                "COOKIE_SECRET environment variable is required. "
-                "Generate a secure secret with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
-            )
+        hanko_api_url = _get_required_env(
+            "HANKO_API_URL",
+            "Set it to your Hanko API URL (e.g., https://login.hotosm.org)",
+        )
+        cookie_secret = _get_required_env(
+            "COOKIE_SECRET",
+            "Generate one with: "
+            'python -c "import secrets; print(secrets.token_urlsafe(32))"',
+        )
 
         # Optional variables with smart defaults
         cookie_domain = os.getenv("COOKIE_DOMAIN")
         cookie_secure_env = os.getenv("COOKIE_SECURE")
         cookie_samesite = os.getenv("COOKIE_SAMESITE", "lax")
 
-        # Smart default for COOKIE_DOMAIN (based on HANKO_API_URL)
-        if not cookie_domain:
-            from urllib.parse import urlparse
-            parsed = urlparse(hanko_api_url)
-            hostname = parsed.hostname or "localhost"
-
-            if hostname in ["localhost", "127.0.0.1"]:
-                cookie_domain = "localhost"
-                logger.info("COOKIE_DOMAIN not set, auto-detected: localhost")
-            else:
-                # Production: extract root domain with dot prefix
-                # e.g., "login.hotosm.org" → ".hotosm.org"
-                parts = hostname.split(".")
-                if len(parts) >= 2:
-                    cookie_domain = f".{'.'.join(parts[-2:])}"
-                    logger.info(f"COOKIE_DOMAIN not set, auto-detected: {cookie_domain}")
-                else:
-                    cookie_domain = None  # No domain restriction
-                    logger.info("COOKIE_DOMAIN not set, using no domain restriction")
-
-        # Smart default for COOKIE_SECURE (based on HANKO_API_URL scheme)
-        if cookie_secure_env is None:
-            cookie_secure = hanko_api_url.startswith("https://")
-            logger.info(f"COOKIE_SECURE not set, auto-detected: {cookie_secure} (from {hanko_api_url})")
-        else:
-            cookie_secure = cookie_secure_env.lower() == "true"
+        cookie_domain = _infer_cookie_domain(hanko_api_url, cookie_domain)
+        cookie_secure = _resolve_cookie_secure(hanko_api_url, cookie_secure_env)
 
         # JWT configuration
         jwt_audience = os.getenv("JWT_AUDIENCE") or None
-        # If JWT_ISSUER is not set or empty, default to "auto"
-        # This ensures issuer validation is enabled by default
-        jwt_issuer_env = os.getenv("JWT_ISSUER")
-        if jwt_issuer_env and jwt_issuer_env.strip():
-            jwt_issuer = jwt_issuer_env
-            logger.info(f"JWT_ISSUER from env: {jwt_issuer}")
-        else:
-            jwt_issuer = "auto"  # Default to auto instead of None
-            logger.info("JWT_ISSUER not set, defaulting to 'auto'")
+        jwt_issuer = _resolve_jwt_issuer()
 
         # OSM configuration
         osm_client_id = os.getenv("OSM_CLIENT_ID")
@@ -276,4 +305,5 @@ class AuthConfig(BaseModel):
 
     class Config:
         """Pydantic configuration."""
+
         frozen = True  # Make config immutable after creation

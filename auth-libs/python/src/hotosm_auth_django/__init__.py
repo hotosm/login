@@ -1,5 +1,4 @@
-"""
-hotosm_auth_django: Django integration for HOTOSM authentication.
+"""hotosm_auth_django: Django integration for HOTOSM authentication.
 
 This package provides Django-specific functionality:
 - Django app with ORM models and migrations
@@ -38,25 +37,25 @@ Quick Start:
         return JsonResponse({"email": user.email})
 """
 
-default_app_config = 'hotosm_auth_django.apps.HotosmAuthDjangoConfig'
-
 # Middleware and authentication
 from hotosm_auth_django.middleware import (
     HankoAuthMiddleware,
+    clear_osm_cookie,
+    create_user_mapping,
+    get_auth_config,
+    get_auth_status,
+    get_cookie_crypto,
+    get_current_user,
+    get_jwt_validator,
+    get_mapped_user_id,
+    get_osm_connection,
+    get_token_from_request,
     login_required,
     osm_required,
-    get_auth_config,
-    get_jwt_validator,
-    get_cookie_crypto,
-    get_token_from_request,
-    get_current_user,
-    get_osm_connection,
     set_osm_cookie,
-    clear_osm_cookie,
-    get_mapped_user_id,
-    get_auth_status,
-    create_user_mapping,
 )
+
+default_app_config = "hotosm_auth_django.apps.HotosmAuthDjangoConfig"
 
 # NOTE: admin_routes, osm_views, and models require Django apps to be ready.
 # Import them directly from their modules:

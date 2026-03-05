@@ -1,0 +1,101 @@
+repos:
+  # Versioning: Commit messages & changelog
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.13.9
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # Lint / autoformat: Python code
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.15.4"
+    hooks:
+      - id: ruff
+        files: ^(?:backend|auth-libs/python)/.*\.py$
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        files: ^(?:backend|auth-libs/python)/.*\.py$
+
+  # Deps: ensure Python uv lockfile is up to date
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.10.7
+    hooks:
+      - id: uv-lock
+        files: ^backend/pyproject\.toml$
+        args: [--project, backend]
+      - id: uv-lock
+        name: uv-lock-auth-libs-python
+        files: ^auth-libs/python/pyproject\.toml$
+        args: [--project, auth-libs/python]
+
+  # Upgrade: upgrade Python syntax
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.21.2
+    hooks:
+      - id: pyupgrade
+        files: ^(?:backend|auth-libs/python)/.*\.py$
+
+  # Lint: code cognitive complexity
+  - repo: https://github.com/rohaquinlop/complexipy-pre-commit
+    rev: v5.1.0
+    hooks:
+      - id: complexipy
+        files: ^(?:backend|auth-libs/python)/.*\.py$
+
+  # Spelling: Checks for common misspellings in text files.
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.44.0
+    hooks:
+      - id: typos
+        pass_filenames: false
+        args:
+          - --exclude
+          - frontend/src/translations.ts
+          - --exclude
+          - auth-libs/web-component/dist/*
+          - --exclude
+          - auth-libs/web-component/src/*-i18n-*.ts
+          - --exclude
+          - auth-libs/web-component/src/translations.ts
+
+  # Lint: Bash scripts
+  - repo: https://github.com/openstack-dev/bashate.git
+    rev: 2.1.1
+    hooks:
+      - id: bashate
+        types: [shell]
+
+  # Lint: Shell scripts
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        types: [shell]
+        args: ["-x", "--exclude=SC2317,SC2188,SC2143,SC2086,SC1091"]
+
+  # Lint: GH Workflows
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.11
+    hooks:
+      - id: actionlint
+        args: [-ignore, SC]
+
+  # Lint: Markdown
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.47.0
+    hooks:
+      - id: markdownlint
+        args:
+          [
+            --fix,
+            --disable,
+            MD033,
+            --disable,
+            MD059,
+            --ignore,
+            LICENSE.md,
+            --ignore,
+            auth-libs/web-component/CHANGELOG.md,
+            --ignore,
+            .github,
+          ]

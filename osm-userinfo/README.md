@@ -1,17 +1,21 @@
 # OSM UserInfo API
 
 Unfortunately OSM does not implement OpenID Connect fully.
-Standard claims: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+Standard claims: <https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims>
 
 For hanko we have the following config:
 
 ```yaml
   custom_providers:
     openstreetmap:
-      authorization_endpoint: "https://www.openstreetmap.org/oauth2/authorize" # ✅ this works
-      token_endpoint: "https://www.openstreetmap.org/oauth2/token" # ✅ this works
-      # userinfo_endpoint: "https://www.openstreetmap.org/oauth2/userinfo" # ❌ this endpoint is forbidden
-      userinfo_endpoint: "https://www.openstreetmap.org/api/0.6/user/details.json" ❌ # this endpoint does not have an email, so fails parsing in hanko
+      # ✅ this works
+      authorization_endpoint: "https://www.openstreetmap.org/oauth2/authorize"
+      # ✅ this works
+      token_endpoint: "https://www.openstreetmap.org/oauth2/token"
+      # ❌ this endpoint is forbidden
+      # userinfo_endpoint: "https://www.openstreetmap.org/oauth2/userinfo"
+      # ❌ missing email, so Hanko parsing fails
+      userinfo_endpoint: "https://www.openstreetmap.org/api/0.6/user/details.json"
 ```
 
 Also using an attribute mapping seemed to not work:
@@ -30,6 +34,7 @@ Also using an attribute mapping seemed to not work:
 ```
 
 Hence we had to create this small single endpoint API that:
+
 - Accepts a request to `https://userinfo.login.hotosm.org`.
   - Alternatively, if in the same docker network, simply use `http://osm-userinfo:8080"`.
 - Parses the OSM `user.id` and `user.display_name` values.

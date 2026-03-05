@@ -5,7 +5,7 @@ Step by step guide to integrate `hotosm-auth` in your project.
 ## Quick Links
 
 | Framework | Without Legacy Auth | With Legacy Auth |
-|-----------|---------------------|------------------|
+| ----------- | --------------------- | ------------------ |
 | **FastAPI** | [Simple](#fastapi-simple-integration) | [With Mapping](#fastapi-integration-with-mapping) |
 | **Django** | [Simple](#django-simple-integration) | [With Mapping](#django-integration-with-mapping) |
 | **Frontend** | [All](#frontend-all) | [All](#frontend-all) |
@@ -14,7 +14,7 @@ Step by step guide to integrate `hotosm-auth` in your project.
 
 ## Step 0: Determine your case
 
-```
+```text
 Does your app have an existing auth system (legacy)?
 │
 ├─ NO → Simple Integration (Portal, OAM)
@@ -168,7 +168,7 @@ app.include_router(admin_router, prefix="/api/admin")
 
 ## Django: Simple Integration
 
-### Step 1: Dependency
+### Step 1: Dependency (Alternative)
 
 ```toml
 dependencies = [
@@ -255,11 +255,11 @@ VITE_HANKO_URL=https://login.hotosm.org
 
 ## Checklist
 
-| Step | FastAPI Simple | FastAPI+Mapping | Django Simple | Django+Mapping |
-|------|----------------|-----------------|---------------|----------------|
+| Step | FastAPI Std | FastAPI Map | Django Std | Django Map |
+| ------ | ----------- | ----------- | ---------- | ---------- |
 | Dependency | ✓ | ✓ | ✓ | ✓ |
 | init_auth / middleware | ✓ | ✓ | ✓ | ✓ |
-| Protect routes | CurrentUser | Override login_required | request.hotosm | request.hotosm |
+| Protect routes | CurrentUser | Override auth | req.hotosm | req.hotosm |
 | Helper functions | - | ✓ | - | ✓ |
 | Admin routes | - | Optional | - | Optional |
 | AUTH_PROVIDER env | - | ✓ | - | ✓ |

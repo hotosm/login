@@ -1,5 +1,4 @@
-"""
-Admin routes for managing user mappings across apps.
+"""Admin routes for managing user mappings across apps.
 
 This module provides proxy endpoints that forward admin requests to
 individual apps (portal, drone-tm, fair, oam).
@@ -9,12 +8,14 @@ from typing import Annotated, Any
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from hotosm_auth_fastapi import get_current_user
 from hotosm_auth.models import HankoUser
+from hotosm_auth_fastapi import get_current_user
 
 from app.core.config import settings
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
+HTTP_NO_CONTENT = 204
+HTTP_BAD_REQUEST = 400
 
 
 async def require_admin(user: HankoUser = Depends(get_current_user)) -> HankoUser:
@@ -108,35 +109,35 @@ async def proxy_request(
             )
 
             # Return the response as-is
-            if response.status_code == 204:
+            if response.status_code == HTTP_NO_CONTENT:
                 return None
 
             # Handle non-2xx responses
-            if response.status_code >= 400:
+            if response.status_code >= HTTP_BAD_REQUEST:
                 try:
                     error_data = response.json()
                     raise HTTPException(
                         status_code=response.status_code,
                         detail=error_data.get("detail", f"Error from {app}"),
                     )
-                except ValueError:
+                except ValueError as exc:
                     raise HTTPException(
                         status_code=response.status_code,
                         detail=f"Error from {app}: {response.text[:200]}",
-                    )
+                    ) from exc
 
             return response.json()
 
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as exc:
             raise HTTPException(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                 detail=f"Request to {app} timed out",
-            )
+            ) from exc
         except httpx.RequestError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=f"Failed to connect to {app}: {str(e)}",
-            )
+            ) from e
 
 
 async def enrich_with_hanko_emails(mappings_data: dict) -> dict:
@@ -145,7 +146,11 @@ async def enrich_with_hanko_emails(mappings_data: dict) -> dict:
         return mappings_data
 
     # Get all hanko user IDs
-    hanko_ids = [item.get("hanko_user_id") for item in mappings_data["items"] if item.get("hanko_user_id")]
+    hanko_ids = [
+        item.get("hanko_user_id")
+        for item in mappings_data["items"]
+        if item.get("hanko_user_id")
+    ]
     if not hanko_ids:
         return mappings_data
 
@@ -162,7 +167,7 @@ async def enrich_with_hanko_emails(mappings_data: dict) -> dict:
                 LEFT JOIN emails e ON u.id = e.user_id
                 WHERE u.id = ANY($1::uuid[])
                 """,
-                hanko_ids
+                hanko_ids,
             )
 
             # Build lookup dict
@@ -178,6 +183,7 @@ async def enrich_with_hanko_emails(mappings_data: dict) -> dict:
     except Exception as e:
         # Log but don't fail if enrichment fails
         import logging
+
         logging.warning(f"Failed to enrich with Hanko emails: {e}")
 
     return mappings_data

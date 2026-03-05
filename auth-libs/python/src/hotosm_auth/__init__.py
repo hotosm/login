@@ -1,5 +1,4 @@
-"""
-hotosm-auth: HOTOSM SSO Authentication Library
+"""hotosm-auth: HOTOSM SSO Authentication Library.
 
 This library provides authentication for HOTOSM applications using:
 - Hanko v2.1.0 for base SSO (Google, GitHub, Email/Password)
@@ -35,25 +34,25 @@ Quick Start (Django):
 __version__ = "0.2.0"
 
 # Core models and configuration
-from hotosm_auth.models import HankoUser, OSMConnection, OSMScope
 from hotosm_auth.config import AuthConfig
+from hotosm_auth.crypto import CookieCrypto
 from hotosm_auth.exceptions import (
     AuthenticationError,
-    TokenExpiredError,
-    TokenInvalidError,
     CookieDecryptionError,
     OSMOAuthError,
+    TokenExpiredError,
+    TokenInvalidError,
 )
 from hotosm_auth.jwt_validator import JWTValidator
-from hotosm_auth.crypto import CookieCrypto
-from hotosm_auth.osm_oauth import OSMOAuthClient
 from hotosm_auth.logger import get_logger, log_auth_event
+from hotosm_auth.models import HankoUser, OSMConnection, OSMScope
+from hotosm_auth.osm_oauth import OSMOAuthClient
 
 # Admin schemas (used by both FastAPI and Django)
 from hotosm_auth.schemas.admin import (
-    MappingResponse,
-    MappingListResponse,
     MappingCreate,
+    MappingListResponse,
+    MappingResponse,
     MappingUpdate,
 )
 
