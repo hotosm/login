@@ -195,7 +195,7 @@ function LoginPage() {
 
           {/* Onboarding: Question step */}
           {isOnboarding && onboardingStep === "question" && (
-            <div className="max-w-[400px] mx-auto">
+            <div className="max-w-[400px] mx-auto flex flex-col items-center">
               <div className="text-center mb-6">
                 <h2 className="text-xl font-semibold text-hot-gray-900 mb-2">
                   {t("welcomeTo")} {appDisplayName}!
