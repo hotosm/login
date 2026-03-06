@@ -166,6 +166,14 @@ function LoginPage() {
     onboardingApp ||
     "the app";
 
+  const appDisplayUrl = (() => {
+    try {
+      return returnTo ? new URL(returnTo).hostname : "";
+    } catch {
+      return returnTo || "";
+    }
+  })();
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-hot-gray-50 p-4">
       {/* Error Toast */}
@@ -194,36 +202,38 @@ function LoginPage() {
 
           {/* Onboarding: Question step */}
           {isOnboarding && onboardingStep === "question" && (
-            <div className="max-w-[400px] mx-auto flex flex-col items-center">
+            <div className="max-w-[360px] mx-auto flex flex-col items-center">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold text-hot-gray-900 mb-2">
+                <h2 className="text-2xl font-semibold text-hot-gray-900 mb-2">
                   {t("welcomeTo")} {appDisplayName}!
                 </h2>
-                <p className="text-sm text-hot-gray-600">{t("needToSetup")}</p>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6">
-                <p className="text-center text-hot-gray-900 font-medium mb-3">
+              <div className="bg-amber-50 border border-amber-200 p-5 mb-6">
+                <p className="text-center text-hot-gray-900 font-bold mb-3">
                   {t("didYouHaveAccount")}
                 </p>
                 <p className="text-center text-sm text-hot-gray-600">
-                  {t("ifPreviouslyUsed")} {appDisplayName}{" "}
-                  {t("withOsmRecoverData")}
+                  {t("ifPreviouslyUsed")} {appDisplayUrl} {t("recoverData")}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 items-center">
-                <button onClick={handleLegacyUser} className="btn-primary-hot">
+              <div className="flex flex-col gap-3 items-center w-full">
+                <button
+                  onClick={handleLegacyUser}
+                  className="btn-secondary-hot"
+                >
                   {t("yesRecoverAccount")}
                 </button>
-                <button onClick={handleNewUser} className="btn-secondary-hot">
-                  {t("noImNew")}
+                <div className="flex items-center w-full gap-8">
+                  <div className="flex-1 border-t border-hot-gray-200" />
+                  <span className="text-base text-hot-gray-700">or</span>
+                  <div className="flex-1 border-t border-hot-gray-200" />
+                </div>
+                <button onClick={handleNewUser} className="btn-primary-hot">
+                  {t("continue")}
                 </button>
               </div>
-
-              <p className="mt-5 text-xs text-center text-hot-gray-400">
-                {t("notSure")}
-              </p>
             </div>
           )}
 
@@ -268,12 +278,6 @@ function LoginPage() {
           {/* Normal login (not onboarding) */}
           {!isOnboarding && (
             <div className="max-w-[400px] mx-auto">
-              <div className="text-center px-5">
-                <p className="text-base text-hot-gray-700">
-                  {t("accessAllTools")}
-                </p>
-              </div>
-
               <hotosm-auth
                 hanko-url={hankoBaseUrl}
                 show-profile={true}
