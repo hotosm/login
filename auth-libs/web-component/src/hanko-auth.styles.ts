@@ -6,10 +6,14 @@ export const styles = css`
     font-family: var(--font-family, var(--hot-font-sans));
   }
 
+  hanko-auth::part(headline1) {
+    text-align: center;
+  }
+
   .container {
     max-width: 400px;
     margin: 0 auto;
-    padding: var(--hot-spacing-large);
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-large);
   }
 
   .loading {
@@ -520,5 +524,6 @@ export const styles = css`
   /* Style Hanko's internal link button (e.g. "Create account") */
   hanko-auth::part(link) {
     font-weight: bold;
+    text-decoration: underline;
   }
 `;

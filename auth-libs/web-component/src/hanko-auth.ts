@@ -205,6 +205,19 @@ export class HankoAuth extends LitElement {
     "Criar conta",       // pt
   ]);
 
+  // Hanko initial login (email entry) headline text across all supported languages
+  // Covers both loginEmail and loginEmailNoSignup variants
+  private _loginHeadlines = new Set([
+    "Sign in or create account", // en loginEmail
+    "Sign in",                   // en loginEmailNoSignup
+    "Iniciar sesión o crear cuenta", // es loginEmail
+    "Iniciar sesión",                // es loginEmailNoSignup
+    "Se connecter ou s'inscrire",    // fr loginEmail
+    "Se connecter",                  // fr loginEmailNoSignup
+    "Entrar ou criar conta",         // pt loginEmail
+    "Entrar",                        // pt loginEmailNoSignup
+  ]);
+
   constructor() {
     super();
     try {
@@ -955,6 +968,67 @@ export class HankoAuth extends LitElement {
         );
       }
     });
+  }
+
+  private _setupSignUpSubtitleObserver(hankoAuth: Element) {
+    const injectSubtitle = () => {
+      const hankoShadow = (hankoAuth as HTMLElement & { shadowRoot: ShadowRoot | null }).shadowRoot;
+      if (!hankoShadow) return;
+
+      const h1 = hankoShadow.querySelector<HTMLElement>("h1[part='headline1']");
+      const headlineText = h1?.textContent?.trim() ?? "";
+
+      // Remove any existing subtitle first
+      const existing = hankoShadow.querySelector(".hot-subtitle");
+
+      const isSignUp = this._signUpHeadlines.has(headlineText);
+      const isLogin = this._loginHeadlines.has(headlineText);
+
+      // Only show subtitle on the two initial screens
+      if (!isSignUp && !isLogin) {
+        if (existing) {
+          this._hankoObserver?.disconnect();
+          existing.remove();
+          this._hankoObserver?.observe(hankoShadow, { childList: true, subtree: true });
+        }
+        return;
+      }
+
+      const subtitleText = isSignUp
+        ? this.t("signUpSubtitle")
+        : this.t("loginSubtitle");
+
+      // Skip if subtitle already has correct text
+      if (existing && existing.textContent === subtitleText) return;
+      if (!h1) return;
+
+      // Disconnect before modifying DOM to avoid re-triggering the observer
+      this._hankoObserver?.disconnect();
+
+      if (existing) existing.remove();
+
+      const subtitle = document.createElement("p");
+      subtitle.className = "hot-subtitle";
+      subtitle.textContent = subtitleText;
+      subtitle.style.cssText =
+        "margin: -4px 0 16px; text-align: center; font-size: var(--hot-font-size-base, 16px); color: var(--hot-color-gray-600, #6b7280); font-weight: normal;";
+
+      h1.insertAdjacentElement("afterend", subtitle);
+
+      // Re-observe after injection
+      this._hankoObserver?.observe(hankoShadow, { childList: true, subtree: true });
+    };
+
+    if (this._hankoObserver) {
+      this._hankoObserver.disconnect();
+    }
+
+    const hankoShadow = (hankoAuth as HTMLElement & { shadowRoot: ShadowRoot | null }).shadowRoot;
+    if (hankoShadow) {
+      this._hankoObserver = new MutationObserver(() => injectSubtitle());
+      this._hankoObserver.observe(hankoShadow, { childList: true, subtree: true });
+      injectSubtitle();
+    }
   }
 
   private async handleHankoSuccess(event: any) {
