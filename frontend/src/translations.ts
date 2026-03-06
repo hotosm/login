@@ -7,13 +7,11 @@
 export interface Translations {
   // LoginPage
   welcomeTo: string;
-  needToSetup: string;
   didYouHaveAccount: string;
   ifPreviouslyUsed: string;
-  withOsmRecoverData: string;
+  recoverData: string;
   yesRecoverAccount: string;
-  noImNew: string;
-  notSure: string;
+  continue: string;
   connectOsmAccount: string;
   connectSameOsm: string;
   goBack: string;
@@ -51,14 +49,12 @@ export interface Translations {
 
 export const translations: Record<string, Translations> = {
   en: {
-    welcomeTo: "Welcome to",
-    needToSetup: "Let's set up your account.",
+    welcomeTo: "Welcome to the HOT's",
     didYouHaveAccount: "Do you already have an account?",
-    ifPreviouslyUsed: "If you've previously used",
-    withOsmRecoverData: "with OpenStreetMap, we can recover your data.",
-    yesRecoverAccount: "Yes, recover my account",
-    noImNew: "No, I'm new here",
-    notSure: 'Not sure? Select "Yes" and we\'ll check for you.',
+    ifPreviouslyUsed: "If you have logged in",
+    recoverData: "before, you can recover your data.",
+    yesRecoverAccount: "Recover my existing account",
+    continue: "Continue",
     connectOsmAccount: "Connect your OpenStreetMap account",
     connectSameOsm:
       "Connect with the same OSM account you used before to recover your",
@@ -94,14 +90,12 @@ export const translations: Record<string, Translations> = {
     login: "Login",
   },
   es: {
-    welcomeTo: "¡Bienvenido a",
-    needToSetup: "Configuremos tu cuenta.",
+    welcomeTo: "Bienvenido a HOT's",
     didYouHaveAccount: "¿Ya tienes una cuenta existente?",
-    ifPreviouslyUsed: "Si has usado anteriormente",
-    withOsmRecoverData: "con OpenStreetMap, podemos recuperar tus datos.",
-    yesRecoverAccount: "Sí, recuperar mi cuenta",
-    noImNew: "No, soy nuevo aquí",
-    notSure: '¿No estás seguro? Selecciona "Sí" y lo verificaremos por ti.',
+    ifPreviouslyUsed: "Si has iniciado sesión",
+    recoverData: "antes, puedes recuperar tus datos.",
+    yesRecoverAccount: "Recuperar mi cuenta existente",
+    continue: "Continuar",
     connectOsmAccount: "Conecta tu cuenta de OpenStreetMap",
     connectSameOsm:
       "Conéctate con la misma cuenta OSM que usaste antes para recuperar tu",
@@ -138,15 +132,12 @@ export const translations: Record<string, Translations> = {
     login: "Inicio de sesión",
   },
   fr: {
-    welcomeTo: "Bienvenue sur",
-    needToSetup: "Configurons votre compte.",
+    welcomeTo: "Bienvenue sur HOT's",
     didYouHaveAccount: "Avez-vous déjà un compte ?",
-    ifPreviouslyUsed: "Si vous avez déjà utilisé",
-    withOsmRecoverData:
-      "avec OpenStreetMap, nous pouvons récupérer vos données.",
-    yesRecoverAccount: "Oui, récupérer mon compte",
-    noImNew: "Non, je suis nouveau",
-    notSure: 'Pas sûr ? Sélectionnez "Oui" et nous vérifierons pour vous.',
+    ifPreviouslyUsed: "Si vous vous êtes déjà connecté",
+    recoverData: "avant, vous pouvez récupérer vos données.",
+    yesRecoverAccount: "Récupérer mon compte existant",
+    continue: "Continuer",
     connectOsmAccount: "Connectez votre compte OpenStreetMap",
     connectSameOsm:
       "Connectez-vous avec le même compte OSM que vous avez utilisé auparavant pour récupérer votre",
@@ -182,14 +173,12 @@ export const translations: Record<string, Translations> = {
     login: "Connexion",
   },
   pt: {
-    welcomeTo: "Bem-vindo ao",
-    needToSetup: "Vamos configurar sua conta.",
+    welcomeTo: "Bem-vindo ao HOT's",
     didYouHaveAccount: "Você já tem uma conta?",
-    ifPreviouslyUsed: "Se você já usou",
-    withOsmRecoverData: "com OpenStreetMap, podemos recuperar seus dados.",
-    yesRecoverAccount: "Sim, recuperar minha conta",
-    noImNew: "Não, sou novo aqui",
-    notSure: 'Não tem certeza? Selecione "Sim" e verificaremos para você.',
+    ifPreviouslyUsed: "Se você já fez login",
+    recoverData: "antes, você pode recuperar seus dados.",
+    yesRecoverAccount: "Recuperar minha conta existente",
+    continue: "Continuar",
     connectOsmAccount: "Conecte sua conta OpenStreetMap",
     connectSameOsm:
       "Conecte-se com a mesma conta OSM que você usou antes para recuperar seu",
