@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@hotosm/hanko-auth':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: 0.5.1
+        version: 0.5.1
       '@teamhanko/hanko-elements':
         specifier: ^2.2.0
         version: 2.2.0
@@ -205,6 +205,11 @@ packages:
 
   '@denysvuika/preact-translate@0.5.1':
     resolution: {integrity: sha512-qqKkpjzR8E55nlLA+H3gP9Q99mCCWiTtRupVQBh8YRZljX+Q8YbsaJtV3F+TX4DR4lV8NLgvv2+sSUcHoWvNtQ==}
+    peerDependencies:
+      preact: '>=10.13.0'
+
+  '@denysvuika/preact-translate@0.6.0':
+    resolution: {integrity: sha512-LPzcbCc9PD+HghgZe4rjWB3wQm05ibQ37Zvh0K8MwIwbPtMZIz9iBe9+9z9uu8yVFNiuswABvUZKaNrDngqmPw==}
     peerDependencies:
       preact: '>=10.13.0'
 
@@ -502,8 +507,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@hotosm/hanko-auth@0.4.6':
-    resolution: {integrity: sha512-nsMrgxVunc++Y6qm+W9gD6gUd6Qvgp8dip/5C4vTUBU9KFx9aSdwkgQnzoVuUEL6VUmMtQJvYas2C76k9V8uWQ==}
+  '@hotosm/hanko-auth@0.5.1':
+    resolution: {integrity: sha512-EOR5yT9Mg/eHqIva1X4/EWc9iwh+u35/94IEhFmTTDT/kwJNM+Yd8eSFOQRby5wzYUnhhKwVvkb5MDmxjHHs7Q==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -657,17 +662,17 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.2.0'
 
-  '@teamhanko/hanko-elements@1.5.2':
-    resolution: {integrity: sha512-RrOgSoKwHbysDOOffOHn3p8s/zXxY2qvWwZFQdMeEP8Qp/C/RQBwGOzax0Y2gySWflDHM2uu4+tW8dXB+mZfQg==}
-
   '@teamhanko/hanko-elements@2.2.0':
     resolution: {integrity: sha512-v9LGEsDRssazwqYb6FMPPxCVtxea+NStm8Q41vwUMoVzKVkN4Je4tJY7NkdJH8Cql7HnsTXD/ITftXqTJnH+MQ==}
 
-  '@teamhanko/hanko-frontend-sdk@1.5.2':
-    resolution: {integrity: sha512-sSY2NGsJRndrC4HwxBIdog9gOGUzJ3EGKmEn7p+rzXzJaLik3ywJb25DloegPekMZQ8hwOzliF0uJh7kNxFgTA==}
+  '@teamhanko/hanko-elements@2.5.0':
+    resolution: {integrity: sha512-lWh9kWp5+ANIjRdxC/ZbNfLHp42GR6zi6wJol0eyLmlMq2yiWyzdXA2MSEh30KtT256qHRhvu+phYx8UFtpO4A==}
 
   '@teamhanko/hanko-frontend-sdk@2.2.0':
     resolution: {integrity: sha512-j3xy45yv4rEff54/vGY4SV3A6nktLjcGSJ0w+8rbusC2l+gIM3HlWYu9qz+aZlJVQkESKNhnYOVjHRD2NJ5VXA==}
+
+  '@teamhanko/hanko-frontend-sdk@2.5.0':
+    resolution: {integrity: sha512-JFgQa/FDZZsRPQ4qVKpFWfSbtsiaOtePITXpnQdK8XngKNU+bLnf/9J+TWq1cOADZHdDD2r/dDWdngku7t2JKw==}
 
   '@teamhanko/preact-custom-element@4.2.2':
     resolution: {integrity: sha512-3djCQr25IxQIgpidxD8J0fTQ7/hMuoa5Nmv7delQc6sX4kXgv9e/pE01cywpmGZLi69H1KUH4dmZ4cPPJQrsQQ==}
@@ -1104,6 +1109,9 @@ packages:
   preact@10.27.2:
     resolution: {integrity: sha512-5SYSgFKSyhCbk6SrXyMpqjb5+MQBgfvEKE/OC+PujcY34sOpqtr+0AZQtPYx5IA6VxynQ7rUPCtKzyovpj9Bpg==}
 
+  preact@10.28.4:
+    resolution: {integrity: sha512-uKFfOHWuSNpRFVTnljsCluEFq57OKT+0QdOiQo8XWnQ/pSvg7OpX5eNOejELXJMWy+BwM2nobz0FkvzmnpCNsQ==}
+
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -1523,6 +1531,10 @@ snapshots:
     dependencies:
       preact: 10.27.2
 
+  '@denysvuika/preact-translate@0.6.0(preact@10.28.4)':
+    dependencies:
+      preact: 10.28.4
+
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
 
@@ -1670,9 +1682,9 @@ snapshots:
   '@esbuild/win32-x64@0.25.11':
     optional: true
 
-  '@hotosm/hanko-auth@0.4.6':
+  '@hotosm/hanko-auth@0.5.1':
     dependencies:
-      '@teamhanko/hanko-elements': 1.5.2
+      '@teamhanko/hanko-elements': 2.5.0
       lit: 3.3.2
 
   '@jridgewell/gen-mapping@0.3.13':
@@ -1784,14 +1796,6 @@ snapshots:
     dependencies:
       tailwindcss: 3.4.19
 
-  '@teamhanko/hanko-elements@1.5.2':
-    dependencies:
-      '@denysvuika/preact-translate': 0.5.1(preact@10.27.2)
-      '@teamhanko/hanko-frontend-sdk': 1.5.2
-      '@teamhanko/preact-custom-element': 4.2.2(preact@10.27.2)
-      classnames: 2.5.1
-      preact: 10.27.2
-
   '@teamhanko/hanko-elements@2.2.0':
     dependencies:
       '@denysvuika/preact-translate': 0.5.1(preact@10.27.2)
@@ -1800,17 +1804,29 @@ snapshots:
       classnames: 2.5.1
       preact: 10.27.2
 
-  '@teamhanko/hanko-frontend-sdk@1.5.2':
+  '@teamhanko/hanko-elements@2.5.0':
+    dependencies:
+      '@denysvuika/preact-translate': 0.6.0(preact@10.28.4)
+      '@teamhanko/hanko-frontend-sdk': 2.5.0
+      '@teamhanko/preact-custom-element': 4.2.2(preact@10.28.4)
+      classnames: 2.5.1
+      preact: 10.28.4
+
+  '@teamhanko/hanko-frontend-sdk@2.2.0':
     dependencies:
       '@types/js-cookie': 3.0.6
 
-  '@teamhanko/hanko-frontend-sdk@2.2.0':
+  '@teamhanko/hanko-frontend-sdk@2.5.0':
     dependencies:
       '@types/js-cookie': 3.0.6
 
   '@teamhanko/preact-custom-element@4.2.2(preact@10.27.2)':
     dependencies:
       preact: 10.27.2
+
+  '@teamhanko/preact-custom-element@4.2.2(preact@10.28.4)':
+    dependencies:
+      preact: 10.28.4
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -2240,6 +2256,8 @@ snapshots:
       source-map-js: 1.2.1
 
   preact@10.27.2: {}
+
+  preact@10.28.4: {}
 
   queue-microtask@1.2.3: {}
 
