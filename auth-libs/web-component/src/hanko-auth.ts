@@ -6,10 +6,7 @@ import { keyed } from "lit/directives/keyed.js";
 import { register } from "@teamhanko/hanko-elements";
 import { styles } from "./hanko-auth.styles";
 // hanko ui translations
-import { en } from "@teamhanko/hanko-elements/i18n/en";
-import { es } from "./hanko-i18n-es";
-import { fr } from "./hanko-i18n-fr";
-import { pt } from "./hanko-i18n-pt";
+import { getTranslations } from "./hanko-translations";
 // custom component translations
 import { translations } from "./translations";
 
@@ -36,7 +33,7 @@ async function ensureHankoRegistered(hankoUrl: string): Promise<void> {
       await register(hankoUrl, {
         enablePasskeys: false,
         hidePasskeyButtonOnLogin: true,
-        translations: { en, es, fr, pt },
+        translations: getTranslations(),
         fallbackLanguage: "en",
       });
       hankoRegistered = true;
@@ -198,6 +195,15 @@ export class HankoAuth extends LitElement {
   private _lastSessionId: string | null = null;
   private _hanko: any = null;
   private _isPrimary = false; // Is this the primary instance?
+  private _hankoObserver: MutationObserver | null = null;
+
+  // Hanko signup headline text across all supported languages (used for subtitle injection)
+  private _signUpHeadlines = new Set([
+    "Create an account", // en (our override)
+    "Crear cuenta",      // es
+    "Créer un compte",   // fr
+    "Criar conta",       // pt
+  ]);
 
   constructor() {
     super();
@@ -929,6 +935,7 @@ export class HankoAuth extends LitElement {
       if (hankoAuth) {
         this._currentHankoAuthElement = hankoAuth;
         this.log("Attaching event listeners to hanko-auth element");
+        this._setupSignUpSubtitleObserver(hankoAuth);
 
         hankoAuth.addEventListener("onSessionCreated", (e: any) => {
           this.log(`Hanko event: onSessionCreated`, e.detail);
@@ -1444,7 +1451,6 @@ window.location.href = redirectUrl;
                       <div class="osm-section">
                         <div class="osm-connected">
                           <div class="osm-badge">
-                            <span class="osm-badge-icon">🗺️</span>
                             <div>
                               <div>${this.t("connectedToOpenStreetMap")}</div>
                               ${this.osmData?.osm_username
@@ -1633,7 +1639,7 @@ window.location.href = redirectUrl;
             --color: var(--hot-color-gray-900);
             --color-shade-1: var(--hot-color-gray-700);
             --color-shade-2: var(--hot-color-gray-100);
-            --brand-color: var(--hot-color-gray-800);
+            --brand-color: var(--hot-color-gray-1000);
             --brand-color-shade-1: var(--hot-color-gray-900);
             --brand-contrast-color: white;
             --background-color: white;
@@ -1645,7 +1651,7 @@ window.location.href = redirectUrl;
             --item-height: 2.75rem;
             --item-margin: var(--hot-spacing-small) 0;
             --container-padding: 0;
-            --headline1-font-size: var(--hot-font-size-large);
+            --headline1-font-size: var(--hot-font-size-xl);
             --headline1-font-weight: var(--hot-font-weight-semibold);
             --headline2-font-size: var(--hot-font-size-medium);
             --headline2-font-weight: var(--hot-font-weight-semibold);
@@ -1653,7 +1659,7 @@ window.location.href = redirectUrl;
           >
             ${keyed(
               this.lang,
-              html`<hanko-auth lang="${this.lang}"></hanko-auth>`,
+              html`<hanko-auth lang="${this.lang}" exportparts="link"></hanko-auth>`,
             )}
           </div>
         `;
@@ -1698,5 +1704,5 @@ declare global {
   }
 }
 
-// Re-export Hanko translations for use by consuming apps
-export { en, es, fr, pt };
+// Re-export for use by consuming apps
+export { getTranslations } from "./hanko-translations";

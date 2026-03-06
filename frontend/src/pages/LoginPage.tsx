@@ -182,9 +182,8 @@ function LoginPage() {
       )}
 
       <div className="w-full max-w-md">
-        {/* Login Card */}
         <div className="bg-white rounded-xl shadow-xl px-2 xl:px-8 py-8">
-          {/* Logo */}
+          {/* <LanguageSwitcher /> */}
           <div className="text-center mb-8">
             <img
               src={hotLogo}
@@ -270,7 +269,7 @@ function LoginPage() {
           {!isOnboarding && (
             <div className="max-w-[400px] mx-auto">
               <div className="text-center px-5">
-                <p className="text-sm text-hot-gray-600">
+                <p className="text-base text-hot-gray-700">
                   {t("accessAllTools")}
                 </p>
               </div>
@@ -286,7 +285,7 @@ function LoginPage() {
             </div>
           )}
 
-          {returnTo && !isOnboarding && (
+          {/*  {returnTo && !isOnboarding && (
             <div className="mt-6 pt-6 border-t border-hot-gray-200 text-center">
               <span>← </span>
               <a
@@ -296,7 +295,7 @@ function LoginPage() {
                 {t("back")}
               </a>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

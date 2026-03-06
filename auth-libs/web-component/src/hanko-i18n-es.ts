@@ -48,12 +48,13 @@ export const es = {
     deleteSecurityKey: "Eliminar clave de seguridad",
     securityKeys: "Claves de seguridad",
     authenticatorApp: "Aplicación de autenticación",
-    authenticatorAppAlreadySetUp: "La aplicación de autenticación está configurada",
+    authenticatorAppAlreadySetUp:
+      "La aplicación de autenticación está configurada",
     authenticatorAppNotSetUp: "Configurar aplicación de autenticación",
     trustDevice: "¿Confiar en este navegador?",
   },
   texts: {
-    enterPasscode: 'Ingrese el código que se envió a "{emailAddress}".',
+    enterPasscode: "Ingrese el código que se envió a su correo electrónico:",
     enterPasscodeNoEmail:
       "Ingrese el código que se envió a su dirección de correo principal.",
     setupPasskey:
@@ -172,8 +173,7 @@ export const es = {
       "El código se ha ingresado incorrectamente demasiadas veces. Por favor, solicite un nuevo código.",
     tooManyRequests:
       "Se han realizado demasiadas solicitudes. Por favor, espere para repetir la operación solicitada.",
-    unauthorized:
-      "Su sesión ha expirado. Por favor, inicie sesión nuevamente.",
+    unauthorized: "Su sesión ha expirado. Por favor, inicie sesión nuevamente.",
     invalidWebauthnCredential: "Esta llave de acceso ya no se puede usar.",
     passcodeExpired: "El código ha expirado. Por favor, solicite uno nuevo.",
     userVerification:
