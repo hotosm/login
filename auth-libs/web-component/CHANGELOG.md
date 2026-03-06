@@ -1,10 +1,11 @@
 # Changelog
 
-## [0.5.1] - 2026-03-???
+## [0.5.1] - 2026-03-06
 
 ### Added
 
 - Added centralized Hanko translation setup in hanko-translations.ts with English text overrides, and refactored main.tsx and hanko-auth.ts to use getTranslations().
+- Inject subtitles to h1 in forms.
 
 ### Fixed
 
