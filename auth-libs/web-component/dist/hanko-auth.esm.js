@@ -284,7 +284,7 @@ pt.elementStyles = [], pt.shadowRootOptions = { mode: "open" }, pt[Rt("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const zt = globalThis, yo = (n) => n, gn = zt.trustedTypes, bo = gn ? gn.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, ui = "$lit$", et = `lit$${Math.random().toFixed(9).slice(2)}$`, hi = "?" + et, ta = `<${hi}>`, dt = document, qt = () => dt.createComment(""), Ht = (n) => n === null || typeof n != "object" && typeof n != "function", Jn = Array.isArray, na = (n) => Jn(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Un = `[ 	
+const zt = globalThis, yo = (n) => n, gn = zt.trustedTypes, bo = gn ? gn.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, ui = "$lit$", et = `lit$${Math.random().toFixed(9).slice(2)}$`, hi = "?" + et, ta = `<${hi}>`, dt = document, jt = () => dt.createComment(""), Ht = (n) => n === null || typeof n != "object" && typeof n != "function", Jn = Array.isArray, na = (n) => Jn(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Un = `[ 	
 \f\r]`, Ct = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, wo = /-->/g, ko = />/g, st = RegExp(`>|${Un}(?:([^\\s"'>=/]+)(${Un}*=${Un}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), So = /'/g, Co = /"/g, pi = /^(?:script|style|textarea|title)$/i, oa = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), ve = oa(1), gt = Symbol.for("lit-noChange"), Ae = Symbol.for("lit-nothing"), xo = /* @__PURE__ */ new WeakMap(), ct = dt.createTreeWalker(dt, 129);
 function mi(n, t) {
@@ -303,7 +303,7 @@ const ia = (n, t) => {
   }
   return [mi(n, r + (n[e] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), o];
 };
-let jn = class fi {
+let qn = class fi {
   constructor({ strings: t, _$litType$: e }, o) {
     let i;
     this.parts = [];
@@ -323,8 +323,8 @@ let jn = class fi {
           const m = i.textContent.split(et), v = m.length - 1;
           if (v > 0) {
             i.textContent = gn ? gn.emptyScript : "";
-            for (let g = 0; g < v; g++) i.append(m[g], qt()), ct.nextNode(), u.push({ type: 2, index: ++r });
-            i.append(m[v], qt());
+            for (let g = 0; g < v; g++) i.append(m[g], jt()), ct.nextNode(), u.push({ type: 2, index: ++r });
+            i.append(m[v], jt());
           }
         }
       } else if (i.nodeType === 8) if (i.data === hi) u.push({ type: 2, index: r });
@@ -407,7 +407,7 @@ let aa = class {
   }
   $(t) {
     var r;
-    const { values: e, _$litType$: o } = t, i = typeof o == "number" ? this._$AC(t) : (o.el === void 0 && (o.el = jn.createElement(mi(o.h, o.h[0]), this.options)), o);
+    const { values: e, _$litType$: o } = t, i = typeof o == "number" ? this._$AC(t) : (o.el === void 0 && (o.el = qn.createElement(mi(o.h, o.h[0]), this.options)), o);
     if (((r = this._$AH) == null ? void 0 : r._$AD) === i) this._$AH.p(e);
     else {
       const s = new aa(i, this), d = s.u(this.options);
@@ -416,13 +416,13 @@ let aa = class {
   }
   _$AC(t) {
     let e = xo.get(t.strings);
-    return e === void 0 && xo.set(t.strings, e = new jn(t)), e;
+    return e === void 0 && xo.set(t.strings, e = new qn(t)), e;
   }
   k(t) {
     Jn(this._$AH) || (this._$AH = [], this._$AR());
     const e = this._$AH;
     let o, i = 0;
-    for (const r of t) i === e.length ? e.push(o = new gi(this.O(qt()), this.O(qt()), this, this.options)) : o = e[i], o._$AI(r), i++;
+    for (const r of t) i === e.length ? e.push(o = new gi(this.O(jt()), this.O(jt()), this, this.options)) : o = e[i], o._$AI(r), i++;
     i < e.length && (this._$AR(o && o._$AB.nextSibling, i), e.length = i);
   }
   _$AR(t = this._$AA.nextSibling, e) {
@@ -499,13 +499,13 @@ let aa = class {
   }
 };
 const $n = zt.litHtmlPolyfillSupport;
-$n == null || $n(jn, Yn), (zt.litHtmlVersions ?? (zt.litHtmlVersions = [])).push("3.3.2");
+$n == null || $n(qn, Yn), (zt.litHtmlVersions ?? (zt.litHtmlVersions = [])).push("3.3.2");
 const da = (n, t, e) => {
   const o = (e == null ? void 0 : e.renderBefore) ?? t;
   let i = o._$litPart$;
   if (i === void 0) {
     const r = (e == null ? void 0 : e.renderBefore) ?? null;
-    o._$litPart$ = i = new Yn(t.insertBefore(qt(), r), r, void 0, e ?? {});
+    o._$litPart$ = i = new Yn(t.insertBefore(jt(), r), r, void 0, e ?? {});
   }
   return i._$AI(n), i;
 };
@@ -515,7 +515,7 @@ const da = (n, t, e) => {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const lt = globalThis;
-let jt = class extends pt {
+let qt = class extends pt {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
   }
@@ -541,9 +541,9 @@ let jt = class extends pt {
   }
 };
 var li;
-jt._$litElement$ = !0, jt.finalized = !0, (li = lt.litElementHydrateSupport) == null || li.call(lt, { LitElement: jt });
+qt._$litElement$ = !0, qt.finalized = !0, (li = lt.litElementHydrateSupport) == null || li.call(lt, { LitElement: qt });
 const Dn = lt.litElementPolyfillSupport;
-Dn == null || Dn({ LitElement: jt });
+Dn == null || Dn({ LitElement: qt });
 (lt.litElementVersions ?? (lt.litElementVersions = [])).push("4.2.2");
 /**
  * @license
@@ -592,7 +592,7 @@ function Pe(n) {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-function qe(n) {
+function je(n) {
   return Pe({ ...n, state: !0, attribute: !1 });
 }
 /**
@@ -767,7 +767,7 @@ var ya = { 7(n, t, e) {
     (!p.__d && (p.__d = !0) && d.push(p) && !ue.__r++ || u != i.debounceRendering) && ((u = i.debounceRendering) || c)(ue);
   }
   function ue() {
-    for (var p, h, _, P, T, y, L, H = 1; d.length; ) d.length > H && d.sort(l), p = d.shift(), H = d.length, p.__d && (_ = void 0, P = void 0, T = (P = (h = p).__v).__e, y = [], L = [], h.__P && ((_ = E({}, P)).__v = P.__v + 1, i.vnode && i.vnode(_), D(h.__P, _, P, h.__n, h.__P.namespaceURI, 32 & P.__u ? [T] : null, y, T ?? N(P), !!(32 & P.__u), L), _.__v = P.__v, _.__.__k[_.__i] = _, q(y, _, L), P.__e = P.__ = null, _.__e != T && fe(_)));
+    for (var p, h, _, P, T, y, L, H = 1; d.length; ) d.length > H && d.sort(l), p = d.shift(), H = d.length, p.__d && (_ = void 0, P = void 0, T = (P = (h = p).__v).__e, y = [], L = [], h.__P && ((_ = E({}, P)).__v = P.__v + 1, i.vnode && i.vnode(_), D(h.__P, _, P, h.__n, h.__P.namespaceURI, 32 & P.__u ? [T] : null, y, T ?? N(P), !!(32 & P.__u), L), _.__v = P.__v, _.__.__k[_.__i] = _, j(y, _, L), P.__e = P.__ = null, _.__e != T && fe(_)));
     ue.__r = 0;
   }
   function le(p, h, _, P, T, y, L, H, he, R, ie) {
@@ -861,7 +861,7 @@ var ya = { 7(n, t, e) {
       } else do
         S.__d = !1, kt && kt(h), ie = S.render(S.props, S.state, S.context), S.state = S.__s;
       while (S.__d && ++mo < 25);
-      S.state = S.__s, S.getChildContext != null && (P = E(E({}, P), S.getChildContext())), pe && !be && S.getSnapshotBeforeUpdate != null && (He = S.getSnapshotBeforeUpdate(B, Oe)), St = ie, ie != null && ie.type === V && ie.key == null && (St = j(ie.props.children)), H = le(p, w(St) ? St : [St], h, _, P, T, y, L, H, he, R), S.base = h.__e, h.__u &= -161, S.__h.length && L.push(S), Ue && (S.__E = S.__ = null);
+      S.state = S.__s, S.getChildContext != null && (P = E(E({}, P), S.getChildContext())), pe && !be && S.getSnapshotBeforeUpdate != null && (He = S.getSnapshotBeforeUpdate(B, Oe)), St = ie, ie != null && ie.type === V && ie.key == null && (St = q(ie.props.children)), H = le(p, w(St) ? St : [St], h, _, P, T, y, L, H, he, R), S.base = h.__e, h.__u &= -161, S.__h.length && L.push(S), Ue && (S.__E = S.__ = null);
     } catch (ht) {
       if (h.__v = null, he || y != null) if (ht.then) {
         for (h.__u |= he ? 160 : 128; H && H.nodeType == 8 && H.nextSibling; ) H = H.nextSibling;
@@ -879,7 +879,7 @@ var ya = { 7(n, t, e) {
   function Z(p) {
     p && p.__c && (p.__c.__e = !0), p && p.__k && p.__k.forEach(Z);
   }
-  function q(p, h, _) {
+  function j(p, h, _) {
     for (var P = 0; P < _.length; P++) se(_[P], _[++P], _[++P]);
     i.__c && i.__c(h, p), p.some(function(T) {
       try {
@@ -891,8 +891,8 @@ var ya = { 7(n, t, e) {
       }
     });
   }
-  function j(p) {
-    return typeof p != "object" || p == null || p.__b && p.__b > 0 ? p : w(p) ? p.map(j) : E({}, p);
+  function q(p) {
+    return typeof p != "object" || p == null || p.__b && p.__b > 0 ? p : w(p) ? p.map(q) : E({}, p);
   }
   function xe(p, h, _, P, T, y, L, H, he) {
     var R, ie, S, be, B, Oe, He, Ue = _.props || x, ge = h.props, pe = h.type;
@@ -951,7 +951,7 @@ var ya = { 7(n, t, e) {
   }
   function at(p, h, _) {
     var P, T, y, L;
-    h == document && (h = document.documentElement), i.__ && i.__(p, h), T = (P = typeof _ == "function") ? null : _ && _.__k || h.__k, y = [], L = [], D(h, p = (!P && _ || h).__k = M(V, null, [p]), T || x, x, h.namespaceURI, !P && _ ? [_] : T ? null : h.firstChild ? o.call(h.childNodes) : null, y, !P && _ ? _ : T ? T.__e : h.firstChild, P, L), q(y, p, L);
+    h == document && (h = document.documentElement), i.__ && i.__(p, h), T = (P = typeof _ == "function") ? null : _ && _.__k || h.__k, y = [], L = [], D(h, p = (!P && _ || h).__k = M(V, null, [p]), T || x, x, h.namespaceURI, !P && _ ? [_] : T ? null : h.firstChild ? o.call(h.childNodes) : null, y, !P && _ ? _ : T ? T.__e : h.firstChild, P, L), j(y, p, L);
   }
   function wt(p, h) {
     at(p, h, wt);
@@ -1018,31 +1018,31 @@ var ya = { 7(n, t, e) {
       var Ie = Z.__N ? Z.__N[0] : Z.__[0], We = Z.t(Ie, se);
       Ie !== We && (Z.__N = [We, Z.__[1]], Z.__c.setState({}));
     }], Z.__c = i, !i.__f)) {
-      var q = function(se, Ie, We) {
+      var j = function(se, Ie, We) {
         if (!Z.__c.__H) return !0;
         var at = Z.__c.__H.__.filter(function(Re) {
           return !!Re.__c;
         });
         if (at.every(function(Re) {
           return !Re.__N;
-        })) return !j || j.call(this, se, Ie, We);
+        })) return !q || q.call(this, se, Ie, We);
         var wt = Z.__c.props !== se;
         return at.forEach(function(Re) {
           if (Re.__N) {
             var In = Re.__[0];
             Re.__ = Re.__N, Re.__N = void 0, In !== Re.__[0] && (wt = !0);
           }
-        }), j && j.call(this, se, Ie, We) || wt;
+        }), q && q.call(this, se, Ie, We) || wt;
       };
       i.__f = !0;
-      var j = i.shouldComponentUpdate, xe = i.componentWillUpdate;
+      var q = i.shouldComponentUpdate, xe = i.componentWillUpdate;
       i.componentWillUpdate = function(se, Ie, We) {
         if (this.__e) {
-          var at = j;
-          j = void 0, q(se, Ie, We), j = at;
+          var at = q;
+          q = void 0, j(se, Ie, We), q = at;
         }
         xe && xe.call(this, se, Ie, We);
-      }, i.shouldComponentUpdate = q;
+      }, i.shouldComponentUpdate = j;
     }
     return Z.__N || Z.__;
   }
@@ -1090,8 +1090,8 @@ var ya = { 7(n, t, e) {
   }
   function fe(A) {
     var O = $(o++, 10), D = K();
-    return O.__ = A, i.componentDidCatch || (i.componentDidCatch = function(Z, q) {
-      O.__ && O.__(Z, q), D[1](Z);
+    return O.__ = A, i.componentDidCatch || (i.componentDidCatch = function(Z, j) {
+      O.__ && O.__(Z, j), D[1](Z);
     }), [D[0], function() {
       D[1](void 0);
     }];
@@ -1135,8 +1135,8 @@ var ya = { 7(n, t, e) {
           return !Z.__ || Ne(Z);
         });
       } catch (Z) {
-        O.some(function(q) {
-          q.__h && (q.__h = []);
+        O.some(function(j) {
+          j.__h && (j.__h = []);
         }), O = [], l.__e(Z, D.__v);
       }
     }), k && k(A, O);
@@ -1146,8 +1146,8 @@ var ya = { 7(n, t, e) {
     D && D.__H && (D.__H.__.forEach(function(Z) {
       try {
         ye(Z);
-      } catch (q) {
-        O = q;
+      } catch (j) {
+        O = j;
       }
     }), D.__H = void 0, O && l.__e(O, D.__v));
   };
@@ -1382,8 +1382,8 @@ ee.n = (n) => {
 }, ee.o = (n, t) => Object.prototype.hasOwnProperty.call(n, t), ee.r = (n) => {
   typeof Symbol < "u" && Symbol.toStringTag && Object.defineProperty(n, Symbol.toStringTag, { value: "Module" }), Object.defineProperty(n, "__esModule", { value: !0 });
 }, ee.nc = void 0;
-var qn = {};
-ee.r(qn), ee.d(qn, { apple: () => nr, checkmark: () => or, copy: () => ir, customProvider: () => ar, discord: () => rr, exclamation: () => sr, facebook: () => cr, github: () => lr, google: () => dr, linkedin: () => ur, mail: () => hr, microsoft: () => pr, passkey: () => mr, password: () => fr, qrCodeScanner: () => gr, securityKey: () => vr, spinner: () => _r });
+var jn = {};
+ee.r(jn), ee.d(jn, { apple: () => nr, checkmark: () => or, copy: () => ir, customProvider: () => ar, discord: () => rr, exclamation: () => sr, facebook: () => cr, github: () => lr, google: () => dr, linkedin: () => ur, mail: () => hr, microsoft: () => pr, passkey: () => mr, password: () => fr, qrCodeScanner: () => gr, securityKey: () => vr, spinner: () => _r });
 var b = ee(616), ba = 0;
 function a(n, t, e, o, i, r) {
   t || (t = {});
@@ -1612,14 +1612,14 @@ b.options.__r = function(n) {
   Lo && Lo(n), n.__c;
 };
 var No = b.options.diffed;
-function je() {
-  return je = Object.assign ? Object.assign.bind() : function(n) {
+function qe() {
+  return qe = Object.assign ? Object.assign.bind() : function(n) {
     for (var t = 1; t < arguments.length; t++) {
       var e = arguments[t];
       for (var o in e) ({}).hasOwnProperty.call(e, o) && (n[o] = e[o]);
     }
     return n;
-  }, je.apply(null, arguments);
+  }, qe.apply(null, arguments);
 }
 b.options.diffed = function(n) {
   No && No(n);
@@ -1783,7 +1783,7 @@ class Pi {
   setAuthCookie(t, e) {
     const o = { secure: !0, sameSite: this.authCookieSameSite };
     this.authCookieDomain !== void 0 && (o.domain = this.authCookieDomain);
-    const i = je({}, o, e);
+    const i = qe({}, o, e);
     if ((i.sameSite === "none" || i.sameSite === "None") && i.secure === !1) throw new Ke(new Error("Secure attribute must be set when SameSite=None"));
     Nn.set(this.authCookieName, t, i);
   }
@@ -1805,7 +1805,7 @@ class za {
     sessionStorage.removeItem(this.keyName);
   }
 }
-class ja {
+class qa {
   constructor(t) {
     this._xhr = void 0, this._xhr = t;
   }
@@ -1813,9 +1813,9 @@ class ja {
     return this._xhr.getResponseHeader(t);
   }
 }
-class qa {
+class ja {
   constructor(t) {
-    this.headers = void 0, this.ok = void 0, this.status = void 0, this.statusText = void 0, this.url = void 0, this._decodedJSON = void 0, this.xhr = void 0, this.headers = new ja(t), this.ok = t.status >= 200 && t.status <= 299, this.status = t.status, this.statusText = t.statusText, this.url = t.responseURL, this.xhr = t;
+    this.headers = void 0, this.ok = void 0, this.status = void 0, this.statusText = void 0, this.url = void 0, this._decodedJSON = void 0, this.xhr = void 0, this.headers = new qa(t), this.ok = t.status >= 200 && t.status <= 299, this.status = t.status, this.statusText = t.statusText, this.url = t.responseURL, this.xhr = t;
   }
   json() {
     return this._decodedJSON || (this._decodedJSON = JSON.parse(this.xhr.response)), this._decodedJSON;
@@ -1828,13 +1828,13 @@ class qa {
 class to {
   constructor(t, e) {
     var o;
-    this.timeout = void 0, this.api = void 0, this.dispatcher = void 0, this.cookie = void 0, this.sessionTokenStorage = void 0, this.lang = void 0, this.sessionTokenLocation = void 0, this.api = t, this.timeout = (o = e.timeout) != null ? o : 13e3, this.dispatcher = new Ai(), this.cookie = new Pi(je({}, e)), this.sessionTokenStorage = new za({ keyName: e.cookieName }), this.lang = e.lang, this.sessionTokenLocation = e.sessionTokenLocation;
+    this.timeout = void 0, this.api = void 0, this.dispatcher = void 0, this.cookie = void 0, this.sessionTokenStorage = void 0, this.lang = void 0, this.sessionTokenLocation = void 0, this.api = t, this.timeout = (o = e.timeout) != null ? o : 13e3, this.dispatcher = new Ai(), this.cookie = new Pi(qe({}, e)), this.sessionTokenStorage = new za({ keyName: e.cookieName }), this.lang = e.lang, this.sessionTokenLocation = e.sessionTokenLocation;
   }
   _fetch(t, e, o = new XMLHttpRequest()) {
     const i = this, r = this.api + t, s = this.timeout, d = this.getAuthToken(), u = this.lang;
     return new Promise(function(c, l) {
       o.open(e.method, r, !0), o.setRequestHeader("Accept", "application/json"), o.setRequestHeader("Content-Type", "application/json"), o.setRequestHeader("X-Language", u), d && o.setRequestHeader("Authorization", `Bearer ${d}`), o.timeout = s, o.withCredentials = !0, o.onload = () => {
-        i.processHeaders(o), c(new qa(o));
+        i.processHeaders(o), c(new ja(o));
       }, o.onerror = () => {
         l(new Ke());
       }, o.ontimeout = () => {
@@ -2103,7 +2103,7 @@ class Ze {
     return this.abortController.abort(), this.abortController = new AbortController(), this.abortController.signal;
   }
   async getWebauthnCredential(t) {
-    return await Mo(je({}, t, { signal: this.createAbortSignal() }));
+    return await Mo(qe({}, t, { signal: this.createAbortSignal() }));
   }
   async getConditionalWebauthnCredential(t) {
     return await Mo({ publicKey: t, mediation: "conditional", signal: this.createAbortSignal() });
@@ -2114,7 +2114,7 @@ class Ze {
         return _t(Ii, Va, i);
       }(e)), _t(Oi, Ba, o);
       var o;
-    }(je({}, t, { signal: this.createAbortSignal() }));
+    }(qe({}, t, { signal: this.createAbortSignal() }));
   }
 }
 Ze.instance = null;
@@ -2175,7 +2175,7 @@ const zo = { preflight: async (n) => await n.actions.register_client_capabilitie
 }, success: async (n) => {
   const { claims: t } = n.payload, e = Date.parse(t.expiration) - Date.now();
   return n.removeFromLocalStorage(), n.hanko.relay.dispatchSessionCreatedEvent({ claims: t, expirationSeconds: e }), n;
-}, account_deleted: async (n) => (n.removeFromLocalStorage(), n.hanko.relay.dispatchUserDeletedEvent(), n) }, jo = { login_init: async (n) => {
+}, account_deleted: async (n) => (n.removeFromLocalStorage(), n.hanko.relay.dispatchUserDeletedEvent(), n) }, qo = { login_init: async (n) => {
   (async function() {
     const t = Ze.getInstance();
     if (n.payload.request_options) try {
@@ -2192,8 +2192,8 @@ class ze {
       const l = zo[this.name];
       this.autoStep = () => l(this);
     }
-    if (this.name in jo) {
-      const l = jo[this.name];
+    if (this.name in qo) {
+      const l = qo[this.name];
       this.passkeyAutofillActivation = () => l(this);
     }
     const { dispatchAfterStateChangeEvent: r = !0, excludeAutoSteps: s = null, previousAction: d = null, isCached: u = !1, cacheKey: c = "hanko-flow-state" } = i;
@@ -2216,7 +2216,7 @@ class ze {
     return { flow_name: this.flowName, name: this.name, error: this.error, payload: this.payload, csrf_token: this.csrfToken, status: this.status, previous_action: this.previousAction, actions: Object.fromEntries(Object.entries(this.actions).map(([t, e]) => [t, { action: e.name, href: e.href, inputs: e.inputs, description: null }])) };
   }
   saveToLocalStorage() {
-    localStorage.setItem(this.cacheKey, JSON.stringify(je({}, this.serialize(), { is_cached: !0 })));
+    localStorage.setItem(this.cacheKey, JSON.stringify(qe({}, this.serialize(), { is_cached: !0 })));
   }
   removeFromLocalStorage() {
     localStorage.removeItem(this.cacheKey);
@@ -2243,13 +2243,13 @@ class ze {
     const { cacheKey: i = "hanko-flow-state", loadFromCache: r = !0 } = o;
     if (r) {
       const d = ze.readFromLocalStorage(i);
-      if (d) return ze.deserialize(t, d, je({}, o, { cacheKey: i }));
+      if (d) return ze.deserialize(t, d, qe({}, o, { cacheKey: i }));
     }
     const s = await ze.fetchState(t, `/${e}`);
-    return ze.initializeFlowState(t, e, s, je({}, o, { cacheKey: i }));
+    return ze.initializeFlowState(t, e, s, qe({}, o, { cacheKey: i }));
   }
   static async deserialize(t, e, o = {}) {
-    return ze.initializeFlowState(t, e.flow_name, e, je({}, o, { previousAction: e.previous_action, isCached: e.is_cached }));
+    return ze.initializeFlowState(t, e.flow_name, e, qe({}, o, { previousAction: e.previous_action, isCached: e.is_cached }));
   }
   static async fetchState(t, e, o) {
     try {
@@ -2274,7 +2274,7 @@ class Ft {
     if (!this.enabled) throw new Error(`Action '${this.name}' is not enabled in state '${o}'`);
     if (d) throw new Error(`An action '${d.name}' has already been invoked on state '${d.relatedStateName}'. No further actions can be run.`);
     this.parentState.invokedAction = { name: this.name, relatedStateName: o }, i.relay.dispatchBeforeStateChangeEvent({ state: this.parentState });
-    const m = { input_data: je({}, Object.keys(this.inputs).reduce((g, k) => {
+    const m = { input_data: qe({}, Object.keys(this.inputs).reduce((g, k) => {
       const C = this.inputs[k];
       return C.value !== void 0 && (g[k] = C.value), g;
     }, {}), t), csrf_token: s }, v = await ze.fetchState(i, this.href, m);
@@ -2305,7 +2305,7 @@ class Li extends no {
 class Ni extends bn {
   constructor(t, e) {
     super(), this.session = void 0, this.user = void 0, this.cookie = void 0, this.client = void 0, this.relay = void 0;
-    const o = je({ timeout: 13e3, cookieName: "hanko", localStorageKey: "hanko", sessionCheckInterval: 3e4, sessionCheckChannelName: "hanko-session-check" }, e);
+    const o = qe({ timeout: 13e3, cookieName: "hanko", localStorageKey: "hanko", sessionCheckInterval: 3e4, sessionCheckChannelName: "hanko-session-check" }, e);
     this.client = new to(t, o), this.session = new oo(t, o), this.user = new Li(t, o), this.relay = new Ei(t, o), this.cookie = new Pi(o);
   }
   setLang(t) {
@@ -2352,7 +2352,7 @@ At.setAttributes = Qe(), At.insert = (n) => {
 }, At.domAPI = Ye(), At.insertStyleElement = Ge(), Je()(rn.A, At);
 const U = rn.A && rn.A.locals ? rn.A.locals : void 0;
 var tr = ee(452), Q = ee.n(tr);
-const nr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-apple", xmlns: "http://www.w3.org/2000/svg", width: n, height: n, viewBox: "20.5 16 15 19", className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M28.2226562,20.3846154 C29.0546875,20.3846154 30.0976562,19.8048315 30.71875,19.0317864 C31.28125,18.3312142 31.6914062,17.352829 31.6914062,16.3744437 C31.6914062,16.2415766 31.6796875,16.1087095 31.65625,16 C30.7304687,16.0362365 29.6171875,16.640178 28.9492187,17.4494596 C28.421875,18.06548 27.9414062,19.0317864 27.9414062,20.0222505 C27.9414062,20.1671964 27.9648438,20.3121424 27.9765625,20.3604577 C28.0351562,20.3725366 28.1289062,20.3846154 28.2226562,20.3846154 Z M25.2929688,35 C26.4296875,35 26.9335938,34.214876 28.3515625,34.214876 C29.7929688,34.214876 30.109375,34.9758423 31.375,34.9758423 C32.6171875,34.9758423 33.4492188,33.792117 34.234375,32.6325493 C35.1132812,31.3038779 35.4765625,29.9993643 35.5,29.9389701 C35.4179688,29.9148125 33.0390625,28.9122695 33.0390625,26.0979021 C33.0390625,23.6579784 34.9140625,22.5588048 35.0195312,22.474253 C33.7773438,20.6382708 31.890625,20.5899555 31.375,20.5899555 C29.9804688,20.5899555 28.84375,21.4596313 28.1289062,21.4596313 C27.3554688,21.4596313 26.3359375,20.6382708 25.1289062,20.6382708 C22.8320312,20.6382708 20.5,22.5950413 20.5,26.2911634 C20.5,28.5861411 21.3671875,31.013986 22.4335938,32.5842339 C23.3476562,33.9129053 24.1445312,35 25.2929688,35 Z" }) }), or = ({ secondary: n, size: t, fadeOut: e, disabled: o }) => a("svg", { id: "icon-checkmark", xmlns: "http://www.w3.org/2000/svg", viewBox: "4 4 40 40", width: t, height: t, className: Q()(U.checkmark, n && U.secondary, e && U.fadeOut, o && U.disabled), children: a("path", { d: "M21.05 33.1 35.2 18.95l-2.3-2.25-11.85 11.85-6-6-2.25 2.25ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.8 1.575-3.65 4.3-6.35 2.725-2.7 6.375-4.275Q19.9 4 24 4q4.15 0 7.8 1.575 3.65 1.575 6.35 4.275 2.7 2.7 4.275 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.275 6.375t-6.35 4.3Q28.15 44 24 44Zm0-3q7.1 0 12.05-4.975Q41 31.05 41 24q0-7.1-4.95-12.05Q31.1 7 24 7q-7.05 0-12.025 4.95Q7 16.9 7 24q0 7.05 4.975 12.025Q16.95 41 24 41Zm0-17Z" }) }), ir = ({ size: n, secondary: t, disabled: e }) => a("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 -960 960 960", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z" }) }), ar = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-custom-provider", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: [a("path", { d: "M0 0h24v24H0z", fill: "none" }), a("path", { d: "M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" })] }), rr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-discord", fill: "#fff", xmlns: "http://www.w3.org/2000/svg", width: n, height: n, viewBox: "0 0 127.14 96.36", className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" }) }), sr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-exclamation", xmlns: "http://www.w3.org/2000/svg", viewBox: "5 2 13 20", width: n, height: n, className: Q()(U.exclamationMark, t && U.secondary, e && U.disabled), children: a("path", { d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" }) }), cr = ({ size: n, secondary: t, disabled: e }) => a("svg", { width: n, height: n, viewBox: "0 0 666.66668 666.66717", xmlns: "http://www.w3.org/2000/svg", children: [a("defs", { id: "defs13", children: a("clipPath", { clipPathUnits: "userSpaceOnUse", id: "clipPath25", children: a("path", { d: "M 0,700 H 700 V 0 H 0 Z", id: "path23" }) }) }), a("g", { id: "g17", transform: "matrix(1.3333333,0,0,-1.3333333,-133.33333,799.99999)", children: a("g", { id: "g19", children: a("g", { id: "g21", clipPath: "url(#clipPath25)", children: [a("g", { id: "g27", transform: "translate(600,350)", children: a("path", { className: Q()(U.facebookIcon, e ? U.disabledOutline : U.outline), d: "m 0,0 c 0,138.071 -111.929,250 -250,250 -138.071,0 -250,-111.929 -250,-250 0,-117.245 80.715,-215.622 189.606,-242.638 v 166.242 h -51.552 V 0 h 51.552 v 32.919 c 0,85.092 38.508,124.532 122.048,124.532 15.838,0 43.167,-3.105 54.347,-6.211 V 81.986 c -5.901,0.621 -16.149,0.932 -28.882,0.932 -40.993,0 -56.832,-15.528 -56.832,-55.9 V 0 h 81.659 l -14.028,-76.396 h -67.631 V -248.169 C -95.927,-233.218 0,-127.818 0,0", id: "path29" }) }), a("g", { id: "g31", transform: "translate(447.9175,273.6036)", children: a("path", { className: Q()(U.facebookIcon, e ? U.disabledLetter : U.letter), d: "M 0,0 14.029,76.396 H -67.63 v 27.019 c 0,40.372 15.838,55.899 56.831,55.899 12.733,0 22.981,-0.31 28.882,-0.931 v 69.253 c -11.18,3.106 -38.509,6.212 -54.347,6.212 -83.539,0 -122.048,-39.441 -122.048,-124.533 V 76.396 h -51.552 V 0 h 51.552 v -166.242 c 19.343,-4.798 39.568,-7.362 60.394,-7.362 10.254,0 20.358,0.632 30.288,1.831 L -67.63,0 Z", id: "path33" }) })] }) }) })] }), lr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-github", xmlns: "http://www.w3.org/2000/svg", fill: "#fff", viewBox: "0 0 97.63 96", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: [a("path", { d: "M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" }), " "] }), dr = ({ size: n, disabled: t }) => a("svg", { id: "icon-google", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: n, height: n, className: U.googleIcon, children: [a("path", { className: Q()(U.googleIcon, t ? U.disabled : U.blue), d: "M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" }), a("path", { className: Q()(U.googleIcon, t ? U.disabled : U.green), d: "M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" }), a("path", { className: Q()(U.googleIcon, t ? U.disabled : U.yellow), d: "M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" }), a("path", { className: Q()(U.googleIcon, t ? U.disabled : U.red), d: "M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" }), a("path", { d: "M1 1h22v22H1z", fill: "none" })] }), ur = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-linkedin", fill: "#fff", xmlns: "http://www.w3.org/2000/svg", width: n, viewBox: "0 0 24 24", height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z" }) }), hr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-mail", xmlns: "http://www.w3.org/2000/svg", width: n, height: n, viewBox: "0 -960 960 960", className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z" }) }), pr = ({ size: n, disabled: t }) => a("svg", { id: "icon-microsoft", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: n, height: n, className: U.microsoftIcon, children: [a("rect", { className: Q()(U.microsoftIcon, t ? U.disabled : U.blue), x: "1", y: "1", width: "9", height: "9" }), a("rect", { className: Q()(U.microsoftIcon, t ? U.disabled : U.green), x: "1", y: "11", width: "9", height: "9" }), a("rect", { className: Q()(U.microsoftIcon, t ? U.disabled : U.yellow), x: "11", y: "1", width: "9", height: "9" }), a("rect", { className: Q()(U.microsoftIcon, t ? U.disabled : U.red), x: "11", y: "11", width: "9", height: "9" })] }), mr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-passkey", xmlns: "http://www.w3.org/2000/svg", viewBox: "3 1.5 19.5 19", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("g", { id: "icon-passkey-all", children: [a("circle", { id: "icon-passkey-head", cx: "10.5", cy: "6", r: "4.5" }), a("path", { id: "icon-passkey-key", d: "M22.5,10.5a3.5,3.5,0,1,0-5,3.15V19L19,20.5,21.5,18,20,16.5,21.5,15l-1.24-1.24A3.5,3.5,0,0,0,22.5,10.5Zm-3.5,0a1,1,0,1,1,1-1A1,1,0,0,1,19,10.5Z" }), a("path", { id: "icon-passkey-body", d: "M14.44,12.52A6,6,0,0,0,12,12H9a6,6,0,0,0-6,6v2H16V14.49A5.16,5.16,0,0,1,14.44,12.52Z" })] }) }), fr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-password", xmlns: "http://www.w3.org/2000/svg", width: n, height: n, viewBox: "0 -960 960 960", className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M80-200v-80h800v80H80Zm46-242-52-30 34-60H40v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Z" }) }), gr = ({ size: n, secondary: t, disabled: e }) => a("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 -960 960 960", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M80-680v-200h200v80H160v120H80Zm0 600v-200h80v120h120v80H80Zm600 0v-80h120v-120h80v200H680Zm120-600v-120H680v-80h200v200h-80ZM700-260h60v60h-60v-60Zm0-120h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60-60h60v60h-60v-60Zm120-120h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60-60h60v60h-60v-60Zm240-320v240H520v-240h240ZM440-440v240H200v-240h240Zm0-320v240H200v-240h240Zm-60 500v-120H260v120h120Zm0-320v-120H260v120h120Zm320 0v-120H580v120h120Z" }) }), vr = ({ size: n, secondary: t, disabled: e }) => a("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 -960 960 960", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M280-240q-100 0-170-70T40-480q0-100 70-170t170-70q66 0 121 33t87 87h432v240h-80v120H600v-120H488q-32 54-87 87t-121 33Zm0-80q66 0 106-40.5t48-79.5h246v120h80v-120h80v-80H434q-8-39-48-79.5T280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-80q33 0 56.5-23.5T360-480q0-33-23.5-56.5T280-560q-33 0-56.5 23.5T200-480q0 33 23.5 56.5T280-400Zm0-80Z" }) }), _r = ({ size: n, disabled: t }) => a("svg", { id: "icon-spinner", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: n, height: n, className: Q()(U.loadingSpinner, t && U.disabled), children: [a("path", { d: "M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z", opacity: ".25" }), a("path", { d: "M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z" })] }), Wt = ({ name: n, secondary: t, size: e = 18, fadeOut: o, disabled: i }) => a(qn[n], { size: e, secondary: t, fadeOut: o, disabled: i }), ao = ({ children: n, isLoading: t, isSuccess: e, fadeOut: o, secondary: i, hasIcon: r, maxWidth: s }) => a(b.Fragment, { children: a("div", t ? { className: Q()(U.loadingSpinnerWrapper, U.centerContent, s && U.maxWidth), children: a(Wt, { name: "spinner", secondary: i }) } : e ? { className: Q()(U.loadingSpinnerWrapper, U.centerContent, s && U.maxWidth), children: a(Wt, { name: "checkmark", secondary: i, fadeOut: o }) } : { className: r ? U.loadingSpinnerWrapperIcon : U.loadingSpinnerWrapper, children: n }) }), yr = () => a(ao, { isLoading: !0 }), Ee = (n) => {
+const nr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-apple", xmlns: "http://www.w3.org/2000/svg", width: n, height: n, viewBox: "20.5 16 15 19", className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M28.2226562,20.3846154 C29.0546875,20.3846154 30.0976562,19.8048315 30.71875,19.0317864 C31.28125,18.3312142 31.6914062,17.352829 31.6914062,16.3744437 C31.6914062,16.2415766 31.6796875,16.1087095 31.65625,16 C30.7304687,16.0362365 29.6171875,16.640178 28.9492187,17.4494596 C28.421875,18.06548 27.9414062,19.0317864 27.9414062,20.0222505 C27.9414062,20.1671964 27.9648438,20.3121424 27.9765625,20.3604577 C28.0351562,20.3725366 28.1289062,20.3846154 28.2226562,20.3846154 Z M25.2929688,35 C26.4296875,35 26.9335938,34.214876 28.3515625,34.214876 C29.7929688,34.214876 30.109375,34.9758423 31.375,34.9758423 C32.6171875,34.9758423 33.4492188,33.792117 34.234375,32.6325493 C35.1132812,31.3038779 35.4765625,29.9993643 35.5,29.9389701 C35.4179688,29.9148125 33.0390625,28.9122695 33.0390625,26.0979021 C33.0390625,23.6579784 34.9140625,22.5588048 35.0195312,22.474253 C33.7773438,20.6382708 31.890625,20.5899555 31.375,20.5899555 C29.9804688,20.5899555 28.84375,21.4596313 28.1289062,21.4596313 C27.3554688,21.4596313 26.3359375,20.6382708 25.1289062,20.6382708 C22.8320312,20.6382708 20.5,22.5950413 20.5,26.2911634 C20.5,28.5861411 21.3671875,31.013986 22.4335938,32.5842339 C23.3476562,33.9129053 24.1445312,35 25.2929688,35 Z" }) }), or = ({ secondary: n, size: t, fadeOut: e, disabled: o }) => a("svg", { id: "icon-checkmark", xmlns: "http://www.w3.org/2000/svg", viewBox: "4 4 40 40", width: t, height: t, className: Q()(U.checkmark, n && U.secondary, e && U.fadeOut, o && U.disabled), children: a("path", { d: "M21.05 33.1 35.2 18.95l-2.3-2.25-11.85 11.85-6-6-2.25 2.25ZM24 44q-4.1 0-7.75-1.575-3.65-1.575-6.375-4.3-2.725-2.725-4.3-6.375Q4 28.1 4 24q0-4.15 1.575-7.8 1.575-3.65 4.3-6.35 2.725-2.7 6.375-4.275Q19.9 4 24 4q4.15 0 7.8 1.575 3.65 1.575 6.35 4.275 2.7 2.7 4.275 6.35Q44 19.85 44 24q0 4.1-1.575 7.75-1.575 3.65-4.275 6.375t-6.35 4.3Q28.15 44 24 44Zm0-3q7.1 0 12.05-4.975Q41 31.05 41 24q0-7.1-4.95-12.05Q31.1 7 24 7q-7.05 0-12.025 4.95Q7 16.9 7 24q0 7.05 4.975 12.025Q16.95 41 24 41Zm0-17Z" }) }), ir = ({ size: n, secondary: t, disabled: e }) => a("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 -960 960 960", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z" }) }), ar = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-custom-provider", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: [a("path", { d: "M0 0h24v24H0z", fill: "none" }), a("path", { d: "M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" })] }), rr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-discord", fill: "#fff", xmlns: "http://www.w3.org/2000/svg", width: n, height: n, viewBox: "0 0 127.14 96.36", className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" }) }), sr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-exclamation", xmlns: "http://www.w3.org/2000/svg", viewBox: "5 2 13 20", width: n, height: n, className: Q()(U.exclamationMark, t && U.secondary, e && U.disabled), children: a("path", { d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" }) }), cr = ({ size: n, secondary: t, disabled: e }) => a("svg", { width: n, height: n, viewBox: "0 0 666.66668 666.66717", xmlns: "http://www.w3.org/2000/svg", children: [a("defs", { id: "defs13", children: a("clipPath", { clipPathUnits: "userSpaceOnUse", id: "clipPath25", children: a("path", { d: "M 0,700 H 700 V 0 H 0 Z", id: "path23" }) }) }), a("g", { id: "g17", transform: "matrix(1.3333333,0,0,-1.3333333,-133.33333,799.99999)", children: a("g", { id: "g19", children: a("g", { id: "g21", clipPath: "url(#clipPath25)", children: [a("g", { id: "g27", transform: "translate(600,350)", children: a("path", { className: Q()(U.facebookIcon, e ? U.disabledOutline : U.outline), d: "m 0,0 c 0,138.071 -111.929,250 -250,250 -138.071,0 -250,-111.929 -250,-250 0,-117.245 80.715,-215.622 189.606,-242.638 v 166.242 h -51.552 V 0 h 51.552 v 32.919 c 0,85.092 38.508,124.532 122.048,124.532 15.838,0 43.167,-3.105 54.347,-6.211 V 81.986 c -5.901,0.621 -16.149,0.932 -28.882,0.932 -40.993,0 -56.832,-15.528 -56.832,-55.9 V 0 h 81.659 l -14.028,-76.396 h -67.631 V -248.169 C -95.927,-233.218 0,-127.818 0,0", id: "path29" }) }), a("g", { id: "g31", transform: "translate(447.9175,273.6036)", children: a("path", { className: Q()(U.facebookIcon, e ? U.disabledLetter : U.letter), d: "M 0,0 14.029,76.396 H -67.63 v 27.019 c 0,40.372 15.838,55.899 56.831,55.899 12.733,0 22.981,-0.31 28.882,-0.931 v 69.253 c -11.18,3.106 -38.509,6.212 -54.347,6.212 -83.539,0 -122.048,-39.441 -122.048,-124.533 V 76.396 h -51.552 V 0 h 51.552 v -166.242 c 19.343,-4.798 39.568,-7.362 60.394,-7.362 10.254,0 20.358,0.632 30.288,1.831 L -67.63,0 Z", id: "path33" }) })] }) }) })] }), lr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-github", xmlns: "http://www.w3.org/2000/svg", fill: "#fff", viewBox: "0 0 97.63 96", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: [a("path", { d: "M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" }), " "] }), dr = ({ size: n, disabled: t }) => a("svg", { id: "icon-google", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: n, height: n, className: U.googleIcon, children: [a("path", { className: Q()(U.googleIcon, t ? U.disabled : U.blue), d: "M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" }), a("path", { className: Q()(U.googleIcon, t ? U.disabled : U.green), d: "M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" }), a("path", { className: Q()(U.googleIcon, t ? U.disabled : U.yellow), d: "M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" }), a("path", { className: Q()(U.googleIcon, t ? U.disabled : U.red), d: "M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" }), a("path", { d: "M1 1h22v22H1z", fill: "none" })] }), ur = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-linkedin", fill: "#fff", xmlns: "http://www.w3.org/2000/svg", width: n, viewBox: "0 0 24 24", height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z" }) }), hr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-mail", xmlns: "http://www.w3.org/2000/svg", width: n, height: n, viewBox: "0 -960 960 960", className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z" }) }), pr = ({ size: n, disabled: t }) => a("svg", { id: "icon-microsoft", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: n, height: n, className: U.microsoftIcon, children: [a("rect", { className: Q()(U.microsoftIcon, t ? U.disabled : U.blue), x: "1", y: "1", width: "9", height: "9" }), a("rect", { className: Q()(U.microsoftIcon, t ? U.disabled : U.green), x: "1", y: "11", width: "9", height: "9" }), a("rect", { className: Q()(U.microsoftIcon, t ? U.disabled : U.yellow), x: "11", y: "1", width: "9", height: "9" }), a("rect", { className: Q()(U.microsoftIcon, t ? U.disabled : U.red), x: "11", y: "11", width: "9", height: "9" })] }), mr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-passkey", xmlns: "http://www.w3.org/2000/svg", viewBox: "3 1.5 19.5 19", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("g", { id: "icon-passkey-all", children: [a("circle", { id: "icon-passkey-head", cx: "10.5", cy: "6", r: "4.5" }), a("path", { id: "icon-passkey-key", d: "M22.5,10.5a3.5,3.5,0,1,0-5,3.15V19L19,20.5,21.5,18,20,16.5,21.5,15l-1.24-1.24A3.5,3.5,0,0,0,22.5,10.5Zm-3.5,0a1,1,0,1,1,1-1A1,1,0,0,1,19,10.5Z" }), a("path", { id: "icon-passkey-body", d: "M14.44,12.52A6,6,0,0,0,12,12H9a6,6,0,0,0-6,6v2H16V14.49A5.16,5.16,0,0,1,14.44,12.52Z" })] }) }), fr = ({ size: n, secondary: t, disabled: e }) => a("svg", { id: "icon-password", xmlns: "http://www.w3.org/2000/svg", width: n, height: n, viewBox: "0 -960 960 960", className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M80-200v-80h800v80H80Zm46-242-52-30 34-60H40v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Zm320 0-52-30 34-60h-68v-60h68l-34-58 52-30 34 58 34-58 52 30-34 58h68v60h-68l34 60-52 30-34-60-34 60Z" }) }), gr = ({ size: n, secondary: t, disabled: e }) => a("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 -960 960 960", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M80-680v-200h200v80H160v120H80Zm0 600v-200h80v120h120v80H80Zm600 0v-80h120v-120h80v200H680Zm120-600v-120H680v-80h200v200h-80ZM700-260h60v60h-60v-60Zm0-120h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60-60h60v60h-60v-60Zm120-120h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60-60h60v60h-60v-60Zm240-320v240H520v-240h240ZM440-440v240H200v-240h240Zm0-320v240H200v-240h240Zm-60 500v-120H260v120h120Zm0-320v-120H260v120h120Zm320 0v-120H580v120h120Z" }) }), vr = ({ size: n, secondary: t, disabled: e }) => a("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 -960 960 960", width: n, height: n, className: Q()(U.icon, t && U.secondary, e && U.disabled), children: a("path", { d: "M280-240q-100 0-170-70T40-480q0-100 70-170t170-70q66 0 121 33t87 87h432v240h-80v120H600v-120H488q-32 54-87 87t-121 33Zm0-80q66 0 106-40.5t48-79.5h246v120h80v-120h80v-80H434q-8-39-48-79.5T280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-80q33 0 56.5-23.5T360-480q0-33-23.5-56.5T280-560q-33 0-56.5 23.5T200-480q0 33 23.5 56.5T280-400Zm0-80Z" }) }), _r = ({ size: n, disabled: t }) => a("svg", { id: "icon-spinner", xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", width: n, height: n, className: Q()(U.loadingSpinner, t && U.disabled), children: [a("path", { d: "M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z", opacity: ".25" }), a("path", { d: "M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z" })] }), Wt = ({ name: n, secondary: t, size: e = 18, fadeOut: o, disabled: i }) => a(jn[n], { size: e, secondary: t, fadeOut: o, disabled: i }), ao = ({ children: n, isLoading: t, isSuccess: e, fadeOut: o, secondary: i, hasIcon: r, maxWidth: s }) => a(b.Fragment, { children: a("div", t ? { className: Q()(U.loadingSpinnerWrapper, U.centerContent, s && U.maxWidth), children: a(Wt, { name: "spinner", secondary: i }) } : e ? { className: Q()(U.loadingSpinnerWrapper, U.centerContent, s && U.maxWidth), children: a(Wt, { name: "checkmark", secondary: i, fadeOut: o }) } : { className: r ? U.loadingSpinnerWrapperIcon : U.loadingSpinnerWrapper, children: n }) }), yr = () => a(ao, { isLoading: !0 }), Ee = (n) => {
   const [t, e] = (0, f.useState)(n);
   return (0, f.useEffect)(() => {
     n && e(n);
@@ -2645,7 +2645,7 @@ const br = (n) => {
     r(C);
   })(k), disabled: o }, k)) });
 };
-var qo = function(n, t, e, o) {
+var jo = function(n, t, e, o) {
   return new (e || (e = Promise))(function(i, r) {
     function s(c) {
       try {
@@ -2674,7 +2674,7 @@ const kr = (n) => {
   const { t } = (0, f.useContext)(J.TranslateContext), { flowState: e } = Ee(n.state), { uiState: o, setUIState: i } = (0, f.useContext)(De), [r, s] = (0, f.useState)(), [d, u] = (0, f.useState)(e.payload.resend_after), [c, l] = (0, f.useState)([]), m = (0, f.useMemo)(() => {
     var g;
     return ((g = e.error) === null || g === void 0 ? void 0 : g.code) === "passcode_max_attempts_reached";
-  }, [e]), v = (0, f.useCallback)((g) => qo(void 0, void 0, void 0, function* () {
+  }, [e]), v = (0, f.useCallback)((g) => jo(void 0, void 0, void 0, function* () {
     return yield e.actions.verify_passcode.run({ code: g });
   }), [e]);
   return (0, f.useEffect)(() => {
@@ -2690,7 +2690,7 @@ const kr = (n) => {
     d == 0 && ((g = e.error) === null || g === void 0 ? void 0 : g.code) == "rate_limit_exceeded" && i((k) => Object.assign(Object.assign({}, k), { error: null }));
   }, [d]), (0, f.useEffect)(() => {
     l([]), e.payload.resend_after >= 0 && u(e.payload.resend_after);
-  }, [e]), a(b.Fragment, { children: [a(ke, { children: [a(de, { children: t("headlines.loginPasscode") }), a(Se, { state: e }), a(W, { children: o.email ? t("texts.enterPasscode") : t("texts.enterPasscodeNoEmail") }), a(W, { hidden: !o.email, children: a("b", { children: o.email }) }), a(te, { flowAction: e.actions.verify_passcode, onSubmit: (g) => qo(void 0, void 0, void 0, function* () {
+  }, [e]), a(b.Fragment, { children: [a(ke, { children: [a(de, { children: t("headlines.loginPasscode") }), a(Se, { state: e }), a(W, { children: o.email ? t("texts.enterPasscode") : t("texts.enterPasscodeNoEmail") }), a(W, { hidden: !o.email, children: a("b", { children: o.email }) }), a(te, { flowAction: e.actions.verify_passcode, onSubmit: (g) => jo(void 0, void 0, void 0, function* () {
     return g.preventDefault(), v(c.join(""));
   }), children: [a(co, { onInput: (g) => {
     if (l(g), g.filter((k) => k !== "").length === 6) return v(g.join(""));
@@ -3282,7 +3282,7 @@ var tn = function(n, t, e, o) {
     u((o = o.apply(n, [])).next());
   });
 };
-const ji = (n) => {
+const qi = (n) => {
   var t, e, o, i, r, s, d;
   const { t: u } = (0, f.useContext)(J.TranslateContext), { setPage: c } = (0, f.useContext)(De), { flowState: l } = Ee(n.state), [m, v] = (0, f.useState)(""), g = (x) => tn(void 0, void 0, void 0, function* () {
     x != null && x.error || (v(null), yield new Promise(($) => setTimeout($, 360))), x.dispatchAfterStateChangeEvent();
@@ -3290,7 +3290,7 @@ const ji = (n) => {
     x.preventDefault();
     const w = yield l.actions.webauthn_credential_rename.run({ passkey_id: $, passkey_name: K }, { dispatchAfterStateChangeEvent: !1 });
     return g(w);
-  }), C = (x) => (x.preventDefault(), c(a(ji, { state: l, enablePasskeys: n.enablePasskeys })), Promise.resolve());
+  }), C = (x) => (x.preventDefault(), c(a(qi, { state: l, enablePasskeys: n.enablePasskeys })), Promise.resolve());
   return a(ke, { children: [a(Se, { state: ((t = l == null ? void 0 : l.error) === null || t === void 0 ? void 0 : t.code) !== "form_data_invalid_error" ? l : null }), l.actions.username_create.enabled || l.actions.username_update.enabled || l.actions.username_delete.enabled ? a(b.Fragment, { children: [a(de, { children: u("labels.username") }), l.payload.user.username ? a(W, { children: a("b", { children: l.payload.user.username.username }) }) : null, a(W, { children: l.actions.username_create.enabled || l.actions.username_update.enabled ? a($r, { onState: g, flowState: l, checkedItemID: m, setCheckedItemID: v }) : null })] }) : null, !((o = (e = l.payload) === null || e === void 0 ? void 0 : e.user) === null || o === void 0) && o.emails || l.actions.email_create.enabled ? a(b.Fragment, { children: [a(de, { children: u("headlines.profileEmails") }), a(W, { children: [a(Ir, { flowState: l, onState: g, checkedItemID: m, setCheckedItemID: v }), l.actions.email_create.enabled ? a(Tr, { flowState: l, onState: g, checkedItemID: m, setCheckedItemID: v }) : null] })] }) : null, l.actions.password_create.enabled || l.actions.password_update.enabled ? a(b.Fragment, { children: [a(de, { children: u("headlines.profilePassword") }), a(W, { children: a(Ur, { flowState: l, onState: g, checkedItemID: m, setCheckedItemID: v }) })] }) : null, n.enablePasskeys && (!((r = (i = l.payload) === null || i === void 0 ? void 0 : i.user) === null || r === void 0) && r.passkeys || l.actions.webauthn_credential_create.enabled) ? a(b.Fragment, { children: [a(de, { children: u("headlines.profilePasskeys") }), a(W, { children: [a(Wo, { flowState: l, onBack: C, onCredentialNameSubmit: k, onCredentialDelete: (x, $) => tn(void 0, void 0, void 0, function* () {
     x.preventDefault();
     const K = yield l.actions.webauthn_credential_delete.run({ passkey_id: $ }, { dispatchAfterStateChangeEvent: !1 });
@@ -3300,7 +3300,7 @@ const ji = (n) => {
     const K = yield l.actions.security_key_delete.run({ security_key_id: $ }, { dispatchAfterStateChangeEvent: !1 });
     return g(K);
   }), credentials: l.payload.user.security_keys, checkedItemID: m, setCheckedItemID: v, allowCredentialDeletion: !!l.actions.security_key_delete.enabled, credentialType: "security-key" }), l.actions.security_key_create.enabled ? a(Bo, { flowState: l, onState: g, credentialType: "security-key", checkedItemID: m, setCheckedItemID: v }) : null] })] }) : null, !((d = l.payload.user.mfa_config) === null || d === void 0) && d.totp_enabled ? a(b.Fragment, { children: [a(de, { children: u("headlines.authenticatorApp") }), a(W, { children: a(Nr, { onState: g, flowState: l, checkedItemID: m, setCheckedItemID: v }) })] }) : null, l.actions.connect_thirdparty_oauth_provider.enabled || l.actions.disconnect_thirdparty_oauth_provider.enabled ? a(b.Fragment, { children: [a(de, { children: u("headlines.connectedAccounts") }), a(Mr, { flowState: l, onState: g, checkedItemID: m, setCheckedItemID: v }), l.actions.connect_thirdparty_oauth_provider.enabled ? a(Rr, { setCheckedItemID: v, flowState: l, onState: g, checkedItemID: m }) : null] }) : null, l.payload.sessions ? a(b.Fragment, { children: [a(de, { children: u("headlines.profileSessions") }), a(W, { children: a(Lr, { flowState: l, onState: g, checkedItemID: m, setCheckedItemID: v }) })] }) : null, l.actions.account_delete.enabled ? a(b.Fragment, { children: [a(Cn, {}), a(W, { children: a(ro, {}) }), a(W, { children: a(te, { onSubmit: (x) => (x.preventDefault(), c(a(Dr, { onBack: C, state: l })), Promise.resolve()), flowAction: l.actions.account_delete, children: a(ne, { dangerous: !0, children: u("headlines.deleteAccount") }) }) })] }) : null] });
-}, zr = ji, Yo = ({ state: n, error: t }) => {
+}, zr = qi, Yo = ({ state: n, error: t }) => {
   const { t: e } = (0, f.useContext)(J.TranslateContext), { init: o, componentName: i } = (0, f.useContext)(De), [r, s] = (0, f.useState)(!1), d = (0, f.useCallback)(() => o(i), [i, o]), { flowState: u } = Ee(n);
   return (0, f.useEffect)(() => (addEventListener("hankoAuthSuccess", d), () => {
     removeEventListener("hankoAuthSuccess", d);
@@ -3333,7 +3333,7 @@ var Qo = function(n, t, e, o) {
     u((o = o.apply(n, [])).next());
   });
 };
-const jr = (n) => {
+const qr = (n) => {
   const { t } = (0, f.useContext)(J.TranslateContext), { flowState: e } = Ee(n.state), [o, i] = (0, f.useState)();
   return a(b.Fragment, { children: [a(ke, { children: [a(de, { children: t("headlines.createEmail") }), a(Se, { state: e }), a(te, { onSubmit: (r) => Qo(void 0, void 0, void 0, function* () {
     return r.preventDefault(), e.actions.email_address_set.run({ email: o });
@@ -3366,7 +3366,7 @@ var Go = function(n, t, e, o) {
     u((o = o.apply(n, [])).next());
   });
 };
-const qr = (n) => {
+const jr = (n) => {
   const { t } = (0, f.useContext)(J.TranslateContext), { flowState: e } = Ee(n.state), [o, i] = (0, f.useState)();
   return a(b.Fragment, { children: [a(ke, { children: [a(de, { children: t("headlines.createUsername") }), a(Se, { state: e }), a(te, { flowAction: e.actions.username_create, onSubmit: (r) => Go(void 0, void 0, void 0, function* () {
     return r.preventDefault(), e.actions.username_create.run({ username: o });
@@ -3535,140 +3535,140 @@ var ti = function(n, t, e, o) {
   });
 };
 const De = (0, b.createContext)(null), Gr = (n) => {
-  var t, { lang: e, prefilledEmail: o, prefilledUsername: i, globalOptions: r, createWebauthnAbortSignal: s, nonce: d } = n, u = function(q, j) {
+  var t, { lang: e, prefilledEmail: o, prefilledUsername: i, globalOptions: r, createWebauthnAbortSignal: s, nonce: d } = n, u = function(j, q) {
     var xe = {};
-    for (var se in q) Object.prototype.hasOwnProperty.call(q, se) && j.indexOf(se) < 0 && (xe[se] = q[se]);
-    if (q != null && typeof Object.getOwnPropertySymbols == "function") {
+    for (var se in j) Object.prototype.hasOwnProperty.call(j, se) && q.indexOf(se) < 0 && (xe[se] = j[se]);
+    if (j != null && typeof Object.getOwnPropertySymbols == "function") {
       var Ie = 0;
-      for (se = Object.getOwnPropertySymbols(q); Ie < se.length; Ie++) j.indexOf(se[Ie]) < 0 && Object.prototype.propertyIsEnumerable.call(q, se[Ie]) && (xe[se[Ie]] = q[se[Ie]]);
+      for (se = Object.getOwnPropertySymbols(j); Ie < se.length; Ie++) q.indexOf(se[Ie]) < 0 && Object.prototype.propertyIsEnumerable.call(j, se[Ie]) && (xe[se[Ie]] = j[se[Ie]]);
     }
     return xe;
   }(n, ["lang", "prefilledEmail", "prefilledUsername", "globalOptions", "createWebauthnAbortSignal", "nonce"]);
   const { hanko: c, injectStyles: l, hidePasskeyButtonOnLogin: m, translations: v, translationsLocation: g, fallbackLanguage: k } = r;
   c.setLang((e == null ? void 0 : e.toString()) || k);
-  const C = (0, f.useRef)(null), x = (0, f.useMemo)(() => `${r.storageKey}_last_login`, [r.storageKey]), [$, K] = (0, f.useState)(u.componentName), [w, E] = (0, f.useState)((t = u.mode) !== null && t !== void 0 ? t : "login"), I = (0, f.useRef)(!1), [M, z] = (0, f.useState)(!1), F = (0, f.useMemo)(() => ({ auth: w, login: "login", registration: "registration", profile: "profile", events: null }), [w]), V = (0, f.useMemo)(() => a(yr, {}), []), [X, N] = (0, f.useState)(V), [, fe] = (0, f.useState)(c), [_e, ue] = (0, f.useState)(), [le, re] = (0, f.useState)({ email: o, username: i }), ye = function(q, j) {
+  const C = (0, f.useRef)(null), x = (0, f.useMemo)(() => `${r.storageKey}_last_login`, [r.storageKey]), [$, K] = (0, f.useState)(u.componentName), [w, E] = (0, f.useState)((t = u.mode) !== null && t !== void 0 ? t : "login"), I = (0, f.useRef)(!1), [M, z] = (0, f.useState)(!1), F = (0, f.useMemo)(() => ({ auth: w, login: "login", registration: "registration", profile: "profile", events: null }), [w]), V = (0, f.useMemo)(() => a(yr, {}), []), [X, N] = (0, f.useState)(V), [, fe] = (0, f.useState)(c), [_e, ue] = (0, f.useState)(), [le, re] = (0, f.useState)({ email: o, username: i }), ye = function(j, q) {
     var xe;
-    (xe = C.current) === null || xe === void 0 || xe.dispatchEvent(new CustomEvent(q, { detail: j, bubbles: !1, composed: !0 }));
-  }, Ne = (0, f.useCallback)((q) => F[$] == q.flowName, [F, $, w]), ot = (q) => {
-    N(a(Yo, { error: q instanceof ut ? q : new Ke(q) }));
+    (xe = C.current) === null || xe === void 0 || xe.dispatchEvent(new CustomEvent(j, { detail: q, bubbles: !1, composed: !0 }));
+  }, Ne = (0, f.useCallback)((j) => F[$] == j.flowName, [F, $, w]), ot = (j) => {
+    N(a(Yo, { error: j instanceof ut ? j : new Ke(j) }));
   };
-  (0, f.useMemo)(() => c.onBeforeStateChange(({ state: q }) => {
-    Ne(q) && re((j) => Object.assign(Object.assign({}, j), { isDisabled: !0, error: void 0 }));
+  (0, f.useMemo)(() => c.onBeforeStateChange(({ state: j }) => {
+    Ne(j) && re((q) => Object.assign(Object.assign({}, q), { isDisabled: !0, error: void 0 }));
   }), [c, Ne]), (0, f.useEffect)(() => {
-    re((q) => Object.assign(Object.assign(Object.assign({}, q), o && { email: o }), i && { username: i }));
-  }, [o, i]), (0, f.useEffect)(() => c.onAfterStateChange((q) => ti(void 0, [q], void 0, function* ({ state: j }) {
+    re((j) => Object.assign(Object.assign(Object.assign({}, j), o && { email: o }), i && { username: i }));
+  }, [o, i]), (0, f.useEffect)(() => c.onAfterStateChange((j) => ti(void 0, [j], void 0, function* ({ state: q }) {
     var xe;
-    if (Ne(j)) switch (["onboarding_verify_passkey_attestation", "webauthn_credential_verification", "login_passkey", "thirdparty"].includes(j.name) || re((se) => Object.assign(Object.assign({}, se), { isDisabled: !1 })), j.name) {
+    if (Ne(q)) switch (["onboarding_verify_passkey_attestation", "webauthn_credential_verification", "login_passkey", "thirdparty"].includes(q.name) || re((se) => Object.assign(Object.assign({}, se), { isDisabled: !1 })), q.name) {
       case "login_init":
-        N(a(br, { state: j })), j.passkeyAutofillActivation();
+        N(a(br, { state: q })), q.passkeyAutofillActivation();
         break;
       case "passcode_confirmation":
-        N(a(kr, { state: j }));
+        N(a(kr, { state: q }));
         break;
       case "login_otp":
-        N(a(Fr, { state: j }));
+        N(a(Fr, { state: q }));
         break;
       case "onboarding_create_passkey":
-        N(a(Sr, { state: j }));
+        N(a(Sr, { state: q }));
         break;
       case "login_password":
-        N(a(Cr, { state: j }));
+        N(a(Cr, { state: q }));
         break;
       case "login_password_recovery":
-        N(a(xr, { state: j }));
+        N(a(xr, { state: q }));
         break;
       case "login_security_key":
-        N(a(Kr, { state: j }));
+        N(a(Kr, { state: q }));
         break;
       case "mfa_method_chooser":
-        N(a(Wr, { state: j }));
+        N(a(Wr, { state: q }));
         break;
       case "mfa_otp_secret_creation":
-        N(a(Jr, { state: j }));
+        N(a(Jr, { state: q }));
         break;
       case "mfa_security_key_creation":
-        N(a(Yr, { state: j }));
+        N(a(Yr, { state: q }));
         break;
       case "login_method_chooser":
-        N(a(Ar, { state: j }));
+        N(a(Ar, { state: q }));
         break;
       case "registration_init":
-        N(a(Pr, { state: j }));
+        N(a(Pr, { state: q }));
         break;
       case "password_creation":
-        N(a(Er, { state: j }));
+        N(a(Er, { state: q }));
         break;
       case "success":
-        !((xe = j.payload) === null || xe === void 0) && xe.last_login && localStorage.setItem(x, JSON.stringify(j.payload.last_login)), j.autoStep();
+        !((xe = q.payload) === null || xe === void 0) && xe.last_login && localStorage.setItem(x, JSON.stringify(q.payload.last_login)), q.autoStep();
         break;
       case "profile_init":
-        N(a(zr, { state: j, enablePasskeys: r.enablePasskeys }));
+        N(a(zr, { state: q, enablePasskeys: r.enablePasskeys }));
         break;
       case "error":
-        N(a(Yo, { state: j }));
+        N(a(Yo, { state: q }));
         break;
       case "onboarding_email":
-        N(a(jr, { state: j }));
+        N(a(qr, { state: q }));
         break;
       case "onboarding_username":
-        N(a(qr, { state: j }));
+        N(a(jr, { state: q }));
         break;
       case "credential_onboarding_chooser":
-        N(a(Hr, { state: j }));
+        N(a(Hr, { state: q }));
         break;
       case "device_trust":
-        N(a(Qr, { state: j }));
+        N(a(Qr, { state: q }));
     }
   })), [$, F]);
-  const it = (0, f.useCallback)((q) => ti(void 0, void 0, void 0, function* () {
+  const it = (0, f.useCallback)((j) => ti(void 0, void 0, void 0, function* () {
     re((se) => Object.assign(Object.assign({}, se), { isDisabled: !0 }));
-    const j = localStorage.getItem(x);
-    j && ue(JSON.parse(j));
+    const q = localStorage.getItem(x);
+    q && ue(JSON.parse(q));
     const xe = { excludeAutoSteps: ["success"], cacheKey: "hanko-auth-flow-state", dispatchAfterStateChangeEvent: !1 };
     if (new URLSearchParams(window.location.search).get("saml_hint") === "idp_initiated") E("token_exchange"), yield c.createState("token_exchange", Object.assign(Object.assign({}, xe), { dispatchAfterStateChangeEvent: !0 }));
     else {
-      const se = yield c.createState(q, xe);
+      const se = yield c.createState(j, xe);
       E(se.flowName), setTimeout(() => se.dispatchAfterStateChangeEvent(), 500);
     }
-  }), []), A = (0, f.useCallback)((q) => {
-    K(q);
-    const j = F[q];
-    j && it(j).catch(ot);
+  }), []), A = (0, f.useCallback)((j) => {
+    K(j);
+    const q = F[j];
+    q && it(q).catch(ot);
   }, [F]);
   (0, f.useEffect)(() => {
     if (!I.current) {
-      const q = setTimeout(() => {
-        var j;
-        E((j = u.mode) !== null && j !== void 0 ? j : "login"), z(!0);
+      const j = setTimeout(() => {
+        var q;
+        E((q = u.mode) !== null && q !== void 0 ? q : "login"), z(!0);
       }, 0);
-      return () => clearTimeout(q);
+      return () => clearTimeout(j);
     }
   }, [u.mode]), (0, f.useEffect)(() => {
     M && !I.current && (I.current = !0, A($));
   }, [M, w, $, A]), (0, f.useEffect)(() => {
     c.onUserDeleted(() => {
       ye("onUserDeleted");
-    }), c.onSessionCreated((q) => {
-      ye("onSessionCreated", q);
+    }), c.onSessionCreated((j) => {
+      ye("onSessionCreated", j);
     }), c.onSessionExpired(() => {
       ye("onSessionExpired");
     }), c.onUserLoggedOut(() => {
       ye("onUserLoggedOut");
-    }), c.onBeforeStateChange((q) => {
-      ye("onBeforeStateChange", q);
-    }), c.onAfterStateChange((q) => {
-      ye("onAfterStateChange", q);
+    }), c.onBeforeStateChange((j) => {
+      ye("onBeforeStateChange", j);
+    }), c.onAfterStateChange((j) => {
+      ye("onAfterStateChange", j);
     });
   }, [c]), (0, f.useMemo)(() => {
-    const q = () => {
+    const j = () => {
       A($);
     };
-    ["auth", "login", "registration"].includes($) ? (c.onUserLoggedOut(q), c.onSessionExpired(q), c.onUserDeleted(q)) : $ === "profile" && c.onSessionCreated(q);
+    ["auth", "login", "registration"].includes($) ? (c.onUserLoggedOut(j), c.onSessionExpired(j), c.onUserDeleted(j)) : $ === "profile" && c.onSessionCreated(j);
   }, [$, c, A]);
   const O = De.Provider, D = J.TranslateProvider, Z = er;
   return a(O, { value: { init: A, initialComponentName: u.componentName, setUIState: re, uiState: le, hanko: c, setHanko: fe, lang: (e == null ? void 0 : e.toString()) || k, prefilledEmail: o, prefilledUsername: i, componentName: $, setComponentName: K, hidePasskeyButtonOnLogin: m, page: X, setPage: N, lastLogin: _e, isOwnFlow: Ne }, children: a(D, { translations: v, fallbackLang: k, root: g, children: a(Z, { ref: C, children: $ !== "events" ? a(b.Fragment, { children: [l ? a("style", { nonce: d || void 0, dangerouslySetInnerHTML: { __html: window._hankoStyle.innerHTML } }) : null, X] }) : null }) }) });
 }, Xr = { en: ee(6).en };
-var qi = function(n, t, e, o) {
+var ji = function(n, t, e, o) {
   return new (e || (e = Promise))(function(i, r) {
     function s(c) {
       try {
@@ -3699,7 +3699,7 @@ const Be = {}, Bt = (n, t) => {
   return a(Gr, Object.assign({ componentName: n, globalOptions: Be, createWebauthnAbortSignal: as }, t, { nonce: o }));
 }, es = (n) => Bt("auth", n), ts = (n) => Bt("login", n), ns = (n) => Bt("registration", n), os = (n) => Bt("profile", n), is = (n) => Bt("events", n);
 let nn = new AbortController();
-const as = () => (nn && nn.abort(), nn = new AbortController(), nn.signal), Lt = (n) => qi(void 0, [n], void 0, function* ({ tagName: t, entryComponent: e, shadow: o = !0, observedAttributes: i }) {
+const as = () => (nn && nn.abort(), nn = new AbortController(), nn.signal), Lt = (n) => ji(void 0, [n], void 0, function* ({ tagName: t, entryComponent: e, shadow: o = !0, observedAttributes: i }) {
   customElements.get(t) || function(r, s, d, u) {
     function c() {
       var l = Reflect.construct(HTMLElement, [], c);
@@ -3716,7 +3716,7 @@ const as = () => (nn && nn.abort(), nn = new AbortController(), nn.signal), Lt =
       } });
     }), customElements.define(s || r.tagName || r.displayName || r.name, c);
   }(e, t, i, { shadow: o });
-}), Hi = (n, ...t) => qi(void 0, [n, ...t], void 0, function* (e, o = {}) {
+}), Hi = (n, ...t) => ji(void 0, [n, ...t], void 0, function* (e, o = {}) {
   const i = ["api", "lang", "prefilled-email", "entry", "mode"];
   return o = Object.assign({ shadow: !0, injectStyles: !0, enablePasskeys: !0, hidePasskeyButtonOnLogin: !1, translations: null, translationsLocation: "/i18n", fallbackLanguage: "en", storageKey: "hanko", sessionCheckInterval: 3e4 }, o), Be.hanko = new Ni(e, { cookieName: o.storageKey, cookieDomain: o.cookieDomain, cookieSameSite: o.cookieSameSite, localStorageKey: o.storageKey, sessionCheckInterval: o.sessionCheckInterval, sessionTokenLocation: o.sessionTokenLocation }), Be.injectStyles = o.injectStyles, Be.enablePasskeys = o.enablePasskeys, Be.hidePasskeyButtonOnLogin = o.hidePasskeyButtonOnLogin, Be.translations = o.translations || Xr, Be.translationsLocation = o.translationsLocation, Be.fallbackLanguage = o.fallbackLanguage, Be.storageKey = o.storageKey, yield Promise.all([Lt(Object.assign(Object.assign({}, o), { tagName: "hanko-auth", entryComponent: es, observedAttributes: i })), Lt(Object.assign(Object.assign({}, o), { tagName: "hanko-login", entryComponent: ts, observedAttributes: i })), Lt(Object.assign(Object.assign({}, o), { tagName: "hanko-registration", entryComponent: ns, observedAttributes: i })), Lt(Object.assign(Object.assign({}, o), { tagName: "hanko-profile", entryComponent: os, observedAttributes: i.filter((r) => ["api", "lang"].includes(r)) })), Lt(Object.assign(Object.assign({}, o), { tagName: "hanko-events", entryComponent: is, observedAttributes: [] }))]), { hanko: Be.hanko };
 }), rs = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -4285,9 +4285,9 @@ const ls = { headlines: { error: "Une erreur s'est produite", loginEmail: "Se co
     signUp: "Create an account"
   },
   labels: {
-    signUp: "Create an account",
+    signUp: "Sign up here",
     alreadyHaveAnAccount: "Already have a HOT account?",
-    signIn: "Sign in here"
+    dontHaveAnAccount: "Don't have a HOT account?"
   },
   texts: {
     enterPasscode: "Please enter below the passcode we’ve sent to your email address:"
@@ -4390,7 +4390,7 @@ const ls = { headlines: { error: "Une erreur s'est produite", loginEmail: "Se co
     signInPasskey: "Iniciar sesión con llave de acceso",
     registerAuthenticator: "Crear una llave de acceso",
     signIn: "Iniciar sesión",
-    signUp: "Crear cuenta",
+    signUp: "Regístrese aquí",
     sendNewPasscode: "Enviar nuevo código",
     passwordRetryAfter: "Reintentar en {passwordRetryAfter}",
     passcodeResendAfter: "Solicitar nuevo código en {passcodeResendAfter}",
@@ -4411,7 +4411,7 @@ const ls = { headlines: { error: "Une erreur s'est produite", loginEmail: "Se co
     emailOrUsername: "Correo o nombre de usuario",
     username: "Nombre de usuario",
     optional: "opcional",
-    dontHaveAnAccount: "¿No tiene una cuenta?",
+    dontHaveAnAccount: "¿No tiene una cuenta HOT?",
     alreadyHaveAnAccount: "¿Ya tiene una cuenta?",
     changeUsername: "Cambiar nombre de usuario",
     setUsername: "Establecer nombre de usuario",
@@ -4530,7 +4530,7 @@ const ls = { headlines: { error: "Une erreur s'est produite", loginEmail: "Se co
     signInPasskey: "Se connecter avec clé d'accès",
     registerAuthenticator: "Créer une clé d'accès",
     signIn: "Se connecter",
-    signUp: "Créer un compte",
+    signUp: "S'inscrire ici",
     sendNewPasscode: "Envoyer un nouveau code",
     passwordRetryAfter: "Réessayer dans {passwordRetryAfter}",
     passcodeResendAfter: "Demander un nouveau code dans {passcodeResendAfter}",
@@ -4551,7 +4551,7 @@ const ls = { headlines: { error: "Une erreur s'est produite", loginEmail: "Se co
     emailOrUsername: "E-mail ou nom d'utilisateur",
     username: "Nom d'utilisateur",
     optional: "optionnel",
-    dontHaveAnAccount: "Vous n'avez pas de compte ?",
+    dontHaveAnAccount: "Vous n'avez pas de compte HOT ?",
     alreadyHaveAnAccount: "Vous avez déjà un compte ?",
     changeUsername: "Changer le nom d'utilisateur",
     setUsername: "Définir le nom d'utilisateur",
@@ -4670,7 +4670,7 @@ const ls = { headlines: { error: "Une erreur s'est produite", loginEmail: "Se co
     signInPasskey: "Entrar com chave de acesso",
     registerAuthenticator: "Criar uma chave de acesso",
     signIn: "Entrar",
-    signUp: "Criar conta",
+    signUp: "Cadastre-se aqui",
     sendNewPasscode: "Enviar novo código",
     passwordRetryAfter: "Tentar novamente em {passwordRetryAfter}",
     passcodeResendAfter: "Solicitar novo código em {passcodeResendAfter}",
@@ -4691,7 +4691,7 @@ const ls = { headlines: { error: "Une erreur s'est produite", loginEmail: "Se co
     emailOrUsername: "E-mail ou nome de usuário",
     username: "Nome de usuário",
     optional: "opcional",
-    dontHaveAnAccount: "Não tem uma conta?",
+    dontHaveAnAccount: "Não tem uma conta HOT?",
     alreadyHaveAnAccount: "Já tem uma conta?",
     changeUsername: "Alterar nome de usuário",
     setUsername: "Definir nome de usuário",
@@ -4844,7 +4844,7 @@ const Y = {
   hankoReady: !1
   // used for translations
 }, si = (n) => `hanko-verified-${n}`, ci = (n) => `hanko-onboarding-${n}`;
-let oe = class extends jt {
+let oe = class extends qt {
   constructor() {
     super(), this.hankoUrlAttr = "", this.basePath = "", this.authPath = "/api/auth/osm", this.osmRequired = !1, this.osmScopes = "read_prefs", this.showProfile = !1, this.redirectAfterLogin = "", this.autoConnect = !1, this.verifySession = !1, this.redirectAfterLogout = "", this.displayNameAttr = "", this.mappingCheckUrl = "", this.appId = "", this.loginUrl = "", this.lang = "en", this.buttonVariant = "plain", this.buttonColor = "primary", this.display = "default", this.user = null, this.osmConnected = !1, this.osmData = null, this.osmLoading = !1, this.loading = !0, this.error = null, this.hankoReady = !1, this.profileDisplayName = "", this.profilePictureUrl = "", this.hasAppMapping = !1, this.userProfileLanguage = null, this.isOpen = !1, this.handleOutsideClick = (n) => {
       this.contains(n.target) || this.closeDropdown();
@@ -5236,7 +5236,7 @@ let oe = class extends jt {
     }
   }
   updated(n) {
-    super.updated(n), n.has("user") && this.user === null && this.showProfile && (this.log("User logged out, re-attaching event listeners..."), this._currentHankoAuthElement = null, this.setupEventListeners());
+    super.updated(n), (n.has("user") && this.user === null && this.showProfile || n.has("lang")) && (this._currentHankoAuthElement = null, this.setupEventListeners());
   }
   setupEventListeners() {
     this.updateComplete.then(() => {
@@ -5247,7 +5247,10 @@ let oe = class extends jt {
         const e = n.shadowRoot;
         if (e && !e.querySelector("#hot-hanko-overrides")) {
           const o = document.createElement("style");
-          o.id = "hot-hanko-overrides", o.textContent = ".hanko_lastUsed { margin-left: 8px; }", e.appendChild(o);
+          o.id = "hot-hanko-overrides", o.textContent = `
+            .hanko_lastUsed { margin-left: 8px; }
+            .hanko_form .hanko_li { min-width: 100%; }
+          `, e.appendChild(o);
         }
         this._setupSignUpSubtitleObserver(n), n.addEventListener("onSessionCreated", (o) => {
           var r, s;
@@ -5280,7 +5283,7 @@ let oe = class extends jt {
       if (s && s.textContent === c || !i) return;
       (k = this._hankoObserver) == null || k.disconnect(), s && s.remove();
       const l = document.createElement("p");
-      l.className = "hot-subtitle", l.textContent = c, l.style.cssText = "margin: -4px 0 16px; text-align: center; font-size: var(--hot-font-size-base, 16px); color: var(--hot-color-gray-600, #6b7280); font-weight: normal;", i.insertAdjacentElement("afterend", l), (C = this._hankoObserver) == null || C.observe(o, { childList: !0, subtree: !0 });
+      l.className = "hot-subtitle", l.textContent = c, l.style.cssText = "margin: -4px 0 16px; text-align: center; font-size: var(--hot-font-size-large); color: var(--hot-color-gray-600, #6b7280); font-weight: normal;", i.insertAdjacentElement("afterend", l), (C = this._hankoObserver) == null || C.observe(o, { childList: !0, subtree: !0 });
     };
     this._hankoObserver && this._hankoObserver.disconnect();
     const e = n.shadowRoot;
@@ -5808,40 +5811,40 @@ ae([
   Pe({ type: String, reflect: !0 })
 ], oe.prototype, "display", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "user", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "osmConnected", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "osmData", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "osmLoading", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "loading", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "error", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "hankoReady", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "profileDisplayName", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "profilePictureUrl", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "hasAppMapping", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "userProfileLanguage", 2);
 ae([
-  qe()
+  je()
 ], oe.prototype, "isOpen", 2);
 oe = ae([
   ua("hotosm-auth")

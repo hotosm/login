@@ -9,9 +9,9 @@ export const enOverrides = {
     signUp: "Create an account",
   },
   labels: {
-    signUp: "Create an account",
+    signUp: "Sign up here",
     alreadyHaveAnAccount: "Already have a HOT account?",
-    signIn: "Sign in here",
+    dontHaveAnAccount: "Don't have a HOT account?",
   },
   texts: {
     enterPasscode:

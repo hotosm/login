@@ -921,14 +921,10 @@ export class HankoAuth extends LitElement {
 
   updated(changedProperties: Map<string, any>) {
     super.updated(changedProperties);
-    // Re-attach event listeners when user becomes null (after logout)
-    // because a new <hanko-auth> element is created
     if (
-      changedProperties.has("user") &&
-      this.user === null &&
-      this.showProfile
+      (changedProperties.has("user") && this.user === null && this.showProfile) ||
+      changedProperties.has("lang")
     ) {
-      this.log("User logged out, re-attaching event listeners...");
       this._currentHankoAuthElement = null;
       this.setupEventListeners();
     }
@@ -948,7 +944,10 @@ export class HankoAuth extends LitElement {
         if (hankoShadow && !hankoShadow.querySelector("#hot-hanko-overrides")) {
           const style = document.createElement("style");
           style.id = "hot-hanko-overrides";
-          style.textContent = `.hanko_lastUsed { margin-left: 8px; }`;
+          style.textContent = `
+            .hanko_lastUsed { margin-left: 8px; }
+            .hanko_form .hanko_li { min-width: 100%; }
+          `;
           hankoShadow.appendChild(style);
         }
 
@@ -1011,7 +1010,7 @@ export class HankoAuth extends LitElement {
       subtitle.className = "hot-subtitle";
       subtitle.textContent = subtitleText;
       subtitle.style.cssText =
-        "margin: -4px 0 16px; text-align: center; font-size: var(--hot-font-size-base, 16px); color: var(--hot-color-gray-600, #6b7280); font-weight: normal;";
+        "margin: -4px 0 16px; text-align: center; font-size: var(--hot-font-size-large); color: var(--hot-color-gray-600, #6b7280); font-weight: normal;";
 
       h1.insertAdjacentElement("afterend", subtitle);
 

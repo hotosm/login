@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.2] - 2026-03-???
+## [0.5.2] - 2026-03-9
 
 ### Added
 
@@ -9,6 +9,7 @@
 ### Fixed
 
 - New translations overwrites beacuase of new Hanko Elemts 2.5.0v keys
+- Fix texts
 
 ## [0.5.1] - 2026-03-06
 
