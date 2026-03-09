@@ -6,6 +6,10 @@
 
 - Separate "Last used" text in Sing in with Google button.
 
+### Fixed
+
+- New translations overwrites beacuase of new Hanko Elemts 2.5.0v keys
+
 ## [0.5.1] - 2026-03-06
 
 ### Added
