@@ -12,8 +12,8 @@ importers:
         specifier: 0.5.1
         version: 0.5.1
       '@teamhanko/hanko-elements':
-        specifier: ^2.2.0
-        version: 2.2.0
+        specifier: ^2.5.0
+        version: 2.5.0
       react:
         specifier: ^19.2.0
         version: 19.2.0
@@ -202,11 +202,6 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
-
-  '@denysvuika/preact-translate@0.5.1':
-    resolution: {integrity: sha512-qqKkpjzR8E55nlLA+H3gP9Q99mCCWiTtRupVQBh8YRZljX+Q8YbsaJtV3F+TX4DR4lV8NLgvv2+sSUcHoWvNtQ==}
-    peerDependencies:
-      preact: '>=10.13.0'
 
   '@denysvuika/preact-translate@0.6.0':
     resolution: {integrity: sha512-LPzcbCc9PD+HghgZe4rjWB3wQm05ibQ37Zvh0K8MwIwbPtMZIz9iBe9+9z9uu8yVFNiuswABvUZKaNrDngqmPw==}
@@ -662,14 +657,8 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.2.0'
 
-  '@teamhanko/hanko-elements@2.2.0':
-    resolution: {integrity: sha512-v9LGEsDRssazwqYb6FMPPxCVtxea+NStm8Q41vwUMoVzKVkN4Je4tJY7NkdJH8Cql7HnsTXD/ITftXqTJnH+MQ==}
-
   '@teamhanko/hanko-elements@2.5.0':
     resolution: {integrity: sha512-lWh9kWp5+ANIjRdxC/ZbNfLHp42GR6zi6wJol0eyLmlMq2yiWyzdXA2MSEh30KtT256qHRhvu+phYx8UFtpO4A==}
-
-  '@teamhanko/hanko-frontend-sdk@2.2.0':
-    resolution: {integrity: sha512-j3xy45yv4rEff54/vGY4SV3A6nktLjcGSJ0w+8rbusC2l+gIM3HlWYu9qz+aZlJVQkESKNhnYOVjHRD2NJ5VXA==}
 
   '@teamhanko/hanko-frontend-sdk@2.5.0':
     resolution: {integrity: sha512-JFgQa/FDZZsRPQ4qVKpFWfSbtsiaOtePITXpnQdK8XngKNU+bLnf/9J+TWq1cOADZHdDD2r/dDWdngku7t2JKw==}
@@ -1106,9 +1095,6 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  preact@10.27.2:
-    resolution: {integrity: sha512-5SYSgFKSyhCbk6SrXyMpqjb5+MQBgfvEKE/OC+PujcY34sOpqtr+0AZQtPYx5IA6VxynQ7rUPCtKzyovpj9Bpg==}
-
   preact@10.28.4:
     resolution: {integrity: sha512-uKFfOHWuSNpRFVTnljsCluEFq57OKT+0QdOiQo8XWnQ/pSvg7OpX5eNOejELXJMWy+BwM2nobz0FkvzmnpCNsQ==}
 
@@ -1527,10 +1513,6 @@ snapshots:
   '@biomejs/cli-win32-x64@1.9.4':
     optional: true
 
-  '@denysvuika/preact-translate@0.5.1(preact@10.27.2)':
-    dependencies:
-      preact: 10.27.2
-
   '@denysvuika/preact-translate@0.6.0(preact@10.28.4)':
     dependencies:
       preact: 10.28.4
@@ -1796,14 +1778,6 @@ snapshots:
     dependencies:
       tailwindcss: 3.4.19
 
-  '@teamhanko/hanko-elements@2.2.0':
-    dependencies:
-      '@denysvuika/preact-translate': 0.5.1(preact@10.27.2)
-      '@teamhanko/hanko-frontend-sdk': 2.2.0
-      '@teamhanko/preact-custom-element': 4.2.2(preact@10.27.2)
-      classnames: 2.5.1
-      preact: 10.27.2
-
   '@teamhanko/hanko-elements@2.5.0':
     dependencies:
       '@denysvuika/preact-translate': 0.6.0(preact@10.28.4)
@@ -1812,17 +1786,9 @@ snapshots:
       classnames: 2.5.1
       preact: 10.28.4
 
-  '@teamhanko/hanko-frontend-sdk@2.2.0':
-    dependencies:
-      '@types/js-cookie': 3.0.6
-
   '@teamhanko/hanko-frontend-sdk@2.5.0':
     dependencies:
       '@types/js-cookie': 3.0.6
-
-  '@teamhanko/preact-custom-element@4.2.2(preact@10.27.2)':
-    dependencies:
-      preact: 10.27.2
 
   '@teamhanko/preact-custom-element@4.2.2(preact@10.28.4)':
     dependencies:
@@ -2254,8 +2220,6 @@ snapshots:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
-
-  preact@10.27.2: {}
 
   preact@10.28.4: {}
 
