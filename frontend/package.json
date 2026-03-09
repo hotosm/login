@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@hotosm/hanko-auth": "0.5.1",
+    "@hotosm/tool-menu": "0.2.6",
     "@teamhanko/hanko-elements": "^2.5.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

@@ -19,6 +19,13 @@ declare module 'react' {
         },
         HTMLElement
       >;
+      'hotosm-tool-menu': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          lang?: string;
+          'show-logos'?: boolean;
+        },
+        HTMLElement
+      >;
     }
   }
 }

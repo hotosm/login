@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { validateReturnTo } from "../utils/validateReturnTo";
+import "@hotosm/tool-menu";
 import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
@@ -211,14 +212,17 @@ function ProfilePage() {
             <div className="flex items-center gap-4">
               <img src={hotLogo} alt="HOT" className="h-10" />
             </div>
-            {backInfo && (
-              <button
-                onClick={() => window.location.href = backInfo.url}
-                className="text-hot-gray-1000 hover:text-hot-gray-900 text-sm transition-colors"
-              >
-                ← {backInfo.label}
-              </button>
-            )}
+            <div className="flex items-center gap-4">
+              {backInfo && (
+                <button
+                  onClick={() => (window.location.href = backInfo.url)}
+                  className="text-hot-gray-1000 hover:text-hot-gray-900 text-sm transition-colors"
+                >
+                  {t("goBack")}
+                </button>
+              )}
+              <hotosm-tool-menu lang={language} />
+            </div>
           </div>
         </div>
 
