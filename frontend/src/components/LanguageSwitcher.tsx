@@ -7,12 +7,12 @@ function LanguageSwitcher() {
 
   return (
     <div className="flex justify-end mb-4">
-      <div className="flex items-center gap-1.5 rounded-md px-2 py-1">
-        <img src={translateIcon} alt="Language" className="w-4 h-4" />
+      <div className="relative flex items-center gap-1.5 rounded-md px-2 py-1">
+        <img src={translateIcon} alt="Language" className="w-4 h-4 pointer-events-none" />
         <select
           value={currentLanguage}
           onChange={(e) => setLanguage(e.target.value)}
-          className="text-sm text-hot-gray-700 bg-transparent cursor-pointer focus:outline-none"
+          className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
         >
           {LANGUAGES.map((lang) => (
             <option key={lang.code} value={lang.code}>

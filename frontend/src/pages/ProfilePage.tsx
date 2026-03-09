@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Hanko } from "@teamhanko/hanko-elements";
 import { validateReturnTo } from "../utils/validateReturnTo";
 import "@hotosm/tool-menu";
 import hotLogo from "../assets/images/hot-logo.svg";
@@ -36,6 +37,7 @@ function ProfilePage() {
   const [language, setLanguage] = useState("en");
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
+  const hankoUrl = import.meta.env.VITE_HANKO_URL || "";
 
   // Get return URL from query params (passed by web component)
   const urlParams = new URLSearchParams(window.location.search);
@@ -352,13 +354,24 @@ function ProfilePage() {
             )}
 
             {/* Submit button */}
-            <div className="pt-4">
+            <div className="pt-4 flex flex-col gap-2">
               <button
                 type="submit"
                 disabled={saving}
                 className="w-full btn-primary-hot disabled:opacity-50"
               >
                 {saving ? t("saving") : t("saveChanges")}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const hanko = new Hanko(hankoUrl);
+                  await hanko.logout();
+                  window.location.href = returnTo || "/app";
+                }}
+                className="w-full btn-secondary-hot"
+              >
+                {t("logOut")}
               </button>
             </div>
           </form>

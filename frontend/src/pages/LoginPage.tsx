@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
 import { validateReturnTo } from "../utils/validateReturnTo";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 type OnboardingStep = "question" | "osm_connect" | "redirecting";
 
@@ -200,7 +201,7 @@ function LoginPage() {
 
       <div className="w-full max-w-md">
         <div className="bg-white rounded-xl shadow-xl px-2 xl:px-8 py-8">
-          {/* <LanguageSwitcher /> */}
+          <LanguageSwitcher />
           <div className="text-center mb-8">
             <img
               src={hotLogo}
@@ -223,7 +224,9 @@ function LoginPage() {
                   {t("didYouHaveAccount")}
                 </p>
                 <p className="text-center text-sm text-hot-gray-600">
-                  {t("ifPreviouslyUsed")} {appDisplayUrl} {t("recoverData")}
+                  {t("ifPreviouslyUsed")}{" "}
+                  <span className="font-bold">{appDisplayUrl}</span>{" "}
+                  {t("recoverData")}
                 </p>
               </div>
 

@@ -32,6 +32,7 @@ export interface Translations {
   connectedToOsm: string;
   saveChanges: string;
   saving: string;
+  logOut: string;
   security: string;
   managePasswordPasskeys: string;
   dangerZone: string;
@@ -74,6 +75,7 @@ export const translations: Record<string, Translations> = {
     connectedToOsm: "Connected to OpenStreetMap",
     saveChanges: "Save Changes",
     saving: "Saving...",
+    logOut: "Log out",
     security: "Security",
     managePasswordPasskeys:
       "Manage your password, passkeys, and active sessions.",
@@ -116,6 +118,7 @@ export const translations: Record<string, Translations> = {
     connectedToOsm: "Conectado a OpenStreetMap",
     saveChanges: "Guardar Cambios",
     saving: "Guardando...",
+    logOut: "Cerrar sesión",
     security: "Seguridad",
     managePasswordPasskeys:
       "Administra tu contraseña, passkeys y sesiones activas.",
@@ -157,6 +160,7 @@ export const translations: Record<string, Translations> = {
     connectedToOsm: "Connecté à OpenStreetMap",
     saveChanges: "Enregistrer les Modifications",
     saving: "Enregistrement...",
+    logOut: "Se déconnecter",
     security: "Sécurité",
     managePasswordPasskeys:
       "Gérez votre mot de passe, passkeys et sessions actives.",
@@ -198,6 +202,7 @@ export const translations: Record<string, Translations> = {
     connectedToOsm: "Conectado ao OpenStreetMap",
     saveChanges: "Salvar Alterações",
     saving: "Salvando...",
+    logOut: "Sair",
     security: "Segurança",
     managePasswordPasskeys: "Gerencie sua senha, passkeys e sessões ativas.",
     dangerZone: "Zona de Perigo",
