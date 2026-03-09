@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.2] - 2026-03-???
+
+### Added
+
+- Separate "Last used" text in Sing in with Google button.
+
 ## [0.5.1] - 2026-03-06
 
 ### Added

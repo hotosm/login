@@ -935,19 +935,23 @@ export class HankoAuth extends LitElement {
   }
 
   private setupEventListeners() {
-    // Use updateComplete to ensure DOM is ready
     this.updateComplete.then(() => {
       const hankoAuth = this.shadowRoot?.querySelector("hanko-auth");
 
-      // Skip if already attached to the same element
       if (hankoAuth && hankoAuth === this._currentHankoAuthElement) {
-        this.log("Event listeners already attached to this element");
         return;
       }
-
+      // no exports available for adding css, so injecting it
       if (hankoAuth) {
         this._currentHankoAuthElement = hankoAuth;
-        this.log("Attaching event listeners to hanko-auth element");
+        const hankoShadow = (hankoAuth as HTMLElement & { shadowRoot: ShadowRoot | null }).shadowRoot;
+        if (hankoShadow && !hankoShadow.querySelector("#hot-hanko-overrides")) {
+          const style = document.createElement("style");
+          style.id = "hot-hanko-overrides";
+          style.textContent = `.hanko_lastUsed { margin-left: 8px; }`;
+          hankoShadow.appendChild(style);
+        }
+
         this._setupSignUpSubtitleObserver(hankoAuth);
 
         hankoAuth.addEventListener("onSessionCreated", (e: any) => {
@@ -969,7 +973,7 @@ export class HankoAuth extends LitElement {
       }
     });
   }
-
+// subtitle handling
   private _setupSignUpSubtitleObserver(hankoAuth: Element) {
     const injectSubtitle = () => {
       const hankoShadow = (hankoAuth as HTMLElement & { shadowRoot: ShadowRoot | null }).shadowRoot;
@@ -978,13 +982,11 @@ export class HankoAuth extends LitElement {
       const h1 = hankoShadow.querySelector<HTMLElement>("h1[part='headline1']");
       const headlineText = h1?.textContent?.trim() ?? "";
 
-      // Remove any existing subtitle first
       const existing = hankoShadow.querySelector(".hot-subtitle");
 
       const isSignUp = this._signUpHeadlines.has(headlineText);
       const isLogin = this._loginHeadlines.has(headlineText);
 
-      // Only show subtitle on the two initial screens
       if (!isSignUp && !isLogin) {
         if (existing) {
           this._hankoObserver?.disconnect();
@@ -998,11 +1000,9 @@ export class HankoAuth extends LitElement {
         ? this.t("signUpSubtitle")
         : this.t("loginSubtitle");
 
-      // Skip if subtitle already has correct text
       if (existing && existing.textContent === subtitleText) return;
       if (!h1) return;
 
-      // Disconnect before modifying DOM to avoid re-triggering the observer
       this._hankoObserver?.disconnect();
 
       if (existing) existing.remove();
@@ -1015,7 +1015,6 @@ export class HankoAuth extends LitElement {
 
       h1.insertAdjacentElement("afterend", subtitle);
 
-      // Re-observe after injection
       this._hankoObserver?.observe(hankoShadow, { childList: true, subtree: true });
     };
 
