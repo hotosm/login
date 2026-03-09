@@ -266,13 +266,6 @@ function LoginPage() {
                 lang={currentLanguage}
                 redirect-after-login={`${returnTo ? new URL(returnTo).origin : ""}/api/v1/auth/onboarding/`}
               />
-
-              <button
-                onClick={() => setOnboardingStep("question")}
-                className="btn-back mt-4"
-              >
-                {t("goBack")}
-              </button>
             </div>
           )}
 
