@@ -48,12 +48,13 @@ export const pt = {
     deleteSecurityKey: "Excluir chave de segurança",
     securityKeys: "Chaves de segurança",
     authenticatorApp: "Aplicativo de autenticação",
-    authenticatorAppAlreadySetUp: "O aplicativo de autenticação está configurado",
+    authenticatorAppAlreadySetUp:
+      "O aplicativo de autenticação está configurado",
     authenticatorAppNotSetUp: "Configurar aplicativo de autenticação",
     trustDevice: "Confiar neste navegador?",
   },
   texts: {
-    enterPasscode: 'Digite o código enviado para "{emailAddress}".',
+    enterPasscode: "Digite o código enviado para o seu endereço de e-mail:",
     enterPasscodeNoEmail:
       "Digite o código enviado para seu endereço de e-mail principal.",
     setupPasskey:
@@ -65,8 +66,7 @@ export const pt = {
     otpScanQRCode:
       "Digitalize o código QR usando seu aplicativo de autenticação (como Google Authenticator ou qualquer outro aplicativo TOTP). Alternativamente, você pode inserir manualmente a chave secreta OTP no aplicativo.",
     otpSecretKey: "Chave secreta OTP",
-    passwordFormatHint:
-      "Deve ter entre {minLength} e {maxLength} caracteres.",
+    passwordFormatHint: "Deve ter entre {minLength} e {maxLength} caracteres.",
     securityKeySetUp:
       "Use uma chave de segurança dedicada via USB, Bluetooth ou NFC, ou seu telefone celular. Conecte ou ative sua chave de segurança, depois clique no botão abaixo e siga as instruções para concluir o registro.",
     setPrimaryEmail:
@@ -119,7 +119,7 @@ export const pt = {
     signInPasskey: "Entrar com chave de acesso",
     registerAuthenticator: "Criar uma chave de acesso",
     signIn: "Entrar",
-    signUp: "Criar conta",
+    signUp: "Cadastre-se aqui",
     sendNewPasscode: "Enviar novo código",
     passwordRetryAfter: "Tentar novamente em {passwordRetryAfter}",
     passcodeResendAfter: "Solicitar novo código em {passcodeResendAfter}",
@@ -141,7 +141,7 @@ export const pt = {
     emailOrUsername: "E-mail ou nome de usuário",
     username: "Nome de usuário",
     optional: "opcional",
-    dontHaveAnAccount: "Não tem uma conta?",
+    dontHaveAnAccount: "Não tem uma conta HOT?",
     alreadyHaveAnAccount: "Já tem uma conta?",
     changeUsername: "Alterar nome de usuário",
     setUsername: "Definir nome de usuário",
@@ -172,8 +172,7 @@ export const pt = {
       "O código foi inserido incorretamente muitas vezes. Por favor, solicite um novo código.",
     tooManyRequests:
       "Muitas solicitações foram feitas. Por favor, aguarde antes de repetir a operação solicitada.",
-    unauthorized:
-      "Sua sessão expirou. Por favor, faça login novamente.",
+    unauthorized: "Sua sessão expirou. Por favor, faça login novamente.",
     invalidWebauthnCredential: "Esta chave de acesso não pode mais ser usada.",
     passcodeExpired: "O código expirou. Por favor, solicite um novo.",
     userVerification:
@@ -194,8 +193,7 @@ export const pt = {
   flowErrors: {
     technical_error:
       "Ocorreu um erro técnico. Por favor, tente novamente mais tarde.",
-    flow_expired_error:
-      "A sessão expirou, clique no botão para reiniciar.",
+    flow_expired_error: "A sessão expirou, clique no botão para reiniciar.",
     value_invalid_error: "O valor inserido não é válido.",
     passcode_invalid: "O código fornecido não está correto.",
     passkey_invalid: "Esta chave de acesso não pode mais ser usada.",
@@ -213,8 +211,7 @@ export const pt = {
     operation_not_permitted_error: "A operação não é permitida.",
     flow_discontinuity_error:
       "O processo não pode continuar devido à configuração do usuário ou do provedor.",
-    form_data_invalid_error:
-      "Os dados do formulário enviados contêm erros.",
+    form_data_invalid_error: "Os dados do formulário enviados contêm erros.",
     unauthorized: "Sua sessão expirou. Por favor, faça login novamente.",
     value_missing_error: "O valor está faltando.",
     value_too_long_error: "O valor é muito longo.",

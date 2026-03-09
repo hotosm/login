@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Hanko } from "@teamhanko/hanko-elements";
+import { validateReturnTo } from "../utils/validateReturnTo";
+import "@hotosm/tool-menu";
 import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
@@ -34,34 +37,55 @@ function ProfilePage() {
   const [language, setLanguage] = useState("en");
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
+  const hankoUrl = import.meta.env.VITE_HANKO_URL || "";
 
   // Get return URL from query params (passed by web component)
   const urlParams = new URLSearchParams(window.location.search);
-  const returnTo = urlParams.get("return_to");
+  const returnTo = validateReturnTo(urlParams.get("return_to"));
 
   // Determine back button text and destination
-  const getBackInfo = () => {
-    if (returnTo) {
-      try {
-        const url = new URL(returnTo);
-        // Extract app name from hostname (e.g., "fair" from "fair.hotosm.org")
-        const appName = url.hostname.split(".")[0];
-        // Capitalize first letter
-        const label = appName.charAt(0).toUpperCase() + appName.slice(1);
-        return { url: returnTo, label };
-      } catch {
-        // Invalid URL, fall back to Login
-      }
+  const backInfo = (() => {
+    if (!returnTo) return null;
+    try {
+      const url = new URL(returnTo);
+      const appName = url.hostname.split(".")[0];
+      const label = appName.charAt(0).toUpperCase() + appName.slice(1);
+      return { url: returnTo, label };
+    } catch {
+      return null;
     }
-    return { url: "/", label: "Login" };
-  };
-
-  const backInfo = getBackInfo();
+  })();
 
   // Fetch profile on mount
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  // Inject styles into hanko-profile
+  useEffect(() => {
+    if (loading) return;
+
+    const el = document.querySelector("hanko-profile");
+    if (
+      !el?.shadowRoot ||
+      el.shadowRoot.querySelector("#hot-profile-overrides")
+    )
+      return;
+
+    const style = document.createElement("style");
+    style.id = "hot-profile-overrides";
+    style.textContent = `
+      .hanko_label.hanko_dropdown .hanko_labelText {
+        margin-top: var(--hot-spacing-small);
+        text-decoration: underline;
+        transition: color 0.2s ease;
+      }
+      .hanko_label.hanko_dropdown:hover .hanko_labelText {
+        color: var(--hot-color-gray-1000);
+      }
+    `;
+    el.shadowRoot.appendChild(style);
+  }, [loading]);
 
   // Listen for account deletion event from Hanko
   useEffect(() => {
@@ -190,18 +214,17 @@ function ProfilePage() {
             <div className="flex items-center gap-4">
               <img src={hotLogo} alt="HOT" className="h-10" />
             </div>
-            <button
-              onClick={() => {
-                if (backInfo.url.startsWith("http")) {
-                  window.location.href = backInfo.url;
-                } else {
-                  navigate(backInfo.url);
-                }
-              }}
-              className="text-hot-gray-1000 hover:text-hot-gray-900 text-sm transition-colors"
-            >
-              ← {t("back")}
-            </button>
+            <div className="flex items-center gap-4">
+              {backInfo && (
+                <button
+                  onClick={() => (window.location.href = backInfo.url)}
+                  className="text-hot-gray-1000 hover:text-hot-gray-900 text-sm transition-colors"
+                >
+                  {t("goBack")}
+                </button>
+              )}
+              <hotosm-tool-menu lang={language} />
+            </div>
           </div>
         </div>
 
@@ -331,13 +354,24 @@ function ProfilePage() {
             )}
 
             {/* Submit button */}
-            <div className="pt-4">
+            <div className="pt-4 flex flex-col gap-2">
               <button
                 type="submit"
                 disabled={saving}
                 className="w-full btn-primary-hot disabled:opacity-50"
               >
                 {saving ? t("saving") : t("saveChanges")}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const hanko = new Hanko(hankoUrl);
+                  await hanko.logout();
+                  window.location.href = returnTo || "/app";
+                }}
+                className="w-full btn-secondary-hot"
+              >
+                {t("logOut")}
               </button>
             </div>
           </form>

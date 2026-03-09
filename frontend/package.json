@@ -12,8 +12,9 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@hotosm/hanko-auth": "^0.4.5",
-    "@teamhanko/hanko-elements": "^2.2.0",
+    "@hotosm/hanko-auth": "0.5.2",
+    "@hotosm/tool-menu": "0.2.6",
+    "@teamhanko/hanko-elements": "^2.5.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4"

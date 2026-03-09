@@ -1,38 +1,6 @@
-"""
-hotosm-auth: HOTOSM SSO Authentication Library
+"""Core HOTOSM authentication package shared by framework integrations."""
 
-This library provides authentication for HOTOSM applications using:
-- Hanko v2.1.0 for base SSO (Google, GitHub, Email/Password)
-- OpenStreetMap OAuth 2.0 for OSM authorization
-
-Core Package Structure:
-    - hotosm_auth: Core functionality (this package)
-    - hotosm_auth_fastapi: FastAPI integration
-    - hotosm_auth_django: Django integration
-
-Quick Start (FastAPI):
-    from hotosm_auth_fastapi import setup_auth, Auth
-
-    app = FastAPI()
-    setup_auth(app)
-
-    @app.get("/me")
-    async def me(auth: Auth):
-        return {"user": auth.user.email}
-
-Quick Start (Django):
-    # settings.py
-    MIDDLEWARE = ['hotosm_auth_django.HankoAuthMiddleware']
-
-    # views.py
-    from hotosm_auth_django import login_required
-
-    @login_required
-    def my_view(request):
-        return JsonResponse({"email": request.hotosm.user.email})
-"""
-
-__version__ = "0.2.0"
+__version__ = "0.2.10"
 
 # Core models and configuration
 from hotosm_auth.models import HankoUser, OSMConnection, OSMScope

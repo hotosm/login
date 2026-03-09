@@ -17,6 +17,8 @@ export interface Translations {
   openAccountMenu: string;
   connectedToOsmAs: string;
   osmConnectionRequired: string;
+  signUpSubtitle: string;
+  loginSubtitle: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -35,6 +37,8 @@ export const translations: Record<string, Translations> = {
     openAccountMenu: "Open account menu",
     connectedToOsmAs: "Connected to OSM as",
     osmConnectionRequired: "OSM connection required",
+    signUpSubtitle: "Access all HOT tools and services",
+    loginSubtitle: "With your HOT account",
   },
   es: {
     logIn: "Iniciar sesión",
@@ -51,6 +55,8 @@ export const translations: Record<string, Translations> = {
     openAccountMenu: "Abrir menú de cuenta",
     connectedToOsmAs: "Conectado a OSM como",
     osmConnectionRequired: "Se requiere conexión OSM",
+    signUpSubtitle: "Accede a todas las herramientas y servicios de HOT",
+    loginSubtitle: "Con tu cuenta HOT",
   },
   fr: {
     logIn: "Se connecter",
@@ -67,6 +73,8 @@ export const translations: Record<string, Translations> = {
     openAccountMenu: "Ouvrir le menu du compte",
     connectedToOsmAs: "Connecté à OSM en tant que",
     osmConnectionRequired: "Connexion OSM requise",
+    signUpSubtitle: "Accédez à tous les outils et services HOT",
+    loginSubtitle: "Avec votre compte HOT",
   },
   pt: {
     logIn: "Entrar",
@@ -83,5 +91,7 @@ export const translations: Record<string, Translations> = {
     openAccountMenu: "Abrir menu da conta",
     connectedToOsmAs: "Conectado ao OSM como",
     osmConnectionRequired: "Conexão OSM necessária",
+    signUpSubtitle: "Acesse todas as ferramentas e serviços HOT",
+    loginSubtitle: "Com a sua conta HOT",
   },
 };

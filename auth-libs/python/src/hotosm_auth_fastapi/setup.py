@@ -1,17 +1,4 @@
-"""
-Simplified setup API for FastAPI authentication.
-
-Usage:
-    from fastapi import FastAPI
-    from hotosm_auth_fastapi import setup_auth, Auth
-
-    app = FastAPI()
-    setup_auth(app)  # That's it!
-
-    @app.get("/api/me")
-    async def me(auth: Auth):
-        return {"user": auth.user.email, "osm": auth.osm.osm_username if auth.osm else None}
-"""
+"""FastAPI setup helpers and auth dependency aliases."""
 
 from typing import Optional, Annotated
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -31,14 +18,7 @@ logger = get_logger(__name__)
 
 
 class _AuthDep:
-    """
-    Internal dependency class for authentication.
-
-    Provides:
-    - auth.user: HankoUser (raises 401 if not authenticated)
-    - auth.osm: Optional[OSMConnection]
-    - auth.require_osm(): raises 403 if OSM not connected
-    """
+    """Auth dependency wrapper exposing ``user`` and optional ``osm``."""
 
     def __init__(
         self,
@@ -49,19 +29,7 @@ class _AuthDep:
         self.osm = osm
 
     def require_osm(self) -> OSMConnection:
-        """
-        Require OSM connection or raise 403.
-
-        Usage:
-            auth.require_osm()
-            osm_api.upload(auth.osm.access_token)
-
-        Raises:
-            HTTPException: 403 if OSM not connected
-
-        Returns:
-            OSMConnection: The OSM connection
-        """
+        """Require OSM connection or raise 403."""
         if not self.osm:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -84,29 +52,7 @@ def setup_auth(
     auto_osm_routes: bool = True,
     cors_origins: Optional[list[str]] = None,
 ) -> None:
-    """
-    Setup HOTOSM authentication in one line.
-
-    This function:
-    - Loads configuration from environment variables (if not provided)
-    - Initializes JWT validator and crypto
-    - Adds CORS middleware for cookie support
-    - Registers OSM OAuth routes (if OSM enabled)
-
-    Usage:
-        app = FastAPI()
-        setup_auth(app)  # Reads from .env
-
-    Or with custom config:
-        config = AuthConfig(hanko_api_url="...", ...)
-        setup_auth(app, config=config)
-
-    Args:
-        app: FastAPI application instance
-        config: Optional AuthConfig. If None, loads from environment variables.
-        auto_osm_routes: If True, automatically register OSM OAuth routes. Default: True.
-        cors_origins: List of CORS origins. If None, uses localhost defaults.
-    """
+    """Initialize auth, CORS, and optional OSM routes for a FastAPI app."""
     # Load config from environment if not provided
     if config is None:
         config = AuthConfig.from_env()

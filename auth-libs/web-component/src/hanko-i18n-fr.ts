@@ -48,12 +48,13 @@ export const fr = {
     deleteSecurityKey: "Supprimer la clé de sécurité",
     securityKeys: "Clés de sécurité",
     authenticatorApp: "Application d'authentification",
-    authenticatorAppAlreadySetUp: "L'application d'authentification est configurée",
+    authenticatorAppAlreadySetUp:
+      "L'application d'authentification est configurée",
     authenticatorAppNotSetUp: "Configurer l'application d'authentification",
     trustDevice: "Faire confiance à ce navigateur ?",
   },
   texts: {
-    enterPasscode: 'Entrez le code envoyé à "{emailAddress}".',
+    enterPasscode: "Entrez le code envoyé à votre adresse e-mail:",
     enterPasscodeNoEmail:
       "Entrez le code envoyé à votre adresse e-mail principale.",
     setupPasskey:
@@ -119,7 +120,7 @@ export const fr = {
     signInPasskey: "Se connecter avec clé d'accès",
     registerAuthenticator: "Créer une clé d'accès",
     signIn: "Se connecter",
-    signUp: "Créer un compte",
+    signUp: "S'inscrire ici",
     sendNewPasscode: "Envoyer un nouveau code",
     passwordRetryAfter: "Réessayer dans {passwordRetryAfter}",
     passcodeResendAfter: "Demander un nouveau code dans {passcodeResendAfter}",
@@ -141,7 +142,7 @@ export const fr = {
     emailOrUsername: "E-mail ou nom d'utilisateur",
     username: "Nom d'utilisateur",
     optional: "optionnel",
-    dontHaveAnAccount: "Vous n'avez pas de compte ?",
+    dontHaveAnAccount: "Vous n'avez pas de compte HOT ?",
     alreadyHaveAnAccount: "Vous avez déjà un compte ?",
     changeUsername: "Changer le nom d'utilisateur",
     setUsername: "Définir le nom d'utilisateur",
@@ -172,8 +173,7 @@ export const fr = {
       "Le code a été saisi incorrectement trop de fois. Veuillez demander un nouveau code.",
     tooManyRequests:
       "Trop de demandes ont été effectuées. Veuillez attendre avant de répéter l'opération demandée.",
-    unauthorized:
-      "Votre session a expiré. Veuillez vous reconnecter.",
+    unauthorized: "Votre session a expiré. Veuillez vous reconnecter.",
     invalidWebauthnCredential: "Cette clé d'accès ne peut plus être utilisée.",
     passcodeExpired: "Le code a expiré. Veuillez en demander un nouveau.",
     userVerification:

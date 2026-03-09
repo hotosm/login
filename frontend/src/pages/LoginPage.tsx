@@ -1,15 +1,27 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
+import { validateReturnTo } from "../utils/validateReturnTo";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 type OnboardingStep = "question" | "osm_connect" | "redirecting";
 
 const ONBOARDING_STEP_KEY = "hotosm_onboarding_step";
 
+const APP_DISPLAY_NAMES: Record<string, string> = {
+  fair: "fAIr",
+  umap: "uMap",
+  "drone-tm": "Drone Tasking Manager",
+  "osm-export-tool": "OSM Export Tool",
+  chatmap: "ChatMap",
+  "tasking-manager": "Tasking Manager",
+};
+
 function LoginPage() {
   const [searchParams] = useSearchParams();
   const { t, currentLanguage } = useLanguage();
+  const navigate = useNavigate();
 
   // Restore step from sessionStorage (survives OAuth redirects)
   const getInitialStep = (): OnboardingStep => {
@@ -36,7 +48,7 @@ function LoginPage() {
   // Get all search params
   const onboardingApp = searchParams.get("onboarding");
   const isOnboarding = !!onboardingApp;
-  const returnTo = searchParams.get("return_to");
+  const returnTo = validateReturnTo(searchParams.get("return_to"));
   const osmRequired = searchParams.get("osm_required") === "true";
   const autoConnect = searchParams.get("auto_connect") === "true";
   const errorMessage = searchParams.get("error");
@@ -100,6 +112,13 @@ function LoginPage() {
     }
   }, [isOnboarding]);
 
+  useEffect(() => {
+    if (returnTo || isOnboarding) return;
+    fetch("/api/profile/me", { credentials: "include" }).then((res) => {
+      if (res.ok) navigate("/profile");
+    });
+  }, []);
+
   // Listen for OSM connected event and redirect to onboarding
   useEffect(() => {
     if (!isOnboarding || onboardingStep !== "osm_connect") return;
@@ -152,9 +171,18 @@ function LoginPage() {
     }, 500);
   };
 
-  // Get app display name
   const appDisplayName =
-    onboardingApp === "fair" ? "fAIr" : onboardingApp || "the app";
+    (onboardingApp && APP_DISPLAY_NAMES[onboardingApp]) ||
+    onboardingApp ||
+    "the app";
+
+  const appDisplayUrl = (() => {
+    try {
+      return returnTo ? new URL(returnTo).hostname : "";
+    } catch {
+      return returnTo || "";
+    }
+  })();
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-hot-gray-50 p-4">
@@ -172,9 +200,8 @@ function LoginPage() {
       )}
 
       <div className="w-full max-w-md">
-        {/* Login Card */}
         <div className="bg-white rounded-xl shadow-xl px-2 xl:px-8 py-8">
-          {/* Logo */}
+          <LanguageSwitcher />
           <div className="text-center mb-8">
             <img
               src={hotLogo}
@@ -185,36 +212,40 @@ function LoginPage() {
 
           {/* Onboarding: Question step */}
           {isOnboarding && onboardingStep === "question" && (
-            <div className="max-w-[400px] mx-auto">
+            <div className="max-w-[360px] mx-auto flex flex-col items-center">
               <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold text-hot-gray-900 mb-2">
+                <h2 className="text-2xl font-semibold text-hot-gray-900 mb-2">
                   {t("welcomeTo")} {appDisplayName}!
                 </h2>
-                <p className="text-sm text-hot-gray-600">{t("needToSetup")}</p>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-6">
-                <p className="text-center text-hot-gray-900 font-medium mb-3">
-                  {t("didYouHaveAccount")} {appDisplayName} account?
+              <div className="bg-amber-50 border border-amber-200 p-5 mb-6">
+                <p className="text-center text-hot-gray-900 font-bold mb-3">
+                  {t("didYouHaveAccount")}
                 </p>
                 <p className="text-center text-sm text-hot-gray-600">
-                  {t("ifPreviouslyUsed")} {appDisplayName} with OpenStreetMap,
-                  we can recover your data.
+                  {t("ifPreviouslyUsed")}{" "}
+                  <span className="font-bold">{appDisplayUrl}</span>{" "}
+                  {t("recoverData")}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3">
-                <button onClick={handleLegacyUser} className="btn-primary-hot">
+              <div className="flex flex-col gap-3 items-center w-full">
+                <button
+                  onClick={handleLegacyUser}
+                  className="btn-secondary-hot"
+                >
                   {t("yesRecoverAccount")}
                 </button>
-                <button onClick={handleNewUser} className="btn-secondary-hot">
-                  {t("noImNew")}
+                <div className="flex items-center w-full gap-8">
+                  <div className="flex-1 border-t border-hot-gray-200" />
+                  <span className="text-base text-hot-gray-700">or</span>
+                  <div className="flex-1 border-t border-hot-gray-200" />
+                </div>
+                <button onClick={handleNewUser} className="btn-primary-hot">
+                  {t("continue")}
                 </button>
               </div>
-
-              <p className="mt-5 text-xs text-center text-hot-gray-400">
-                {t("notSure")}
-              </p>
             </div>
           )}
 
@@ -238,70 +269,30 @@ function LoginPage() {
                 lang={currentLanguage}
                 redirect-after-login={`${returnTo ? new URL(returnTo).origin : ""}/api/v1/auth/onboarding/`}
               />
-
-              <button
-                onClick={() => setOnboardingStep("question")}
-                className="btn-back mt-4"
-              >
-                {t("goBack")}
-              </button>
             </div>
           )}
 
           {/* Onboarding: Redirecting step */}
           {isOnboarding && onboardingStep === "redirecting" && (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-600 border-t-transparent mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-200 border-t-hot-red-600 mx-auto mb-4"></div>
               <p className="text-hot-gray-600">{t("settingUpAccount")}</p>
             </div>
           )}
 
-          {/* Normal login (not onboarding) */}
+          {/* this is never showned at the moment, redirecting to profile page */}
           {!isOnboarding && (
             <div className="max-w-[400px] mx-auto">
-              <div className="text-center px-5">
-                <p className="text-sm text-hot-gray-600">
-                  {t("accessAllTools")}
-                </p>
-              </div>
-
               <hotosm-auth
                 hanko-url={hankoBaseUrl}
                 show-profile={true}
                 lang={currentLanguage}
-                redirect-after-login={returnTo || undefined}
+                redirect-after-login={returnTo || "/app/profile"}
                 osm-required={osmRequired || undefined}
                 auto-connect={autoConnect || undefined}
               />
             </div>
           )}
-
-          {returnTo && !isOnboarding && (
-            <div className="mt-6 pt-6 border-t border-hot-gray-200 text-center">
-              <span>← </span>
-              <a
-                href={returnTo}
-                className="font-bold text-hot-gray-900 hover:underline inline-flex items-center gap-2 transition-colors "
-              >
-                {t("back")}
-              </a>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-xs text-hot-gray-500">
-          <p>
-            {t("poweredBy")}{" "}
-            <a
-              href="https://www.hotosm.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-hot-red-600 hover:text-hot-red-700 transition-colors"
-            >
-              Humanitarian OpenStreetMap Team
-            </a>
-          </p>
         </div>
       </div>
     </div>

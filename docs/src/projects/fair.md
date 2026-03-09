@@ -22,9 +22,12 @@ The `HankoUserFilterMixin` filters querysets by the mapped user.
 ```toml
 # backend/pyproject.toml
 dependencies = [
-    "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python",
+    "hotosm-auth[django]==0.2.9",
 ]
 ```
+
+> **Note:** También se puede usar la referencia git para una versión específica:
+> `"hotosm-auth[django] @ git+https://github.com/hotosm/login.git@v0.3.3#subdirectory=auth-libs/python"`
 
 ### 2. Initialization
 
@@ -213,19 +216,42 @@ ADMIN_EMAILS=admin@hotosm.org
 ### 1. Web Component
 
 ```tsx
-// frontend/src/components/ui/navbar/navbar.tsx
+// frontend/src/components/layouts/navbar/navbar.tsx
 
-export function Navbar() {
-  return (
-    <header>
-      <hotosm-auth
-        hanko-url={import.meta.env.VITE_HANKO_URL}
-        redirect-after-login="/"
-      />
-    </header>
-  );
+import { AUTH_PROVIDER, BASE_API_URL, FRONTEND_URL, HANKO_URL } from "@/config";
+
+if (AUTH_PROVIDER === "hanko") {
+  import("@hotosm/hanko-auth");
 }
+
+const HankoAuthComponent = ({ displayBar }: { displayBar?: boolean }) => (
+  <hotosm-auth
+    hanko-url={HANKO_URL}
+    base-path={HANKO_URL}
+    redirect-after-login={FRONTEND_URL}
+    redirect-after-logout={FRONTEND_URL}
+    mapping-check-url={`${BASE_API_URL}auth/status/`}
+    app-id="fair"
+    button-variant="filled"
+    button-color="danger"
+    display={displayBar ? "bar" : "default"}
+  />
+);
 ```
+
+#### Atributos del componente
+
+| Atributo | Descripción |
+|----------|-------------|
+| `hanko-url` | URL del servicio de login (Hanko) |
+| `base-path` | Base URL para rutas internas del componente |
+| `redirect-after-login` | URL de redirección después de login |
+| `redirect-after-logout` | URL de redirección después de logout |
+| `mapping-check-url` | Endpoint para verificar si el usuario tiene mapping en la app |
+| `app-id` | Identificador de la aplicación para el mapping |
+| `button-variant` | Estilo del botón (`filled`, `outline`, etc.) |
+| `button-color` | Color del botón (`danger`, `primary`, etc.) |
+| `display` | Modo de visualización (`bar`, `default`) |
 
 ### 2. Configuration (.env)
 
@@ -234,9 +260,11 @@ export function Navbar() {
 
 VITE_AUTH_PROVIDER=hanko
 VITE_HANKO_URL=https://login.hotosm.org
+VITE_BASE_API_URL=https://fair.hotosm.org/api/v1/
+VITE_FRONTEND_URL=https://fair.hotosm.org
 ```
 
-> **Note:** `VITE_HANKO_URL` is the only URL needed. It points to the login service that handles both Hanko authentication and OSM OAuth endpoints.
+> **Note:** `VITE_HANKO_URL` points to the login service that handles both Hanko authentication and OSM OAuth endpoints.
 
 ---
 

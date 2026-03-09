@@ -6,10 +6,14 @@ export const styles = css`
     font-family: var(--font-family, var(--hot-font-sans));
   }
 
+  hanko-auth::part(headline1) {
+    text-align: center;
+  }
+
   .container {
     max-width: 400px;
     margin: 0 auto;
-    padding: var(--hot-spacing-large);
+    padding: var(--hot-spacing-x-small) var(--hot-spacing-large);
   }
 
   .loading {
@@ -25,18 +29,19 @@ export const styles = css`
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
     gap: var(--hot-spacing-small);
     padding: var(--hot-spacing-large);
+    box-sizing: border-box;
   }
 
   .spinner {
-    width: clamp(40px, 10%, 60px);
-    height: clamp(40px, 10%, 60px);
-    border: 4px solid var(--hot-color-gray-50);
+    width: 25px;
+    height: 25px;
+    border: 4px solid var(--hot-color-red-50);
     border-top: 4px solid var(--hot-color-red-600);
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin: 0 auto;
   }
   /* Container that mimics the avatar/dropdown-trigger dimensions */
   .loading-placeholder {
@@ -147,15 +152,19 @@ export const styles = css`
     font-weight: var(--hot-font-weight-bold);
     color: var(--hot-color-gray-600);
     overflow: hidden;
+    flex-shrink: 0;
   }
 
   .profile-info {
-    padding: var(--hot-spacing-x-small) var(--hot-spacing-medium);
+    min-width: 0;
   }
 
   .profile-email {
     font-size: var(--hot-font-size-small);
     font-weight: var(--hot-font-weight-bold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .osm-section {
@@ -260,6 +269,7 @@ export const styles = css`
     overflow: hidden;
     font-weight: var(--hot-font-weight-semibold);
     color: white;
+    flex-shrink: 0;
   }
 
   .login-link {
@@ -514,5 +524,6 @@ export const styles = css`
   /* Style Hanko's internal link button (e.g. "Create account") */
   hanko-auth::part(link) {
     font-weight: bold;
+    text-decoration: underline;
   }
 `;

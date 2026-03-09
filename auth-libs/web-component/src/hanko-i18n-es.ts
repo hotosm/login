@@ -48,12 +48,13 @@ export const es = {
     deleteSecurityKey: "Eliminar clave de seguridad",
     securityKeys: "Claves de seguridad",
     authenticatorApp: "Aplicación de autenticación",
-    authenticatorAppAlreadySetUp: "La aplicación de autenticación está configurada",
+    authenticatorAppAlreadySetUp:
+      "La aplicación de autenticación está configurada",
     authenticatorAppNotSetUp: "Configurar aplicación de autenticación",
     trustDevice: "¿Confiar en este navegador?",
   },
   texts: {
-    enterPasscode: 'Ingrese el código que se envió a "{emailAddress}".',
+    enterPasscode: "Ingrese el código que se envió a su correo electrónico:",
     enterPasscodeNoEmail:
       "Ingrese el código que se envió a su dirección de correo principal.",
     setupPasskey:
@@ -119,7 +120,7 @@ export const es = {
     signInPasskey: "Iniciar sesión con llave de acceso",
     registerAuthenticator: "Crear una llave de acceso",
     signIn: "Iniciar sesión",
-    signUp: "Crear cuenta",
+    signUp: "Regístrese aquí",
     sendNewPasscode: "Enviar nuevo código",
     passwordRetryAfter: "Reintentar en {passwordRetryAfter}",
     passcodeResendAfter: "Solicitar nuevo código en {passcodeResendAfter}",
@@ -141,7 +142,7 @@ export const es = {
     emailOrUsername: "Correo o nombre de usuario",
     username: "Nombre de usuario",
     optional: "opcional",
-    dontHaveAnAccount: "¿No tiene una cuenta?",
+    dontHaveAnAccount: "¿No tiene una cuenta HOT?",
     alreadyHaveAnAccount: "¿Ya tiene una cuenta?",
     changeUsername: "Cambiar nombre de usuario",
     setUsername: "Establecer nombre de usuario",
@@ -172,8 +173,7 @@ export const es = {
       "El código se ha ingresado incorrectamente demasiadas veces. Por favor, solicite un nuevo código.",
     tooManyRequests:
       "Se han realizado demasiadas solicitudes. Por favor, espere para repetir la operación solicitada.",
-    unauthorized:
-      "Su sesión ha expirado. Por favor, inicie sesión nuevamente.",
+    unauthorized: "Su sesión ha expirado. Por favor, inicie sesión nuevamente.",
     invalidWebauthnCredential: "Esta llave de acceso ya no se puede usar.",
     passcodeExpired: "El código ha expirado. Por favor, solicite uno nuevo.",
     userVerification:

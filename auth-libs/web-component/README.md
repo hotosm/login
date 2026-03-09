@@ -127,6 +127,26 @@ auth.addEventListener("logout", () => {
 });
 ```
 
+## Flash Prevention (localStorage cache)
+
+On remount (e.g. React navigation), the component checks `localStorage` for a cached user under the key `hotosm-auth-user`. If found, it skips the loading spinner and renders immediately with the cached user.
+
+The component reads from this key but does not write to it. The host app is responsible for keeping it in sync:
+
+```js
+// Write on login
+auth.addEventListener("hanko-login", (e) => {
+  localStorage.setItem("hotosm-auth-user", JSON.stringify(e.detail.user));
+});
+
+// Clear on logout
+auth.addEventListener("logout", () => {
+  localStorage.removeItem("hotosm-auth-user");
+});
+```
+
+If the key is absent (first visit, after logout, or cleared storage), the component falls back to its normal loading flow — no change in behavior.
+
 ## Usage Modes
 
 ### Header Mode (default)
