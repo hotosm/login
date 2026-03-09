@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -19,6 +19,7 @@ const APP_DISPLAY_NAMES: Record<string, string> = {
 function LoginPage() {
   const [searchParams] = useSearchParams();
   const { t, currentLanguage } = useLanguage();
+  const navigate = useNavigate();
 
   // Restore step from sessionStorage (survives OAuth redirects)
   const getInitialStep = (): OnboardingStep => {
@@ -108,6 +109,13 @@ function LoginPage() {
       sessionStorage.removeItem(ONBOARDING_STEP_KEY);
     }
   }, [isOnboarding]);
+
+  useEffect(() => {
+    if (returnTo || isOnboarding) return;
+    fetch("/api/profile/me", { credentials: "include" }).then((res) => {
+      if (res.ok) navigate("/profile");
+    });
+  }, []);
 
   // Listen for OSM connected event and redirect to onboarding
   useEffect(() => {
@@ -275,31 +283,19 @@ function LoginPage() {
             </div>
           )}
 
-          {/* Normal login (not onboarding) */}
+          {/* this is never showned at the moment, redirecting to profile page */}
           {!isOnboarding && (
             <div className="max-w-[400px] mx-auto">
               <hotosm-auth
                 hanko-url={hankoBaseUrl}
                 show-profile={true}
                 lang={currentLanguage}
-                redirect-after-login={returnTo || undefined}
+                redirect-after-login={returnTo || "/app/profile"}
                 osm-required={osmRequired || undefined}
                 auto-connect={autoConnect || undefined}
               />
             </div>
           )}
-
-          {/*  {returnTo && !isOnboarding && (
-            <div className="mt-6 pt-6 border-t border-hot-gray-200 text-center">
-              <span>← </span>
-              <a
-                href={returnTo}
-                className="font-bold text-hot-gray-900 hover:underline inline-flex items-center gap-2 transition-colors "
-              >
-                {t("back")}
-              </a>
-            </div>
-          )} */}
         </div>
       </div>
     </div>
