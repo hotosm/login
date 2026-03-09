@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
+import { validateReturnTo } from "../utils/validateReturnTo";
 
 type OnboardingStep = "question" | "osm_connect" | "redirecting";
 
@@ -46,7 +47,7 @@ function LoginPage() {
   // Get all search params
   const onboardingApp = searchParams.get("onboarding");
   const isOnboarding = !!onboardingApp;
-  const returnTo = searchParams.get("return_to");
+  const returnTo = validateReturnTo(searchParams.get("return_to"));
   const osmRequired = searchParams.get("osm_required") === "true";
   const autoConnect = searchParams.get("auto_connect") === "true";
   const errorMessage = searchParams.get("error");
