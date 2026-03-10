@@ -153,7 +153,11 @@ hanko-auth {
 }
 
 .admin-header {
-  @apply flex justify-between items-center bg-white py-4 px-6 rounded-xl shadow-md mb-5;
+  @apply flex justify-between items-center bg-white py-4 px-6 rounded-xl shadow-md mb-5 flex-nowrap;
+}
+
+.admin-header .btn-back {
+  @apply w-auto ml-auto flex-shrink-0;
 }
 
 .admin-header-content {
@@ -279,4 +283,153 @@ hanko-auth {
 
 .admin-error-card p {
   @apply text-hot-gray-500 mb-6;
+}
+
+/* Admin Tabs */
+.admin-tabs {
+  @apply flex gap-2 mb-5;
+}
+
+.admin-tab {
+  @apply py-2.5 px-5 bg-white text-hot-gray-600 text-sm font-medium border border-hot-gray-200 rounded-lg cursor-pointer transition-all hover:border-hot-red-600 hover:text-hot-red-600;
+}
+
+.admin-tab.active {
+  @apply bg-hot-red-600 text-white border-hot-red-600;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  @apply space-y-5;
+}
+
+/* Stats Section */
+.stats-section {
+  @apply mb-5;
+}
+
+.stats-section-title {
+  @apply text-sm font-semibold text-hot-gray-500 uppercase tracking-wide mb-3;
+}
+
+/* Stats Grid */
+.stats-grid {
+  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4;
+}
+
+.stats-grid-small {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-4;
+}
+
+.stats-grid-centered {
+  @apply flex flex-wrap justify-center gap-4;
+}
+
+.stats-grid-centered .stat-card {
+  @apply min-w-[140px] flex-1 max-w-[200px];
+}
+
+.stat-card {
+  @apply bg-white rounded-xl shadow-md p-5 text-center;
+}
+
+.stat-value {
+  @apply text-3xl font-bold text-hot-red-600 mb-1;
+}
+
+.stat-label {
+  @apply text-sm text-hot-gray-500 font-medium;
+}
+
+/* Charts Row */
+.charts-row {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-5;
+}
+
+.chart-card {
+  @apply bg-white rounded-xl shadow-md p-5;
+}
+
+.chart-card h3 {
+  @apply text-lg font-semibold text-hot-gray-900 mb-4;
+}
+
+.chart-large {
+  @apply lg:col-span-2;
+}
+
+.chart-small {
+  @apply lg:col-span-1;
+}
+
+.chart-container {
+  @apply w-full;
+}
+
+/* Recent Users Card */
+.recent-users-card {
+  @apply bg-white rounded-xl shadow-md p-5;
+}
+
+.recent-users-card h3 {
+  @apply text-lg font-semibold text-hot-gray-900 mb-4;
+}
+
+/* Badges */
+.badge {
+  @apply inline-block py-1 px-2.5 text-xs font-medium rounded-full;
+}
+
+.badge-success {
+  @apply bg-green-100 text-green-700;
+}
+
+.badge-warning {
+  @apply bg-yellow-100 text-yellow-700;
+}
+
+/* Filter Bar */
+.filter-bar {
+  @apply bg-white rounded-xl shadow-md p-4 mb-5 flex flex-wrap items-center gap-4;
+}
+
+.filter-group {
+  @apply flex items-center gap-3;
+}
+
+.filter-group label {
+  @apply font-medium text-hot-gray-700 text-sm;
+}
+
+.period-buttons {
+  @apply flex flex-wrap gap-2;
+}
+
+.period-btn {
+  @apply py-2 px-3 bg-hot-gray-50 text-hot-gray-600 text-sm font-medium border border-hot-gray-200 rounded-lg cursor-pointer transition-all hover:border-hot-red-600 hover:text-hot-red-600;
+}
+
+.period-btn.active {
+  @apply bg-hot-red-600 text-white border-hot-red-600;
+}
+
+.custom-date-range {
+  @apply flex items-center gap-2 ml-auto;
+}
+
+.custom-date-range span {
+  @apply text-hot-gray-500 text-sm;
+}
+
+.date-input {
+  @apply py-2 px-3 border border-hot-gray-300 rounded-md text-sm text-hot-gray-700 bg-white cursor-pointer focus:outline-none focus:border-hot-red-600 focus:ring-2 focus:ring-hot-red-100;
+}
+
+/* Primary stat card */
+.stat-card-primary {
+  @apply bg-hot-red-50 border border-hot-red-100;
+}
+
+.stat-card-primary .stat-value {
+  @apply text-hot-red-700;
 }

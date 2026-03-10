@@ -2,11 +2,14 @@
 Admin routes for managing user mappings across apps.
 
 This module provides proxy endpoints that forward admin requests to
-individual apps (portal, drone-tm, fair, oam).
+individual apps (portal, drone-tm, fair, oam), plus a dashboard
+with Hanko user statistics.
 """
 
+from datetime import datetime, timedelta
 from typing import Annotated, Any
 
+import asyncpg
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from hotosm_auth_fastapi import get_current_user
@@ -272,3 +275,275 @@ async def delete_mapping(
         path=f"mappings/{hanko_user_id}",
         request=request,
     )
+
+
+# =============================================================================
+# Dashboard Statistics Endpoints
+# =============================================================================
+
+
+async def get_hanko_connection() -> asyncpg.Connection:
+    """Get a connection to the Hanko database."""
+    return await asyncpg.connect(settings.hanko_db_url)
+
+
+def get_date_range(period: str, start_date: str | None, end_date: str | None) -> tuple:
+    """Calculate date range based on period or custom dates."""
+    today = datetime.utcnow().date()
+
+    if period == "today":
+        return today, today
+    elif period == "week":
+        week_start = today - timedelta(days=today.weekday())
+        return week_start, today
+    elif period == "month":
+        month_start = today.replace(day=1)
+        return month_start, today
+    elif period == "year":
+        year_start = today.replace(month=1, day=1)
+        return year_start, today
+    elif period == "custom" and start_date and end_date:
+        return datetime.strptime(start_date, "%Y-%m-%d").date(), datetime.strptime(end_date, "%Y-%m-%d").date()
+    else:
+        # Default: all time
+        return None, None
+
+
+@router.get("/stats/overview")
+async def get_stats_overview(
+    admin: AdminUser,
+    period: str = Query("all", regex="^(all|today|week|month|year|custom)$"),
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
+) -> dict[str, Any]:
+    """Get overview statistics for the dashboard with optional date filtering."""
+    conn = await get_hanko_connection()
+    try:
+        date_from, date_to = get_date_range(period, start_date, end_date)
+
+        # Build date filter clause
+        if date_from and date_to:
+            date_filter = "WHERE created_at::date >= $1 AND created_at::date <= $2"
+            date_params = [date_from, date_to]
+        else:
+            date_filter = ""
+            date_params = []
+
+        # Total users (in period)
+        if date_params:
+            total_users = await conn.fetchval(
+                f"SELECT COUNT(*) FROM users {date_filter}",
+                *date_params
+            )
+        else:
+            total_users = await conn.fetchval("SELECT COUNT(*) FROM users")
+
+        # For comparison, always get these fixed periods
+        today = datetime.utcnow().date()
+        users_today = await conn.fetchval(
+            "SELECT COUNT(*) FROM users WHERE created_at::date = $1",
+            today
+        )
+
+        week_start = today - timedelta(days=today.weekday())
+        users_this_week = await conn.fetchval(
+            "SELECT COUNT(*) FROM users WHERE created_at::date >= $1",
+            week_start
+        )
+
+        month_start = today.replace(day=1)
+        users_this_month = await conn.fetchval(
+            "SELECT COUNT(*) FROM users WHERE created_at::date >= $1",
+            month_start
+        )
+
+        # Users with verified email (in period)
+        if date_params:
+            verified_emails = await conn.fetchval(
+                f"""
+                SELECT COUNT(DISTINCT e.user_id)
+                FROM emails e
+                JOIN users u ON e.user_id = u.id
+                WHERE e.verified = true AND u.created_at::date >= $1 AND u.created_at::date <= $2
+                """,
+                *date_params
+            )
+            google_users = await conn.fetchval(
+                f"""
+                SELECT COUNT(DISTINCT i.user_id)
+                FROM identities i
+                JOIN users u ON i.user_id = u.id
+                WHERE i.provider_id = 'google' AND u.created_at::date >= $1 AND u.created_at::date <= $2
+                """,
+                *date_params
+            )
+        else:
+            verified_emails = await conn.fetchval(
+                "SELECT COUNT(DISTINCT user_id) FROM emails WHERE verified = true"
+            )
+            google_users = await conn.fetchval(
+                "SELECT COUNT(DISTINCT user_id) FROM identities WHERE provider_id = 'google'"
+            )
+
+        # Total all-time for reference
+        total_all_time = await conn.fetchval("SELECT COUNT(*) FROM users")
+
+        return {
+            "total_users": total_users or 0,
+            "total_all_time": total_all_time or 0,
+            "users_today": users_today or 0,
+            "users_this_week": users_this_week or 0,
+            "users_this_month": users_this_month or 0,
+            "verified_emails": verified_emails or 0,
+            "google_users": google_users or 0,
+            "period": period,
+            "date_from": str(date_from) if date_from else None,
+            "date_to": str(date_to) if date_to else None,
+        }
+    finally:
+        await conn.close()
+
+
+@router.get("/stats/registrations")
+async def get_registration_stats(
+    admin: AdminUser,
+    period: str = Query("month", regex="^(today|week|month|year|custom)$"),
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
+) -> dict[str, Any]:
+    """Get daily registration counts for the selected period."""
+    conn = await get_hanko_connection()
+    try:
+        date_from, date_to = get_date_range(period, start_date, end_date)
+
+        if not date_from or not date_to:
+            # Default to last 30 days if no valid range
+            date_to = datetime.utcnow().date()
+            date_from = date_to - timedelta(days=30)
+
+        rows = await conn.fetch(
+            """
+            SELECT
+                created_at::date as date,
+                COUNT(*) as count
+            FROM users
+            WHERE created_at::date >= $1 AND created_at::date <= $2
+            GROUP BY created_at::date
+            ORDER BY date ASC
+            """,
+            date_from,
+            date_to
+        )
+
+        return {
+            "period": period,
+            "date_from": str(date_from),
+            "date_to": str(date_to),
+            "data": [
+                {"date": str(row["date"]), "count": row["count"]}
+                for row in rows
+            ],
+        }
+    finally:
+        await conn.close()
+
+
+@router.get("/stats/registrations/monthly")
+async def get_monthly_registration_stats(
+    admin: AdminUser,
+    months: int = Query(12, ge=1, le=24),
+) -> dict[str, Any]:
+    """Get monthly registration counts."""
+    conn = await get_hanko_connection()
+    try:
+        rows = await conn.fetch(
+            """
+            SELECT
+                DATE_TRUNC('month', created_at) as month,
+                COUNT(*) as count
+            FROM users
+            WHERE created_at >= NOW() - INTERVAL '1 month' * $1
+            GROUP BY DATE_TRUNC('month', created_at)
+            ORDER BY month ASC
+            """,
+            months
+        )
+
+        return {
+            "months": months,
+            "data": [
+                {"month": row["month"].strftime("%Y-%m"), "count": row["count"]}
+                for row in rows
+            ],
+        }
+    finally:
+        await conn.close()
+
+
+@router.get("/stats/auth-methods")
+async def get_auth_method_stats(admin: AdminUser) -> dict[str, Any]:
+    """Get breakdown of authentication methods used."""
+    conn = await get_hanko_connection()
+    try:
+        # Users with password
+        password_users = await conn.fetchval(
+            "SELECT COUNT(*) FROM password_credentials"
+        )
+
+        # Users with Google
+        google_users = await conn.fetchval(
+            """
+            SELECT COUNT(DISTINCT user_id)
+            FROM identities
+            WHERE provider_id = 'google'
+            """
+        )
+
+        # Total users for percentage calculation
+        total_users = await conn.fetchval("SELECT COUNT(*) FROM users")
+
+        return {
+            "password": password_users or 0,
+            "google": google_users or 0,
+            "total": total_users or 0,
+        }
+    finally:
+        await conn.close()
+
+
+@router.get("/stats/recent-users")
+async def get_recent_users(
+    admin: AdminUser,
+    limit: int = Query(10, ge=1, le=50),
+) -> dict[str, Any]:
+    """Get the most recently registered users."""
+    conn = await get_hanko_connection()
+    try:
+        rows = await conn.fetch(
+            """
+            SELECT
+                u.id,
+                u.created_at,
+                e.address as email,
+                e.verified
+            FROM users u
+            LEFT JOIN emails e ON u.id = e.user_id
+            ORDER BY u.created_at DESC
+            LIMIT $1
+            """,
+            limit
+        )
+
+        return {
+            "users": [
+                {
+                    "id": str(row["id"]),
+                    "email": row["email"],
+                    "verified": row["verified"],
+                    "created_at": row["created_at"].isoformat(),
+                }
+                for row in rows
+            ],
+        }
+    finally:
+        await conn.close()
