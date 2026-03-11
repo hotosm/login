@@ -5,14 +5,12 @@ import {
   Area,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
 import hotLogo from '../assets/images/hot-logo.svg';
 
@@ -65,6 +63,23 @@ interface RecentUser {
   created_at: string;
 }
 
+interface SearchUser {
+  id: string;
+  email: string;
+  verified: boolean;
+  auth_methods: string[];
+  apps: string[];
+  created_at: string;
+}
+
+interface SearchResult {
+  users: SearchUser[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
 interface AppStat {
   total: number;
   period_count: number;
@@ -81,7 +96,13 @@ interface AppStats {
 type Period = 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
 
 const APPS = ['drone-tm', 'fair', 'umap', 'osm-export-tool', 'chatmap'];
-const COLORS = ['#D73F3F', '#4A90A4', '#7CB342', '#FF9800', '#9C27B0'];
+const APP_COLORS: Record<string, string> = {
+  'drone-tm': '#D73F3F',
+  'fair': '#4A90A4',
+  'umap': '#7CB342',
+  'osm-export-tool': '#FF9800',
+  'chatmap': '#9C27B0',
+};
 
 const PERIOD_LABELS: Record<Period, string> = {
   all: 'All Time',
@@ -90,6 +111,61 @@ const PERIOD_LABELS: Record<Period, string> = {
   month: 'This Month',
   year: 'This Year',
   custom: 'Custom Range',
+};
+
+// Progress Ring Component
+const ProgressRing = ({
+  value,
+  max,
+  size = 60,
+  strokeWidth = 6,
+  color = '#D73F3F',
+  label
+}: {
+  value: number;
+  max: number;
+  size?: number;
+  strokeWidth?: number;
+  color?: string;
+  label: string;
+}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const percent = max > 0 ? value / max : 0;
+  const offset = circumference - percent * circumference;
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="transform -rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth={strokeWidth}
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            className="transition-all duration-700 ease-out"
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-bold text-gray-700">{value}</span>
+        </div>
+      </div>
+      <span className="text-xs text-gray-500 mt-1">{label}</span>
+    </div>
+  );
 };
 
 function AdminPage() {
@@ -119,6 +195,19 @@ function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+
+  // User search state
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchDateFrom, setSearchDateFrom] = useState('');
+  const [searchDateTo, setSearchDateTo] = useState('');
+  const [searchVerified, setSearchVerified] = useState('all');
+  const [searchAuthMethod, setSearchAuthMethod] = useState('all');
+  const [searchApp, setSearchApp] = useState('all');
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchPage, setSearchPage] = useState(1);
+  const [searchTotalPages, setSearchTotalPages] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || '/api';
 
@@ -158,9 +247,9 @@ function AdminPage() {
     if (period === 'custom' && (!customStartDate || !customEndDate)) return;
 
     const periodParams = buildPeriodParams();
-    const chartPeriod = period === 'all' ? 'month' : period;
+    // For the chart, use the same period (backend handles all periods correctly now)
     const chartParams = new URLSearchParams();
-    chartParams.set('period', chartPeriod);
+    chartParams.set('period', period);
     if (period === 'custom' && customStartDate && customEndDate) {
       chartParams.set('start_date', customStartDate);
       chartParams.set('end_date', customEndDate);
@@ -189,7 +278,7 @@ function AdminPage() {
       try {
         const [registrationsRes, recentRes] = await Promise.all([
           fetch(`${backendUrl}/admin/stats/registrations?${chartParams.toString()}`, { credentials: 'include' }),
-          fetch(`${backendUrl}/admin/stats/recent-users?limit=10`, { credentials: 'include' }),
+          fetch(`${backendUrl}/admin/stats/recent-users?limit=5`, { credentials: 'include' }),
         ]);
         if (registrationsRes.ok) {
           const data = await registrationsRes.json();
@@ -253,6 +342,50 @@ function AdminPage() {
     };
     fetchMappings();
   }, [isAdmin, activeTab, selectedApp, page, backendUrl]);
+
+  // Search users function
+  const handleSearch = async (newPage = 1) => {
+    if (!isAdmin) return;
+
+    setSearchLoading(true);
+    setSearchPage(newPage);
+
+    try {
+      const params = new URLSearchParams();
+      params.set('page', String(newPage));
+      params.set('page_size', '15');
+
+      if (searchEmail) params.set('email', searchEmail);
+      if (searchDateFrom) params.set('date_from', searchDateFrom);
+      if (searchDateTo) params.set('date_to', searchDateTo);
+      if (searchVerified !== 'all') params.set('verified', searchVerified);
+      if (searchAuthMethod !== 'all') params.set('auth_method', searchAuthMethod);
+      if (searchApp !== 'all') params.set('app', searchApp);
+
+      const response = await fetch(
+        `${backendUrl}/admin/stats/users/search?${params.toString()}`,
+        { credentials: 'include' }
+      );
+
+      if (response.ok) {
+        const data: SearchResult = await response.json();
+        setSearchResults(data.users);
+        setSearchTotal(data.total);
+        setSearchTotalPages(data.total_pages);
+      }
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Initial search on mount
+  useEffect(() => {
+    if (isAdmin && activeTab === 'dashboard') {
+      handleSearch(1);
+    }
+  }, [isAdmin, activeTab]);
 
   const handleDeleteMapping = async (hankoUserId: string) => {
     if (!confirm('Are you sure you want to delete this mapping?')) return;
@@ -350,22 +483,23 @@ function AdminPage() {
     );
   }
 
-  const pieData = authMethods ? [
-    { name: 'Password', value: authMethods.password },
-    { name: 'Google', value: authMethods.google },
-  ].filter(d => d.value > 0) : [];
+  // Prepare horizontal bar data for apps
+  const appBarData = appStats
+    ? Object.entries(appStats.apps)
+        .map(([name, stats]) => ({
+          name,
+          users: stats.unavailable ? 0 : stats.period_count,
+          fill: APP_COLORS[name] || '#888',
+          unavailable: stats.unavailable,
+        }))
+        .sort((a, b) => b.users - a.users)
+    : [];
 
-  const getChartTitle = () => {
-    if (period === 'custom' && overview?.date_from && overview?.date_to) {
-      return `User Registrations (${overview.date_from} to ${overview.date_to})`;
-    }
-    return `User Registrations (${PERIOD_LABELS[period]})`;
-  };
 
   return (
     <div className="admin-page">
       {/* Header */}
-      <div className="admin-header">
+      <div className="admin-header glass-card">
         <div className="admin-header-content">
           <img src={hotLogo} alt="HOT" className="admin-logo" />
           <h1>Admin Dashboard</h1>
@@ -395,7 +529,7 @@ function AdminPage() {
       {activeTab === 'dashboard' && (
         <div className="dashboard-content">
           {/* Period Filter */}
-          <div className="filter-bar">
+          <div className="filter-bar glass-card">
             <div className="filter-group">
               <label>Period:</label>
               <div className="period-buttons">
@@ -429,170 +563,330 @@ function AdminPage() {
             )}
           </div>
 
-              {/* Stats Cards */}
-              <div className="stats-grid-centered">
-                <div className={`stat-card stat-card-primary ${loadingOverview ? 'skeleton' : ''}`}>
-                  <div className="stat-value">{loadingOverview ? '' : overview?.total_users || 0}</div>
-                  <div className="stat-label">Users</div>
+          {/* Main 3-Column Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {/* Stats Overview Card */}
+            {loadingOverview ? (
+              <div className="glass-card p-6 animate-pulse" role="status">
+                <div className="h-6 bg-gray-200 rounded w-32 mb-6"></div>
+                <div className="h-12 bg-gray-200 rounded w-20 mx-auto mb-4"></div>
+                <div className="grid grid-cols-3 gap-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-16 w-16 bg-gray-200 rounded-full mx-auto"></div>
+                  ))}
                 </div>
-                <div className={`stat-card ${loadingOverview ? 'skeleton' : ''}`}>
-                  <div className="stat-value">{loadingOverview ? '' : overview?.verified_emails || 0}</div>
-                  <div className="stat-label">Verified Emails</div>
-                </div>
-                <div className={`stat-card ${loadingOverview ? 'skeleton' : ''}`}>
-                  <div className="stat-value">{loadingOverview ? '' : authMethods?.password || 0}</div>
-                  <div className="stat-label">Password Users</div>
-                </div>
-                <div className={`stat-card ${loadingOverview ? 'skeleton' : ''}`}>
-                  <div className="stat-value">{loadingOverview ? '' : authMethods?.google || 0}</div>
-                  <div className="stat-label">Google Users</div>
-                </div>
+                <span className="sr-only">Loading...</span>
               </div>
-
-              {/* Charts Row */}
-              <div className="charts-row">
-                {/* Registrations Chart */}
-                <div className={`chart-card chart-large ${loadingChart ? 'skeleton' : ''}`}>
-                  <h3>{getChartTitle()}</h3>
-                  <div className="chart-container">
-                    <ResponsiveContainer width="100%" height={300}>
-                      <AreaChart data={registrations}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis
-                          dataKey="date"
-                          tickFormatter={formatShortDate}
-                          stroke="#9CA3AF"
-                          fontSize={12}
-                        />
-                        <YAxis stroke="#9CA3AF" fontSize={12} allowDecimals={false} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1F2937',
-                            border: '1px solid #374151',
-                            borderRadius: '8px',
-                          }}
-                          labelStyle={{ color: '#F9FAFB' }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="count"
-                          stroke="#D73F3F"
-                          fill="#D73F3F"
-                          fillOpacity={0.3}
-                          name="Registrations"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
+            ) : (
+              <div className="glass-card p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  User Statistics
+                </h3>
+                <div className="text-center mb-4 pb-4 border-b border-gray-200">
+                  <div className="text-4xl font-bold text-hot-red-600 mb-1">
+                    {overview?.total_users || 0}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Total Users ({PERIOD_LABELS[period]})
                   </div>
                 </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <ProgressRing value={overview?.verified_emails || 0} max={overview?.total_users || 1} color="#10B981" label="Verified" size={50} strokeWidth={5} />
+                  <ProgressRing value={authMethods?.password || 0} max={authMethods?.total || 1} color="#6366F1" label="via Email" size={50} strokeWidth={5} />
+                  <ProgressRing value={authMethods?.google || 0} max={authMethods?.total || 1} color="#F59E0B" label="via Google" size={50} strokeWidth={5} />
+                </div>
+              </div>
+            )}
 
-                {/* Auth Methods Pie */}
-                <div className="chart-card chart-small">
-                  <h3>Auth Methods</h3>
-                  <div className="chart-container">
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={5}
-                          dataKey="value"
-                          label={({ name, percent }) =>
-                            `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                          }
-                        >
-                          {pieData.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1F2937',
-                            border: '1px solid #374151',
-                            borderRadius: '8px',
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+            {/* Registrations Chart */}
+            {loadingChart ? (
+              <div className="glass-card p-6 animate-pulse" role="status">
+                <div className="h-5 bg-gray-200 rounded w-40 mb-4"></div>
+                <div className="h-[200px] bg-gray-200 rounded"></div>
+                <span className="sr-only">Loading...</span>
+              </div>
+            ) : (
+              <div className="glass-card p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                  </svg>
+                  Trend
+                </h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={registrations}>
+                    <defs>
+                      <linearGradient id="colorReg" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#D73F3F" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#D73F3F" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="date" tickFormatter={formatShortDate} stroke="#9CA3AF" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#9CA3AF" fontSize={10} allowDecimals={false} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                    <Area type="monotone" dataKey="count" stroke="#D73F3F" strokeWidth={2} fill="url(#colorReg)" name="Registrations" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Users per App */}
+            {loadingApps ? (
+              <div className="glass-card p-6 animate-pulse" role="status">
+                <div className="h-5 bg-gray-200 rounded w-32 mb-4"></div>
+                <div className="h-[200px] bg-gray-200 rounded"></div>
+                <span className="sr-only">Loading...</span>
+              </div>
+            ) : (
+              <div className="glass-card p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                  </svg>
+                  Apps
+                </h3>
+                {appBarData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={appBarData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                      <XAxis type="number" stroke="#9CA3AF" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" stroke="#374151" fontSize={12} tickLine={false} axisLine={false} width={95} fontWeight={500} />
+                      <Tooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '8px' }} formatter={(value) => [`${value} users`, 'Users']} />
+                      <Bar dataKey="users" radius={[0, 6, 6, 0]} barSize={20}>
+                        {appBarData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">No data</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Registrations - Compact */}
+          <div className="glass-card p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <svg className="w-4 h-4 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Recent Registrations
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {recentUsers.slice(0, 4).map((user) => (
+                <div key={user.id} className="flex items-center gap-2 bg-white/50 rounded-full px-3 py-1.5">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium ${user.verified ? 'bg-green-500' : 'bg-yellow-500'}`}>
+                    {(user.email || '?')[0].toUpperCase()}
                   </div>
+                  <span className="text-sm text-gray-700 truncate max-w-[150px]">{user.email}</span>
+                  <span className="text-xs text-gray-400">{new Date(user.created_at).toLocaleDateString()}</span>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              {/* Users per App - Bar Chart */}
-              <div className={`chart-card ${loadingApps ? 'skeleton' : ''}`}>
-                <h3>Users per App {period !== 'all' && `(${PERIOD_LABELS[period]})`}</h3>
-                <div className="chart-container">
-                  {!loadingApps && appStats && (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart
-                        data={Object.entries(appStats.apps).map(([name, stats]) => ({
-                          name,
-                          users: stats.unavailable ? 0 : stats.period_count,
-                          total: stats.unavailable ? 0 : stats.total,
-                        }))}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis
-                          dataKey="name"
-                          stroke="#9CA3AF"
-                          fontSize={12}
-                          angle={-45}
-                          textAnchor="end"
-                          interval={0}
-                        />
-                        <YAxis stroke="#9CA3AF" fontSize={12} allowDecimals={false} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1F2937',
-                            border: '1px solid #374151',
-                            borderRadius: '8px',
-                          }}
-                          labelStyle={{ color: '#F9FAFB' }}
-                          formatter={(value, name) => [
-                            value,
-                            name === 'users' ? 'Period' : 'Total'
-                          ]}
-                        />
-                        <Bar dataKey="users" fill="#D73F3F" name="users" radius={[4, 4, 0, 0]} />
-                        {period !== 'all' && (
-                          <Bar dataKey="total" fill="#4A90A4" name="total" radius={[4, 4, 0, 0]} />
-                        )}
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              </div>
+          {/* User Search Section */}
+          <div className="glass-card p-6 mt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              User Search
+            </h3>
 
-              {/* Recent Users */}
-              <div className="recent-users-card">
-                <h3>Recent Registrations</h3>
-                <table className="admin-table">
-                  <thead>
+            {/* Search Filters */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
+              <input
+                type="text"
+                placeholder="Search email..."
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                className="col-span-2 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 focus:border-hot-red-400"
+              />
+              <input
+                type="date"
+                value={searchDateFrom}
+                onChange={(e) => setSearchDateFrom(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100"
+                placeholder="From"
+              />
+              <input
+                type="date"
+                value={searchDateTo}
+                onChange={(e) => setSearchDateTo(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100"
+                placeholder="To"
+              />
+              <select
+                value={searchVerified}
+                onChange={(e) => setSearchVerified(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 bg-white"
+              >
+                <option value="all">All Verified</option>
+                <option value="true">Verified</option>
+                <option value="false">Not Verified</option>
+              </select>
+              <select
+                value={searchAuthMethod}
+                onChange={(e) => setSearchAuthMethod(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 bg-white"
+              >
+                <option value="all">All Auth</option>
+                <option value="password">Email/Pass</option>
+                <option value="google">Google</option>
+              </select>
+              <select
+                value={searchApp}
+                onChange={(e) => setSearchApp(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 bg-white"
+              >
+                <option value="all">All Apps</option>
+                {APPS.map((app) => (
+                  <option key={app} value={app}>{app}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => handleSearch(1)}
+                disabled={searchLoading}
+                className="px-4 py-2 bg-hot-red-600 text-white text-sm font-medium rounded-lg hover:bg-hot-red-700 transition-colors disabled:opacity-50"
+              >
+                {searchLoading ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+
+            {/* Results Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Email</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">ID</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Verified</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Auth</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Apps</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Registered</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {searchLoading ? (
+                    [...Array(5)].map((_, i) => (
+                      <tr key={i} className="border-b border-gray-100 animate-pulse">
+                        <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-40"></div></td>
+                        <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                        <td className="py-3 px-2"><div className="h-5 bg-gray-200 rounded-full w-16"></div></td>
+                        <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                        <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                        <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                      </tr>
+                    ))
+                  ) : searchResults.length === 0 ? (
                     <tr>
-                      <th>Email</th>
-                      <th>Verified</th>
-                      <th>Registered</th>
+                      <td colSpan={6} className="py-8 text-center text-gray-500">No users found</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {recentUsers.map((user) => (
-                      <tr key={user.id}>
-                        <td>{user.email || '-'}</td>
-                        <td>
-                          <span className={`badge ${user.verified ? 'badge-success' : 'badge-warning'}`}>
+                  ) : (
+                    searchResults.map((user) => (
+                      <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium ${user.verified ? 'bg-green-500' : 'bg-yellow-500'}`}>
+                              {(user.email || '?')[0].toUpperCase()}
+                            </div>
+                            <span className="text-gray-800">{user.email || '-'}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className="flex items-center gap-1 group">
+                            <code className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-mono select-all">
+                              {user.id}
+                            </code>
+                            <button
+                              onClick={async (e) => {
+                                const btn = e.currentTarget;
+                                try {
+                                  await navigator.clipboard.writeText(user.id);
+                                  btn.classList.add('text-green-600');
+                                  setTimeout(() => btn.classList.remove('text-green-600'), 1000);
+                                } catch {
+                                  // Fallback: select the text
+                                  const code = btn.previousElementSibling;
+                                  if (code) {
+                                    const range = document.createRange();
+                                    range.selectNodeContents(code);
+                                    const sel = window.getSelection();
+                                    sel?.removeAllRanges();
+                                    sel?.addRange(range);
+                                  }
+                                }
+                              }}
+                              className="p-1 hover:bg-gray-200 rounded transition-colors"
+                              title="Copy ID"
+                            >
+                              <svg className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3 px-2">
+                          <span className={`text-xs px-2 py-1 rounded-full ${user.verified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                             {user.verified ? 'Yes' : 'No'}
                           </span>
                         </td>
-                        <td>{formatDate(user.created_at)}</td>
+                        <td className="py-3 px-2">
+                          <div className="flex gap-1">
+                            {user.auth_methods.map((method) => (
+                              <span key={method} className={`text-xs px-2 py-0.5 rounded ${method === 'google' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                {method}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className="flex flex-wrap gap-1">
+                            {user.apps.length > 0 ? user.apps.map((app) => (
+                              <span key={app} className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{app}</span>
+                            )) : <span className="text-xs text-gray-400">-</span>}
+                          </div>
+                        </td>
+                        <td className="py-3 px-2 text-gray-600">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {searchTotalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-4 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => handleSearch(searchPage - 1)}
+                  disabled={searchPage === 1 || searchLoading}
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {searchPage} of {searchTotalPages} ({searchTotal} users)
+                </span>
+                <button
+                  onClick={() => handleSearch(searchPage + 1)}
+                  disabled={searchPage === searchTotalPages || searchLoading}
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Next
+                </button>
               </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -600,7 +894,7 @@ function AdminPage() {
       {activeTab === 'mappings' && (
         <>
           {/* App Selector */}
-          <div className="admin-controls">
+          <div className="admin-controls glass-card">
             <div className="app-selector">
               <label>Select App:</label>
               <select
@@ -631,7 +925,7 @@ function AdminPage() {
           )}
 
           {/* Mappings Table */}
-          <div className="admin-table-container">
+          <div className="admin-table-container glass-card">
             {loading ? (
               <div className="admin-loading">
                 <div className="spinner"></div>

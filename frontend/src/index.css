@@ -92,7 +92,7 @@ hanko-auth {
   }
 
   .btn-pagination {
-    @apply py-2 px-4 bg-white text-hot-gray-700 text-sm font-medium border border-hot-gray-300 rounded-md cursor-pointer transition-all hover:border-hot-red-600 hover:text-hot-red-600 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply py-2 px-4 bg-white/80 backdrop-blur-sm text-hot-gray-700 text-sm font-medium border border-gray-200/50 rounded-full cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 hover:border-hot-red-200 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   /* Form inputs */
@@ -149,11 +149,12 @@ hanko-auth {
 
 /* Admin Page Styles */
 .admin-page {
-  @apply min-h-screen bg-hot-gray-50 p-5;
+  @apply min-h-screen p-5;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
 }
 
 .admin-header {
-  @apply flex justify-between items-center bg-white py-4 px-6 rounded-xl shadow-md mb-5 flex-nowrap;
+  @apply flex justify-between items-center py-4 px-6 rounded-2xl mb-5 flex-nowrap;
 }
 
 .admin-header .btn-back {
@@ -173,7 +174,7 @@ hanko-auth {
 }
 
 .admin-controls {
-  @apply flex justify-between items-center bg-white py-4 px-6 rounded-xl shadow-md mb-5;
+  @apply flex justify-between items-center py-4 px-6 rounded-2xl mb-5;
 }
 
 .app-selector {
@@ -197,7 +198,7 @@ hanko-auth {
 }
 
 .admin-table-container {
-  @apply bg-white rounded-xl shadow-md overflow-hidden mb-5;
+  @apply rounded-2xl overflow-hidden mb-5;
 }
 
 .admin-table {
@@ -291,15 +292,34 @@ hanko-auth {
 }
 
 .admin-tab {
-  @apply py-2.5 px-5 bg-white text-hot-gray-600 text-sm font-medium border border-hot-gray-200 rounded-lg cursor-pointer transition-all hover:border-hot-red-600 hover:text-hot-red-600;
+  @apply py-2.5 px-5 bg-white/80 backdrop-blur-sm text-hot-gray-600 text-sm font-medium border border-white/20 rounded-xl cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 shadow-sm;
 }
 
 .admin-tab.active {
-  @apply bg-hot-red-600 text-white border-hot-red-600;
+  @apply bg-gradient-to-r from-hot-red-600 to-hot-red-500 text-white border-hot-red-600 shadow-md;
 }
 
 /* Dashboard Content */
 .dashboard-content {
+  @apply space-y-5;
+}
+
+/* Glassmorphism Card */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+}
+
+/* Dashboard Grid - 2 columns */
+.dashboard-grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-5;
+}
+
+.dashboard-left {
+  @apply space-y-5;
+}
+
+.dashboard-right {
   @apply space-y-5;
 }
 
@@ -390,7 +410,7 @@ hanko-auth {
 
 /* Filter Bar */
 .filter-bar {
-  @apply bg-white rounded-xl shadow-md p-4 mb-5 flex flex-wrap items-center gap-4;
+  @apply rounded-2xl p-4 mb-5 flex flex-wrap items-center gap-4;
 }
 
 .filter-group {
@@ -406,11 +426,11 @@ hanko-auth {
 }
 
 .period-btn {
-  @apply py-2 px-3 bg-hot-gray-50 text-hot-gray-600 text-sm font-medium border border-hot-gray-200 rounded-lg cursor-pointer transition-all hover:border-hot-red-600 hover:text-hot-red-600;
+  @apply py-2 px-4 bg-white/60 text-hot-gray-600 text-sm font-medium border border-gray-200/50 rounded-full cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 hover:border-hot-red-200;
 }
 
 .period-btn.active {
-  @apply bg-hot-red-600 text-white border-hot-red-600;
+  @apply bg-gradient-to-r from-hot-red-600 to-hot-red-500 text-white border-transparent shadow-md;
 }
 
 .custom-date-range {
@@ -422,7 +442,7 @@ hanko-auth {
 }
 
 .date-input {
-  @apply py-2 px-3 border border-hot-gray-300 rounded-md text-sm text-hot-gray-700 bg-white cursor-pointer focus:outline-none focus:border-hot-red-600 focus:ring-2 focus:ring-hot-red-100;
+  @apply py-2 px-3 border border-gray-200/50 rounded-full text-sm text-hot-gray-700 bg-white/80 backdrop-blur-sm cursor-pointer focus:outline-none focus:border-hot-red-400 focus:ring-2 focus:ring-hot-red-100;
 }
 
 /* Primary stat card */
@@ -486,43 +506,3 @@ hanko-auth {
   @apply w-5 h-5 border-2 border-hot-gray-200 border-t-hot-red-600 rounded-full animate-spin;
 }
 
-/* Skeleton Loading */
-.skeleton {
-  position: relative;
-  overflow: hidden;
-}
-
-.skeleton::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
-  animation: skeleton-shimmer 1.5s infinite;
-}
-
-.skeleton .stat-value,
-.skeleton .chart-container {
-  @apply bg-hot-gray-100 rounded;
-  min-height: 2rem;
-}
-
-.skeleton.chart-card .chart-container {
-  min-height: 300px;
-}
-
-@keyframes skeleton-shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
