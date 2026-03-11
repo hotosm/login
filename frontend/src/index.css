@@ -485,3 +485,44 @@ hanko-auth {
 .spinner-small {
   @apply w-5 h-5 border-2 border-hot-gray-200 border-t-hot-red-600 rounded-full animate-spin;
 }
+
+/* Skeleton Loading */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+.skeleton .stat-value,
+.skeleton .chart-container {
+  @apply bg-hot-gray-100 rounded;
+  min-height: 2rem;
+}
+
+.skeleton.chart-card .chart-container {
+  min-height: 300px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

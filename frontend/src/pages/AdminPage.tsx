@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   PieChart,
   Pie,
   Cell,
@@ -428,42 +430,29 @@ function AdminPage() {
           </div>
 
               {/* Stats Cards */}
-              {loadingOverview ? (
-                <div className="stats-loading">
-                  <div className="spinner-small"></div>
-                  <span>Loading stats...</span>
-                </div>
-              ) : (
               <div className="stats-grid-centered">
-                <div className="stat-card stat-card-primary">
-                  <div className="stat-value">{overview?.total_users || 0}</div>
+                <div className={`stat-card stat-card-primary ${loadingOverview ? 'skeleton' : ''}`}>
+                  <div className="stat-value">{loadingOverview ? '' : overview?.total_users || 0}</div>
                   <div className="stat-label">Users</div>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-value">{overview?.verified_emails || 0}</div>
+                <div className={`stat-card ${loadingOverview ? 'skeleton' : ''}`}>
+                  <div className="stat-value">{loadingOverview ? '' : overview?.verified_emails || 0}</div>
                   <div className="stat-label">Verified Emails</div>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-value">{authMethods?.password || 0}</div>
+                <div className={`stat-card ${loadingOverview ? 'skeleton' : ''}`}>
+                  <div className="stat-value">{loadingOverview ? '' : authMethods?.password || 0}</div>
                   <div className="stat-label">Password Users</div>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-value">{authMethods?.google || 0}</div>
+                <div className={`stat-card ${loadingOverview ? 'skeleton' : ''}`}>
+                  <div className="stat-value">{loadingOverview ? '' : authMethods?.google || 0}</div>
                   <div className="stat-label">Google Users</div>
                 </div>
               </div>
-              )}
 
               {/* Charts Row */}
-              {loadingChart ? (
-                <div className="chart-loading">
-                  <div className="spinner-small"></div>
-                  <span>Loading charts...</span>
-                </div>
-              ) : (
               <div className="charts-row">
                 {/* Registrations Chart */}
-                <div className="chart-card chart-large">
+                <div className={`chart-card chart-large ${loadingChart ? 'skeleton' : ''}`}>
                   <h3>{getChartTitle()}</h3>
                   <div className="chart-container">
                     <ResponsiveContainer width="100%" height={300}>
@@ -531,39 +520,52 @@ function AdminPage() {
                   </div>
                 </div>
               </div>
-              )}
 
-              {/* Users per App */}
-              {loadingApps ? (
-                <div className="app-stats-card">
-                  <h3>Users per App</h3>
-                  <div className="section-loading">
-                    <div className="spinner-small"></div>
-                    <span>Loading apps (this may take a moment)...</span>
-                  </div>
-                </div>
-              ) : appStats && (
-                <div className="app-stats-card">
-                  <h3>Users per App</h3>
-                  <div className="app-stats-grid">
-                    {Object.entries(appStats.apps).map(([appName, stats]) => (
-                      <div key={appName} className={`app-stat-item ${stats.unavailable ? 'app-stat-unavailable' : ''}`}>
-                        <div className="app-stat-name">{appName}</div>
-                        {stats.unavailable ? (
-                          <div className="app-stat-offline">-</div>
-                        ) : (
-                          <div className="app-stat-values">
-                            <span className="app-stat-period">{stats.period_count}</span>
-                            {period !== 'all' && (
-                              <span className="app-stat-total">/ {stats.total} total</span>
-                            )}
-                          </div>
+              {/* Users per App - Bar Chart */}
+              <div className={`chart-card ${loadingApps ? 'skeleton' : ''}`}>
+                <h3>Users per App {period !== 'all' && `(${PERIOD_LABELS[period]})`}</h3>
+                <div className="chart-container">
+                  {!loadingApps && appStats && (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart
+                        data={Object.entries(appStats.apps).map(([name, stats]) => ({
+                          name,
+                          users: stats.unavailable ? 0 : stats.period_count,
+                          total: stats.unavailable ? 0 : stats.total,
+                        }))}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis
+                          dataKey="name"
+                          stroke="#9CA3AF"
+                          fontSize={12}
+                          angle={-45}
+                          textAnchor="end"
+                          interval={0}
+                        />
+                        <YAxis stroke="#9CA3AF" fontSize={12} allowDecimals={false} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1F2937',
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                          }}
+                          labelStyle={{ color: '#F9FAFB' }}
+                          formatter={(value, name) => [
+                            value,
+                            name === 'users' ? 'Period' : 'Total'
+                          ]}
+                        />
+                        <Bar dataKey="users" fill="#D73F3F" name="users" radius={[4, 4, 0, 0]} />
+                        {period !== 'all' && (
+                          <Bar dataKey="total" fill="#4A90A4" name="total" radius={[4, 4, 0, 0]} />
                         )}
-                      </div>
-                    ))}
-                  </div>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
-              )}
+              </div>
 
               {/* Recent Users */}
               <div className="recent-users-card">
