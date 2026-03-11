@@ -154,7 +154,7 @@ function AdminPage() {
         const [overviewRes, registrationsRes, authRes, recentRes] = await Promise.all([
           fetch(`${backendUrl}/admin/stats/overview?${periodParams}`, { credentials: 'include' }),
           fetch(`${backendUrl}/admin/stats/registrations?${chartParams.toString()}`, { credentials: 'include' }),
-          fetch(`${backendUrl}/admin/stats/auth-methods`, { credentials: 'include' }),
+          fetch(`${backendUrl}/admin/stats/auth-methods?${periodParams}`, { credentials: 'include' }),
           fetch(`${backendUrl}/admin/stats/recent-users?limit=10`, { credentials: 'include' }),
         ]);
 

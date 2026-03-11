@@ -481,26 +481,61 @@ async def get_monthly_registration_stats(
 
 
 @router.get("/stats/auth-methods")
-async def get_auth_method_stats(admin: AdminUser) -> dict[str, Any]:
+async def get_auth_method_stats(
+    admin: AdminUser,
+    period: str = Query("all", regex="^(all|today|week|month|year|custom)$"),
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
+) -> dict[str, Any]:
     """Get breakdown of authentication methods used."""
     conn = await get_hanko_connection()
     try:
-        # Users with password
-        password_users = await conn.fetchval(
-            "SELECT COUNT(*) FROM password_credentials"
-        )
+        date_from, date_to = get_date_range(period, start_date, end_date)
 
-        # Users with Google
-        google_users = await conn.fetchval(
-            """
-            SELECT COUNT(DISTINCT user_id)
-            FROM identities
-            WHERE provider_id = 'google'
-            """
-        )
+        if date_from and date_to:
+            # Users with password (filtered by user creation date)
+            password_users = await conn.fetchval(
+                """
+                SELECT COUNT(*)
+                FROM password_credentials pc
+                JOIN users u ON pc.user_id = u.id
+                WHERE u.created_at::date >= $1 AND u.created_at::date <= $2
+                """,
+                date_from, date_to
+            )
 
-        # Total users for percentage calculation
-        total_users = await conn.fetchval("SELECT COUNT(*) FROM users")
+            # Users with Google (filtered by user creation date)
+            google_users = await conn.fetchval(
+                """
+                SELECT COUNT(DISTINCT i.user_id)
+                FROM identities i
+                JOIN users u ON i.user_id = u.id
+                WHERE i.provider_id = 'google'
+                AND u.created_at::date >= $1 AND u.created_at::date <= $2
+                """,
+                date_from, date_to
+            )
+
+            # Total users in period
+            total_users = await conn.fetchval(
+                "SELECT COUNT(*) FROM users WHERE created_at::date >= $1 AND created_at::date <= $2",
+                date_from, date_to
+            )
+        else:
+            # All time
+            password_users = await conn.fetchval(
+                "SELECT COUNT(*) FROM password_credentials"
+            )
+
+            google_users = await conn.fetchval(
+                """
+                SELECT COUNT(DISTINCT user_id)
+                FROM identities
+                WHERE provider_id = 'google'
+                """
+            )
+
+            total_users = await conn.fetchval("SELECT COUNT(*) FROM users")
 
         return {
             "password": password_users or 0,
