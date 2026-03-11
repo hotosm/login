@@ -63,6 +63,19 @@ interface RecentUser {
   created_at: string;
 }
 
+interface AppStat {
+  total: number;
+  period_count: number;
+  unavailable?: boolean;
+}
+
+interface AppStats {
+  period: string;
+  date_from: string | null;
+  date_to: string | null;
+  apps: Record<string, AppStat>;
+}
+
 type Period = 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
 
 const APPS = ['drone-tm', 'fair', 'umap', 'osm-export-tool', 'chatmap'];
@@ -90,7 +103,10 @@ function AdminPage() {
   const [registrations, setRegistrations] = useState<RegistrationData[]>([]);
   const [authMethods, setAuthMethods] = useState<AuthMethodStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
-  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [appStats, setAppStats] = useState<AppStats | null>(null);
+  const [loadingOverview, setLoadingOverview] = useState(false);
+  const [loadingChart, setLoadingChart] = useState(false);
+  const [loadingApps, setLoadingApps] = useState(false);
 
   // Mappings state
   const [selectedApp, setSelectedApp] = useState<string>('drone-tm');
@@ -134,51 +150,77 @@ function AdminPage() {
     return params.toString();
   };
 
-  // Fetch dashboard stats
+  // Fetch dashboard stats (parallel with individual loading states)
   useEffect(() => {
     if (!isAdmin || activeTab !== 'dashboard') return;
     if (period === 'custom' && (!customStartDate || !customEndDate)) return;
 
-    const fetchDashboardData = async () => {
-      setDashboardLoading(true);
-      try {
-        const periodParams = buildPeriodParams();
-        const chartPeriod = period === 'all' ? 'month' : period;
-        const chartParams = new URLSearchParams();
-        chartParams.set('period', chartPeriod);
-        if (period === 'custom' && customStartDate && customEndDate) {
-          chartParams.set('start_date', customStartDate);
-          chartParams.set('end_date', customEndDate);
-        }
+    const periodParams = buildPeriodParams();
+    const chartPeriod = period === 'all' ? 'month' : period;
+    const chartParams = new URLSearchParams();
+    chartParams.set('period', chartPeriod);
+    if (period === 'custom' && customStartDate && customEndDate) {
+      chartParams.set('start_date', customStartDate);
+      chartParams.set('end_date', customEndDate);
+    }
 
-        const [overviewRes, registrationsRes, authRes, recentRes] = await Promise.all([
+    // Fetch overview + auth methods (fast)
+    const fetchOverview = async () => {
+      setLoadingOverview(true);
+      try {
+        const [overviewRes, authRes] = await Promise.all([
           fetch(`${backendUrl}/admin/stats/overview?${periodParams}`, { credentials: 'include' }),
-          fetch(`${backendUrl}/admin/stats/registrations?${chartParams.toString()}`, { credentials: 'include' }),
           fetch(`${backendUrl}/admin/stats/auth-methods?${periodParams}`, { credentials: 'include' }),
+        ]);
+        if (overviewRes.ok) setOverview(await overviewRes.json());
+        if (authRes.ok) setAuthMethods(await authRes.json());
+      } catch (err) {
+        console.error('Failed to fetch overview:', err);
+      } finally {
+        setLoadingOverview(false);
+      }
+    };
+
+    // Fetch chart data (fast)
+    const fetchChart = async () => {
+      setLoadingChart(true);
+      try {
+        const [registrationsRes, recentRes] = await Promise.all([
+          fetch(`${backendUrl}/admin/stats/registrations?${chartParams.toString()}`, { credentials: 'include' }),
           fetch(`${backendUrl}/admin/stats/recent-users?limit=10`, { credentials: 'include' }),
         ]);
-
-        if (overviewRes.ok) {
-          setOverview(await overviewRes.json());
-        }
         if (registrationsRes.ok) {
           const data = await registrationsRes.json();
           setRegistrations(data.data || []);
-        }
-        if (authRes.ok) {
-          setAuthMethods(await authRes.json());
         }
         if (recentRes.ok) {
           const data = await recentRes.json();
           setRecentUsers(data.users || []);
         }
       } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
+        console.error('Failed to fetch chart:', err);
       } finally {
-        setDashboardLoading(false);
+        setLoadingChart(false);
       }
     };
-    fetchDashboardData();
+
+    // Fetch app stats (slow - queries all apps)
+    const fetchAppStats = async () => {
+      setLoadingApps(true);
+      try {
+        const res = await fetch(`${backendUrl}/admin/stats/apps?${periodParams}`, { credentials: 'include' });
+        if (res.ok) setAppStats(await res.json());
+      } catch (err) {
+        console.error('Failed to fetch app stats:', err);
+      } finally {
+        setLoadingApps(false);
+      }
+    };
+
+    // Run all in parallel
+    fetchOverview();
+    fetchChart();
+    fetchAppStats();
   }, [isAdmin, activeTab, backendUrl, period, customStartDate, customEndDate]);
 
   // Fetch mappings when app or page changes
@@ -385,14 +427,13 @@ function AdminPage() {
             )}
           </div>
 
-          {dashboardLoading ? (
-            <div className="admin-loading">
-              <div className="spinner"></div>
-              <p>Loading statistics...</p>
-            </div>
-          ) : (
-            <>
               {/* Stats Cards */}
+              {loadingOverview ? (
+                <div className="stats-loading">
+                  <div className="spinner-small"></div>
+                  <span>Loading stats...</span>
+                </div>
+              ) : (
               <div className="stats-grid-centered">
                 <div className="stat-card stat-card-primary">
                   <div className="stat-value">{overview?.total_users || 0}</div>
@@ -411,8 +452,15 @@ function AdminPage() {
                   <div className="stat-label">Google Users</div>
                 </div>
               </div>
+              )}
 
               {/* Charts Row */}
+              {loadingChart ? (
+                <div className="chart-loading">
+                  <div className="spinner-small"></div>
+                  <span>Loading charts...</span>
+                </div>
+              ) : (
               <div className="charts-row">
                 {/* Registrations Chart */}
                 <div className="chart-card chart-large">
@@ -483,6 +531,39 @@ function AdminPage() {
                   </div>
                 </div>
               </div>
+              )}
+
+              {/* Users per App */}
+              {loadingApps ? (
+                <div className="app-stats-card">
+                  <h3>Users per App</h3>
+                  <div className="section-loading">
+                    <div className="spinner-small"></div>
+                    <span>Loading apps (this may take a moment)...</span>
+                  </div>
+                </div>
+              ) : appStats && (
+                <div className="app-stats-card">
+                  <h3>Users per App</h3>
+                  <div className="app-stats-grid">
+                    {Object.entries(appStats.apps).map(([appName, stats]) => (
+                      <div key={appName} className={`app-stat-item ${stats.unavailable ? 'app-stat-unavailable' : ''}`}>
+                        <div className="app-stat-name">{appName}</div>
+                        {stats.unavailable ? (
+                          <div className="app-stat-offline">-</div>
+                        ) : (
+                          <div className="app-stat-values">
+                            <span className="app-stat-period">{stats.period_count}</span>
+                            {period !== 'all' && (
+                              <span className="app-stat-total">/ {stats.total} total</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Recent Users */}
               <div className="recent-users-card">
@@ -510,8 +591,6 @@ function AdminPage() {
                   </tbody>
                 </table>
               </div>
-            </>
-          )}
         </div>
       )}
 

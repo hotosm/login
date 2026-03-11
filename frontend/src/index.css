@@ -433,3 +433,55 @@ hanko-auth {
 .stat-card-primary .stat-value {
   @apply text-hot-red-700;
 }
+
+/* App Stats */
+.app-stats-card {
+  @apply bg-white rounded-xl shadow-md p-5 mb-5;
+}
+
+.app-stats-card h3 {
+  @apply text-lg font-semibold text-hot-gray-900 mb-4;
+}
+
+.app-stats-grid {
+  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4;
+}
+
+.app-stat-item {
+  @apply bg-hot-gray-50 rounded-lg p-4 text-center;
+}
+
+.app-stat-name {
+  @apply text-sm font-medium text-hot-gray-600 mb-2;
+}
+
+.app-stat-values {
+  @apply flex items-baseline justify-center gap-1;
+}
+
+.app-stat-period {
+  @apply text-2xl font-bold text-hot-red-600;
+}
+
+.app-stat-total {
+  @apply text-sm text-hot-gray-400;
+}
+
+.app-stat-unavailable {
+  @apply opacity-50;
+}
+
+.app-stat-offline {
+  @apply text-2xl font-bold text-hot-gray-400;
+}
+
+/* Section Loading */
+.stats-loading,
+.chart-loading,
+.section-loading {
+  @apply flex items-center justify-center gap-3 py-8 text-hot-gray-500;
+}
+
+.spinner-small {
+  @apply w-5 h-5 border-2 border-hot-gray-200 border-t-hot-red-600 rounded-full animate-spin;
+}

@@ -546,6 +546,74 @@ async def get_auth_method_stats(
         await conn.close()
 
 
+@router.get("/stats/apps")
+async def get_app_stats(
+    admin: AdminUser,
+    request: Request,
+    period: str = Query("all", regex="^(all|today|week|month|year|custom)$"),
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
+) -> dict[str, Any]:
+    """Get user mapping stats per app, filtered by period."""
+    date_from, date_to = get_date_range(period, start_date, end_date)
+
+    app_stats = {}
+
+    for app_name in settings.app_urls.keys():
+        try:
+            # Fetch mappings from each app
+            result = await proxy_request(
+                method="GET",
+                app=app_name,
+                path="mappings",
+                request=request,
+                params={"page": 1, "page_size": 100},
+            )
+
+            if result and isinstance(result, dict):
+                items = result.get("items", [])
+                total = result.get("total", 0)
+
+                # Filter by date if period specified
+                if date_from and date_to:
+                    filtered_count = 0
+                    for item in items:
+                        created_at = item.get("created_at")
+                        if created_at:
+                            try:
+                                item_date = datetime.fromisoformat(created_at.replace("Z", "+00:00")).date()
+                                if date_from <= item_date <= date_to:
+                                    filtered_count += 1
+                            except (ValueError, AttributeError):
+                                pass
+
+                    app_stats[app_name] = {
+                        "total": total,
+                        "period_count": filtered_count,
+                    }
+                else:
+                    app_stats[app_name] = {
+                        "total": total,
+                        "period_count": total,
+                    }
+            else:
+                app_stats[app_name] = {"total": 0, "period_count": 0}
+
+        except HTTPException:
+            # App endpoint not implemented or returned error
+            app_stats[app_name] = {"total": 0, "period_count": 0, "unavailable": True}
+        except Exception:
+            # App might be unavailable
+            app_stats[app_name] = {"total": 0, "period_count": 0, "unavailable": True}
+
+    return {
+        "period": period,
+        "date_from": str(date_from) if date_from else None,
+        "date_to": str(date_to) if date_to else None,
+        "apps": app_stats,
+    }
+
+
 @router.get("/stats/recent-users")
 async def get_recent_users(
     admin: AdminUser,
