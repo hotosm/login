@@ -651,10 +651,10 @@ function AdminPage() {
                 </h3>
                 {appBarData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={appBarData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                    <BarChart data={appBarData} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
                       <XAxis type="number" stroke="#9CA3AF" fontSize={10} tickLine={false} axisLine={false} allowDecimals={false} />
-                      <YAxis type="category" dataKey="name" stroke="#374151" fontSize={12} tickLine={false} axisLine={false} width={95} fontWeight={500} />
+                      <YAxis type="category" dataKey="name" stroke="#374151" fontSize={11} tickLine={false} axisLine={false} width={110} />
                       <Tooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '8px' }} formatter={(value) => [`${value} users`, 'Users']} />
                       <Bar dataKey="users" radius={[0, 6, 6, 0]} barSize={20}>
                         {appBarData.map((entry, index) => (
