@@ -573,7 +573,7 @@ async def get_app_stats(
 
     for app_name in settings.app_urls.keys():
         try:
-            # Fetch mappings from each app
+            # Fetch first page to get total count
             result = await proxy_request(
                 method="GET",
                 app=app_name,
@@ -583,13 +583,29 @@ async def get_app_stats(
             )
 
             if result and isinstance(result, dict):
-                items = result.get("items", [])
                 total = result.get("total", 0)
 
                 # Filter by date if period specified
                 if date_from and date_to:
+                    # Need to fetch all pages to accurately count by date
+                    all_items = result.get("items", [])
+                    total_pages = (total + 99) // 100  # Ceiling division
+
+                    # Fetch remaining pages if needed
+                    for page in range(2, total_pages + 1):
+                        page_result = await proxy_request(
+                            method="GET",
+                            app=app_name,
+                            path="mappings",
+                            request=request,
+                            params={"page": page, "page_size": 100},
+                        )
+                        if page_result and isinstance(page_result, dict):
+                            all_items.extend(page_result.get("items", []))
+
+                    # Count items in date range
                     filtered_count = 0
-                    for item in items:
+                    for item in all_items:
                         created_at = item.get("created_at")
                         if created_at:
                             try:
@@ -624,6 +640,92 @@ async def get_app_stats(
         "date_to": str(date_to) if date_to else None,
         "apps": app_stats,
     }
+
+
+@router.get("/stats/logins")
+async def get_login_stats(
+    admin: AdminUser,
+    period: str = Query("all", regex="^(all|today|week|month|year|custom)$"),
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
+) -> dict[str, Any]:
+    """Get login statistics from sessions table."""
+    date_from, date_to = get_date_range(period, start_date, end_date)
+    conn = await get_hanko_connection()
+
+    try:
+        # Build date filter for period stats
+        if date_from and date_to:
+            date_filter = "WHERE created_at::date >= $1 AND created_at::date <= $2"
+            date_params = [date_from, date_to]
+        else:
+            date_filter = ""
+            date_params = []
+
+        # Total logins in period
+        if date_params:
+            total_logins = await conn.fetchval(
+                f"SELECT COUNT(*) FROM sessions {date_filter}",
+                *date_params,
+            )
+            unique_users = await conn.fetchval(
+                f"SELECT COUNT(DISTINCT user_id) FROM sessions {date_filter}",
+                *date_params,
+            )
+        else:
+            total_logins = await conn.fetchval("SELECT COUNT(*) FROM sessions")
+            unique_users = await conn.fetchval(
+                "SELECT COUNT(DISTINCT user_id) FROM sessions"
+            )
+
+        # Active sessions RIGHT NOW (not affected by period filter)
+        active_sessions = await conn.fetchval(
+            "SELECT COUNT(*) FROM sessions WHERE expires_at > NOW()"
+        )
+
+        # Logins per day for chart
+        if date_from and date_to:
+            daily_logins = await conn.fetch(
+                """
+                SELECT
+                    d.date::date as date,
+                    COALESCE(COUNT(s.id), 0) as count
+                FROM generate_series($1::date, $2::date, '1 day'::interval) AS d(date)
+                LEFT JOIN sessions s ON s.created_at::date = d.date
+                GROUP BY d.date
+                ORDER BY d.date
+                """,
+                date_from,
+                date_to,
+            )
+        else:
+            # Last 30 days by default
+            daily_logins = await conn.fetch(
+                """
+                SELECT
+                    d.date::date as date,
+                    COALESCE(COUNT(s.id), 0) as count
+                FROM generate_series(CURRENT_DATE - INTERVAL '29 days', CURRENT_DATE, '1 day'::interval) AS d(date)
+                LEFT JOIN sessions s ON s.created_at::date = d.date
+                GROUP BY d.date
+                ORDER BY d.date
+                """
+            )
+
+        return {
+            "period": period,
+            "date_from": str(date_from) if date_from else None,
+            "date_to": str(date_to) if date_to else None,
+            "total_logins": total_logins or 0,
+            "unique_users": unique_users or 0,
+            "active_sessions": active_sessions or 0,
+            "daily_logins": [
+                {"date": str(row["date"]), "count": row["count"]}
+                for row in daily_logins
+            ],
+        }
+    finally:
+        await conn.close()
 
 
 @router.get("/stats/recent-users")
@@ -728,7 +830,7 @@ async def search_users(
         # Get paginated results
         offset = (page - 1) * page_size
 
-        # Add auth method info to results
+        # Add auth method info and last login to results
         data_query = f"""
             SELECT DISTINCT
                 u.id,
@@ -736,7 +838,8 @@ async def search_users(
                 e.address as email,
                 e.verified,
                 EXISTS(SELECT 1 FROM password_credentials pc WHERE pc.user_id = u.id) as has_password,
-                EXISTS(SELECT 1 FROM identities i WHERE i.user_id = u.id AND i.provider_id = 'google') as has_google
+                EXISTS(SELECT 1 FROM identities i WHERE i.user_id = u.id AND i.provider_id = 'google') as has_google,
+                (SELECT MAX(s.created_at) FROM sessions s WHERE s.user_id = u.id) as last_login
             FROM users u
             LEFT JOIN emails e ON u.id = e.user_id
             {auth_join}
@@ -796,6 +899,7 @@ async def search_users(
                 "auth_methods": auth,
                 "apps": apps,
                 "created_at": row["created_at"].isoformat(),
+                "last_login": row["last_login"].isoformat() if row["last_login"] else None,
             })
 
         # Adjust total if filtering by app (approximate)

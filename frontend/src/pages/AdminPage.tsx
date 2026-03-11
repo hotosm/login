@@ -63,6 +63,13 @@ interface RecentUser {
   created_at: string;
 }
 
+interface LoginStats {
+  total_logins: number;
+  unique_users: number;
+  active_sessions: number;
+  daily_logins: { date: string; count: number }[];
+}
+
 interface SearchUser {
   id: string;
   email: string;
@@ -70,6 +77,7 @@ interface SearchUser {
   auth_methods: string[];
   apps: string[];
   created_at: string;
+  last_login: string | null;
 }
 
 interface SearchResult {
@@ -113,7 +121,47 @@ const PERIOD_LABELS: Record<Period, string> = {
   custom: 'Custom Range',
 };
 
-// Progress Ring Component
+// Animated Count Up Hook
+const useCountUp = (end: number, duration = 1000) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (end === 0) {
+      setCount(0);
+      return;
+    }
+
+    let startTime: number;
+    let animationFrame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+
+      // Ease out cubic
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(easeOut * end));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [end, duration]);
+
+  return count;
+};
+
+// Animated Number Component
+const AnimatedNumber = ({ value, className }: { value: number; className?: string }) => {
+  const animatedValue = useCountUp(value, 800);
+  return <span className={className}>{animatedValue.toLocaleString()}</span>;
+};
+
+// Progress Ring Component with animated count
 const ProgressRing = ({
   value,
   max,
@@ -129,9 +177,10 @@ const ProgressRing = ({
   color?: string;
   label: string;
 }) => {
+  const animatedValue = useCountUp(value, 800);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const percent = max > 0 ? value / max : 0;
+  const percent = max > 0 ? animatedValue / max : 0;
   const offset = circumference - percent * circumference;
 
   return (
@@ -156,11 +205,11 @@ const ProgressRing = ({
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            className="transition-all duration-700 ease-out"
+            className="transition-all duration-100 ease-out"
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-bold text-gray-700">{value}</span>
+          <span className="text-sm font-bold text-gray-700">{animatedValue}</span>
         </div>
       </div>
       <span className="text-xs text-gray-500 mt-1">{label}</span>
@@ -174,7 +223,7 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'mappings'>('dashboard');
 
   // Dashboard state
-  const [period, setPeriod] = useState<Period>('all');
+  const [period, setPeriod] = useState<Period>('month');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [overview, setOverview] = useState<StatsOverview | null>(null);
@@ -182,9 +231,11 @@ function AdminPage() {
   const [authMethods, setAuthMethods] = useState<AuthMethodStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
   const [appStats, setAppStats] = useState<AppStats | null>(null);
+  const [loginStats, setLoginStats] = useState<LoginStats | null>(null);
   const [loadingOverview, setLoadingOverview] = useState(false);
   const [loadingChart, setLoadingChart] = useState(false);
   const [loadingApps, setLoadingApps] = useState(false);
+  const [loadingLogins, setLoadingLogins] = useState(false);
 
   // Mappings state
   const [selectedApp, setSelectedApp] = useState<string>('drone-tm');
@@ -308,10 +359,24 @@ function AdminPage() {
       }
     };
 
+    // Fetch login stats (from audit logs)
+    const fetchLoginStats = async () => {
+      setLoadingLogins(true);
+      try {
+        const res = await fetch(`${backendUrl}/admin/stats/logins?${periodParams}`, { credentials: 'include' });
+        if (res.ok) setLoginStats(await res.json());
+      } catch (err) {
+        console.error('Failed to fetch login stats:', err);
+      } finally {
+        setLoadingLogins(false);
+      }
+    };
+
     // Run all in parallel
     fetchOverview();
     fetchChart();
     fetchAppStats();
+    fetchLoginStats();
   }, [isAdmin, activeTab, backendUrl, period, customStartDate, customEndDate]);
 
   // Fetch mappings when app or page changes
@@ -533,7 +598,7 @@ function AdminPage() {
             <div className="filter-group">
               <label>Period:</label>
               <div className="period-buttons">
-                {(['all', 'today', 'week', 'month', 'year', 'custom'] as Period[]).map((p) => (
+                {(['today', 'week', 'month', 'year', 'all', 'custom'] as Period[]).map((p) => (
                   <button
                     key={p}
                     className={`period-btn ${period === p ? 'active' : ''}`}
@@ -565,41 +630,58 @@ function AdminPage() {
 
           {/* Main 3-Column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Stats Overview Card */}
-            {loadingOverview ? (
-              <div className="glass-card p-6 animate-pulse" role="status">
-                <div className="h-6 bg-gray-200 rounded w-32 mb-6"></div>
-                <div className="h-12 bg-gray-200 rounded w-20 mx-auto mb-4"></div>
-                <div className="grid grid-cols-3 gap-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-16 w-16 bg-gray-200 rounded-full mx-auto"></div>
-                  ))}
-                </div>
-                <span className="sr-only">Loading...</span>
-              </div>
-            ) : (
-              <div className="glass-card p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  User Statistics
-                </h3>
-                <div className="text-center mb-4 pb-4 border-b border-gray-200">
-                  <div className="text-4xl font-bold text-hot-red-600 mb-1">
-                    {overview?.total_users || 0}
+            {/* First column: Stats + Active Sessions */}
+            <div className="flex flex-col gap-4">
+              {/* Stats Overview Card - Compact */}
+              {loadingOverview ? (
+                <div className="glass-card p-5 animate-pulse flex-1" role="status">
+                  <div className="h-5 bg-gray-200 rounded w-28 mb-4"></div>
+                  <div className="h-10 bg-gray-200 rounded w-16 mx-auto mb-3"></div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="h-12 w-12 bg-gray-200 rounded-full mx-auto"></div>
+                    ))}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    Total Users ({PERIOD_LABELS[period]})
+                  <span className="sr-only">Loading...</span>
+                </div>
+              ) : (
+                <div className="glass-card p-5 flex-1">
+                  <h3 className="text-base font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Users
+                  </h3>
+                  <p className="text-xs text-gray-400 mb-3">Hanko SSO accounts</p>
+                  <div className="text-center mb-3 pb-3 border-b border-gray-200">
+                    <div className="text-3xl font-bold text-hot-red-600 mb-1">
+                      <AnimatedNumber value={overview?.total_users || 0} />
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {PERIOD_LABELS[period]}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <ProgressRing value={overview?.verified_emails || 0} max={overview?.total_users || 1} color="#10B981" label="Verified" size={42} strokeWidth={4} />
+                    <ProgressRing value={authMethods?.password || 0} max={authMethods?.total || 1} color="#6366F1" label="Email" size={42} strokeWidth={4} />
+                    <ProgressRing value={authMethods?.google || 0} max={authMethods?.total || 1} color="#F59E0B" label="Google" size={42} strokeWidth={4} />
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <ProgressRing value={overview?.verified_emails || 0} max={overview?.total_users || 1} color="#10B981" label="Verified" size={50} strokeWidth={5} />
-                  <ProgressRing value={authMethods?.password || 0} max={authMethods?.total || 1} color="#6366F1" label="via Email" size={50} strokeWidth={5} />
-                  <ProgressRing value={authMethods?.google || 0} max={authMethods?.total || 1} color="#F59E0B" label="via Google" size={50} strokeWidth={5} />
+              )}
+
+              {/* Active Sessions KPI */}
+              <div className="glass-card p-4 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-green-700">Online Now</span>
+                  </div>
+                  <div className="text-3xl font-bold text-green-600">
+                    <AnimatedNumber value={loginStats?.active_sessions || 0} />
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Registrations Chart */}
             {loadingChart ? (
@@ -610,12 +692,13 @@ function AdminPage() {
               </div>
             ) : (
               <div className="glass-card p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-800 mb-1 flex items-center gap-2">
                   <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                   </svg>
-                  Trend
+                  Registration Trend
                 </h3>
+                <p className="text-xs text-gray-400 mb-4">New Hanko accounts over time</p>
                 <ResponsiveContainer width="100%" height={200}>
                   <AreaChart data={registrations}>
                     <defs>
@@ -634,21 +717,22 @@ function AdminPage() {
               </div>
             )}
 
-            {/* Users per App */}
+            {/* Onboarding per App */}
             {loadingApps ? (
               <div className="glass-card p-6 animate-pulse" role="status">
-                <div className="h-5 bg-gray-200 rounded w-32 mb-4"></div>
+                <div className="h-5 bg-gray-200 rounded w-36 mb-4"></div>
                 <div className="h-[200px] bg-gray-200 rounded"></div>
                 <span className="sr-only">Loading...</span>
               </div>
             ) : (
               <div className="glass-card p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-800 mb-1 flex items-center gap-2">
                   <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                   </svg>
-                  Apps
+                  Onboarding per App
                 </h3>
+                <p className="text-xs text-gray-400 mb-4">First-time connections — same user can onboard in multiple apps</p>
                 {appBarData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={appBarData} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 5 }}>
@@ -669,6 +753,62 @@ function AdminPage() {
               </div>
             )}
           </div>
+
+          {/* Login Activity Chart */}
+          {loadingLogins ? (
+            <div className="glass-card p-6 animate-pulse" role="status">
+              <div className="h-5 bg-gray-200 rounded w-32 mb-4"></div>
+              <div className="h-[200px] bg-gray-200 rounded"></div>
+              <span className="sr-only">Loading...</span>
+            </div>
+          ) : (
+            <div className="glass-card p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Login Activity
+              </h3>
+              <p className="text-xs text-gray-400 mb-4">Sessions created per day ({PERIOD_LABELS[period]})</p>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="text-center p-3 bg-white/50 rounded-xl">
+                  <div className="text-2xl font-bold text-blue-600">
+                    <AnimatedNumber value={loginStats?.total_logins || 0} />
+                  </div>
+                  <div className="text-xs text-gray-500">Total Logins</div>
+                </div>
+                <div className="text-center p-3 bg-white/50 rounded-xl">
+                  <div className="text-2xl font-bold text-purple-600">
+                    <AnimatedNumber value={loginStats?.unique_users || 0} />
+                  </div>
+                  <div className="text-xs text-gray-500">Unique Users</div>
+                </div>
+              </div>
+
+              {/* Chart */}
+              {loginStats?.daily_logins && loginStats.daily_logins.length > 0 ? (
+                <ResponsiveContainer width="100%" height={180}>
+                  <AreaChart data={loginStats.daily_logins}>
+                    <defs>
+                      <linearGradient id="colorLogins" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="date" tickFormatter={formatShortDate} stroke="#9CA3AF" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#9CA3AF" fontSize={10} allowDecimals={false} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                    <Area type="monotone" dataKey="count" stroke="#3B82F6" strokeWidth={2} fill="url(#colorLogins)" name="Logins" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center py-8 text-gray-400 text-sm">No login data</div>
+              )}
+            </div>
+          )}
 
           {/* Recent Registrations - Compact */}
           <div className="glass-card p-4">
@@ -693,12 +833,13 @@ function AdminPage() {
 
           {/* User Search Section */}
           <div className="glass-card p-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-800 mb-1 flex items-center gap-2">
               <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               User Search
             </h3>
+            <p className="text-xs text-gray-400 mb-4">Search Hanko accounts by email, date, or connected apps</p>
 
             {/* Search Filters */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
@@ -769,8 +910,9 @@ function AdminPage() {
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">ID</th>
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Verified</th>
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Auth</th>
-                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Apps</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Onboarded</th>
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Registered</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Last Login</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -783,11 +925,12 @@ function AdminPage() {
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                        <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
                       </tr>
                     ))
                   ) : searchResults.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-gray-500">No users found</td>
+                      <td colSpan={7} className="py-8 text-center text-gray-500">No users found</td>
                     </tr>
                   ) : (
                     searchResults.map((user) => (
@@ -856,6 +999,9 @@ function AdminPage() {
                         </td>
                         <td className="py-3 px-2 text-gray-600">
                           {new Date(user.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-2 text-gray-600">
+                          {user.last_login ? new Date(user.last_login).toLocaleDateString() : <span className="text-gray-400">-</span>}
                         </td>
                       </tr>
                     ))
