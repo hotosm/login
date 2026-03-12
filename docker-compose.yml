@@ -41,7 +41,7 @@ services:
 
   # Hanko database migrations (runs once before Hanko starts)
   hanko-migrate:
-    image: ghcr.io/teamhanko/hanko:v2.1.0
+    image: ghcr.io/teamhanko/hanko:v2.5.0
     container_name: login-hanko-migrate
     volumes:
       - ./hanko-config.yaml:/etc/config/config.yaml:ro
@@ -56,7 +56,7 @@ services:
     restart: "no"
 
   hanko:
-    image: ghcr.io/teamhanko/hanko:v2.1.0
+    image: ghcr.io/teamhanko/hanko:v2.5.0
     container_name: login-hanko
     volumes:
       - ./hanko-config.yaml:/etc/config/config.yaml:ro
