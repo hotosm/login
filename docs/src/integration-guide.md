@@ -233,22 +233,233 @@ if getattr(settings, 'AUTH_PROVIDER', 'legacy') == 'hanko':
 
 ---
 
-## Frontend (all)
+## Frontend: Downstream Apps
+
+This guide is mainly about integrating `hotosm-auth` into a downstream app that sends users to a centralized login app and then restores authenticated state when they return.
+
+The centralized login app itself is implemented in this repo already. If you need that side of the integration, see:
+
+- `frontend/src/main.tsx`
+- `frontend/src/App.tsx`
+- `frontend/src/pages/LoginPage.tsx`
+- `frontend/src/pages/ProfilePage.tsx`
+- `frontend/src/contexts/AuthContext.tsx`
+
+For downstream apps, the implementation is easiest to think about as four steps.
+
+#### Step 1: Make the web component available
+
+Import `@hotosm/hanko-auth` anywhere you render `<hotosm-auth>`.
 
 ```tsx
-// Import
-import '/auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
+```
 
-// Use
+If you use React + TypeScript, add JSX typings for the custom element:
+
+```ts
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      'hotosm-auth': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          'hanko-url'?: string;
+          'base-path'?: string;
+          'osm-enabled'?: boolean;
+          'osm-required'?: boolean;
+          'auto-connect'?: boolean;
+          'show-profile'?: boolean;
+          'redirect-after-login'?: string;
+          'redirect-after-logout'?: string;
+          'login-url'?: string;
+          lang?: string;
+        },
+        HTMLElement
+      >;
+    }
+  }
+}
+```
+
+#### Step 2: Keep one hidden verifier mounted
+
+This is the key downstream-app pattern. The hidden `<hotosm-auth>` instance validates the login session after redirect back from the centralized login app and emits `hanko-login`.
+
+```tsx
+import '@hotosm/hanko-auth';
+
+const SessionVerifier = ({ hankoApiUrl }: { hankoApiUrl: string }) => (
+  <div style={{ display: 'none' }}>
+    <hotosm-auth hanko-url={hankoApiUrl} />
+  </div>
+);
+```
+
+Mount it near the top of your app:
+
+```tsx
+{enableAuth && <SessionVerifier hankoApiUrl={config.HANKO_API_URL} />}
+```
+
+#### Step 3: Listen for auth events and store auth state
+
+The web component drives auth through document-level events:
+
+- `hanko-login`
+- `logout`
+- `osm-connected`
+
+```tsx
+import { createContext, useEffect, useState } from 'react';
+
+const AuthContext = createContext(undefined);
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [osmConnection, setOsmConnection] = useState(null);
+
+  useEffect(() => {
+    const handleLogin = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      setUser(customEvent.detail.user);
+    };
+
+    const handleLogout = () => {
+      setUser(null);
+      setOsmConnection(null);
+    };
+
+    const handleOsmConnected = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      setOsmConnection(customEvent.detail.osmData);
+    };
+
+    document.addEventListener('hanko-login', handleLogin);
+    document.addEventListener('logout', handleLogout);
+    document.addEventListener('osm-connected', handleOsmConnected);
+
+    return () => {
+      document.removeEventListener('hanko-login', handleLogin);
+      document.removeEventListener('logout', handleLogout);
+      document.removeEventListener('osm-connected', handleOsmConnected);
+    };
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, osmConnection, isAuthenticated: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+```
+
+#### Step 4: Protect routes and redirect to centralized login
+
+When a protected page is opened by an unauthenticated user:
+
+- if `LOGIN_URL` is external, redirect the browser there with `return_to=<current-url>`
+- if `LOGIN_URL` is an internal route, navigate to it locally
+
+```tsx
+import { Routes, Route, Navigate } from 'react-router-dom';
+
+const PrivateRoute = ({ children, isAuthenticated, loading, loginUrl }) => {
+  if (loading) return <div>Loading...</div>;
+  if (isAuthenticated) return children;
+
+  if (loginUrl.startsWith('http')) {
+    const returnTo = encodeURIComponent(window.location.href);
+    window.location.href = `${loginUrl}?return_to=${returnTo}`;
+    return null;
+  }
+
+  const hashIndex = loginUrl.indexOf('#');
+  const relativePath = hashIndex >= 0 ? loginUrl.slice(hashIndex + 1) : loginUrl;
+  return <Navigate to={relativePath} replace />;
+};
+
+export function AppRoutes({ config, isAuthenticated, loading }) {
+  return (
+    <>
+      {config.ENABLE_AUTH && <SessionVerifier hankoApiUrl={config.HANKO_API_URL} />}
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route
+          path="/linked"
+          element={
+            <PrivateRoute
+              isAuthenticated={isAuthenticated}
+              loading={loading}
+              loginUrl={config.LOGIN_URL}
+            >
+              <Linked />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </>
+  );
+}
+```
+
+### Optional: visible auth control in a downstream app header
+
+If users should be able to log in or see their profile from any page, render `<hotosm-auth>` visibly in your header as well:
+
+```tsx
 <hotosm-auth
-  hanko-url={import.meta.env.VITE_HANKO_URL}
-  redirect-after-login="/"
+  hanko-url={config.HANKO_API_URL}
+  login-url={config.LOGIN_URL}
+  redirect-after-login={window.location.origin}
+  redirect-after-logout={window.location.origin}
+  lang={lang}
 />
 ```
 
+This is optional. The hidden verifier is the required piece for downstream apps with protected routes.
+
+### Dedicated login page in a downstream app
+
+If your downstream app also has its own `/login` or `/app` route, you can render `<hotosm-auth show-profile>` there as a visible login UI instead of only redirecting externally.
+
+```tsx
+import { Link } from 'react-router-dom';
+import '@hotosm/hanko-auth';
+
+function LoginPage() {
+  const { config } = useConfigContext();
+  const redirectUrl = config?.FRONTEND_URL || window.location.origin;
+
+  return (
+    <div className="login-page">
+      <div className="login__panel">
+        <hotosm-auth
+          hanko-url={config?.HANKO_API_URL}
+          show-profile={true}
+          redirect-after-login={redirectUrl}
+          redirect-after-logout={redirectUrl}
+        />
+        <Link to="/">Back to home</Link>
+      </div>
+    </div>
+  );
+}
+```
+
+You can also pass onboarding-specific props such as `osm-required` and `auto-connect` if the downstream app needs to force OSM connection.
+
+### Frontend env/config
+
 ```bash
-# .env
+# Hanko API + centralized login
 VITE_HANKO_URL=https://login.hotosm.org
+VITE_LOGIN_URL=https://login.hotosm.org/app
+
+# Optional app-side config values used by downstream apps
+HANKO_API_URL=https://login.hotosm.org
+LOGIN_URL=https://login.hotosm.org/app
+FRONTEND_URL=https://your-app.example.org
 ```
 
 ---
