@@ -9,17 +9,18 @@
 - **User Mapping**: Maps Hanko users to app-specific user IDs
 
 | Component | Purpose |
-|-----------|---------|
+| ----------- | --------- |
 | `hotosm_auth` | Core Python package (JWT, config, crypto) |
 | `hotosm_auth_fastapi` | FastAPI integration (dependencies, routes) |
 | `hotosm_auth_django` | Django integration (middleware, decorators) |
+| `hotosm_auth_litestar` | Litestar integration (dependencies, routes) |
 | `<hotosm-auth>` | Web component (Lit-based auth UI) |
 
 ---
 
 ## Package Structure
 
-```
+```text
 auth-libs/
 │
 ├── python/src/                       # Python packages
@@ -35,6 +36,11 @@ auth-libs/
 │   │   ├── dependencies.py           # CurrentUser, OSMConnectionRequired
 │   │   ├── osm_routes.py             # /auth/osm/* endpoints
 │   │   └── admin_routes.py           # User mapping admin API
+│   │
+│   ├── hotosm_auth_litestar/         # Litestar integration
+│   │   ├── dependencies.py           # current_user, auth context providers
+│   │   ├── setup.py                  # setup_auth helper
+│   │   └── osm_routes.py             # /auth/osm/* endpoints
 │   │
 │   └── hotosm_auth_django/           # Django integration
 │       ├── middleware.py             # HankoAuthMiddleware
@@ -75,7 +81,7 @@ Apps with existing users need to map Hanko UUIDs to app user IDs.
 
 ### Problem
 
-```
+```text
 Hanko: id="550e8400-..."    ←→    App: id=42
        email=user@x.com            email=user@x.com
 ```
@@ -146,7 +152,9 @@ flowchart TD
     Q --> I
 ```
 
-> **Key Difference**: FastAPI supports auto-creation with `email_lookup_fn` and `user_creator_fn`. Django defaults to `auto_create=False`, expecting the app to handle onboarding (e.g., after OSM connect).
+> **Key Difference**: FastAPI supports auto-creation with `email_lookup_fn` and
+> `user_creator_fn`. Django defaults to `auto_create=False`, so the app handles
+> onboarding (for example, after OSM connect).
 
 ---
 
@@ -186,15 +194,15 @@ VITE_HANKO_URL=https://login.hotosm.org
 ### Variables by Project
 
 | Variable | Portal | Drone-TM | fAIr | OAM | Login |
-|----------|--------|----------|------|-----|-------|
-| **Backend** |
+| ---------- | -------- | ---------- | ------ | ----- | ------- |
+| **Backend** | | | | | |
 | `HANKO_API_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `COOKIE_SECRET` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `OSM_CLIENT_ID` | ✅ | - | ✅ | - | ✅ |
 | `OSM_CLIENT_SECRET` | ✅ | - | ✅ | - | ✅ |
 | `ADMIN_EMAILS` | ✅ | ✅ | ✅ | - | - |
 | `AUTH_PROVIDER` | - | ✅ | ✅ | - | - |
-| **Frontend** |
+| **Frontend** | | | | | |
 | `VITE_HANKO_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `VITE_AUTH_PROVIDER` | - | ✅ | ✅ | - | - |
 

@@ -1,6 +1,7 @@
 # HOTOSM Login (SSO)
 
-Centralized authentication service for all HOTOSM applications using Hanko + OSM OAuth.
+Centralized authentication service for all HOTOSM applications using Hanko + OSM
+OAuth.
 
 For context behind this decision, see: [ADR-0011: SSO Authentication](https://docs.hotosm.org/decisions/0011-sso-auth/)
 
@@ -9,11 +10,12 @@ For context behind this decision, see: [ADR-0011: SSO Authentication](https://do
 The login service consists of four main components:
 
 - **Hanko**: Core authentication service (JWT sessions, passkeys, passwords)
-- **Backend**: FastAPI service for custom authentication logic (OSM OAuth, user mapping)
+- **Backend**: FastAPI service for custom auth logic (OSM OAuth, user mapping)
 - **Frontend**: React application for login UI and user management
 - **OSM-userinfo**: Go service for fetching OpenStreetMap user information
 
-All services are orchestrated with Docker Compose and deployed to EC2 with GitHub Actions.
+All services are orchestrated with Docker Compose and deployed to EC2 with
+GitHub Actions.
 
 ## Quick Start (Local Development)
 
@@ -48,7 +50,7 @@ docker compose --profile prod up --build
 
 ### 4. Access the services
 
-**Development mode:**
+### Development mode
 
 - Hanko API: <https://dev.login.hotosm.org>
 - Frontend: <https://app.dev.login.hotosm.org>
@@ -56,7 +58,7 @@ docker compose --profile prod up --build
 - Hanko Elements: <https://elements.login.hotosm.org>
 - Demo: <https://demo.login.hotosm.org>
 
-**Production mode:**
+### Production mode
 
 - Hanko API: <https://login.hotosm.org>
 - Frontend: <https://app.login.hotosm.org>
@@ -121,12 +123,12 @@ docker build -t test-osm-userinfo ./osm-userinfo
 
 ### Auth-libs Integration
 
-**Python library:**
+### Python library
 
 - Located in `auth-libs/python/`
 - Installed via pip during Docker build
 
-**Web component:**
+### Web component
 
 - Source: `frontend/auth-libs/web-component/`
 - Published to npm as `@hotosm/hanko-auth`
@@ -137,7 +139,7 @@ docker build -t test-osm-userinfo ./osm-userinfo
   pnpm add @awesome.me/webawesome  # peer dependency
   ```
 
-**Development:**
+### Web Component Development
 
 - Edit source in respective directories
 - Build web component: `cd frontend/auth-libs/web-component && pnpm build`
@@ -149,14 +151,14 @@ docker build -t test-osm-userinfo ./osm-userinfo
 
 The service deploys automatically to EC2:
 
-**Testing Environment:**
+### Testing Environment
 
 - Branch: `develop`
 - Workflow: `.github/workflows/deploy-testing.yml`
 - Triggered by: Push to `develop` branch
 - Deploys to: EC2 testing server with `--profile dev`
 
-**Production Environment:**
+### Production Environment
 
 - Branch: `main`
 - Workflow: `.github/workflows/deploy-production.yml`
@@ -179,14 +181,14 @@ The service deploys automatically to EC2:
 
 Configure these secrets in GitHub Settings → Environments:
 
-**Environment: Development**
+### Environment: Development
 
 - `EC2_HOST`: Hostname of testing EC2 server
 - `EC2_USER`: SSH user (usually `admin`)
 - `EC2_SSH_KEY`: Private SSH key for EC2 access
 - `POSTGRES_PASSWORD`: PostgreSQL password for Hanko database
 
-**Environment: Production**
+### Environment: Production
 
 - Same secrets but for production EC2 server
 
@@ -218,23 +220,23 @@ docker image prune -af
 
 ### Environment Variables
 
-**Hanko:**
+### Hanko Service
 
 - Configured via `config.yaml` (production) or `config_dev.yaml` (development)
 - See [Hanko documentation](https://docs.hanko.io/) for configuration options
 
-**Backend:**
+### Backend
 
 - `HANKO_URL`: Hanko API URL (default: <http://hanko:8000>)
 - `OSM_CLIENT_ID`: OSM OAuth client ID
 - `OSM_CLIENT_SECRET`: OSM OAuth client secret
 
-**Frontend:**
+### Frontend
 
 - `VITE_HANKO_URL`: Hanko API URL for frontend
 - `VITE_BACKEND_URL`: Backend API URL
 
-**Database:**
+### Database
 
 - `POSTGRES_USER`: Database user (default: hanko)
 - `POSTGRES_PASSWORD`: Database password (set in .env)
@@ -272,7 +274,8 @@ docker compose logs -f frontend
    - Verify auth-libs web component exists in `frontend/auth-libs/web-component/dist/`
 
 3. **Missing auth-libs in Docker build:**
-   - Ensure dist files are committed: `git add -f backend/auth-libs/python/dist/*.whl frontend/auth-libs/web-component/dist/*.js`
+   - Ensure dist files are committed:
+     `git add -f backend/auth-libs/python/dist/*.whl frontend/auth-libs/web-component/dist/*.js`
    - Run distribute script from auth-libs repo
 
 ### Deployment Issues

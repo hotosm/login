@@ -12,7 +12,7 @@ license = { text = "AGPL-3.0" }
 authors = [
     { name = "HOTOSM", email = "tech@hotosm.org" },
 ]
-keywords = ["hotosm", "auth", "hanko", "osm", "oauth", "sso", "fastapi", "django"]
+keywords = ["hotosm", "auth", "hanko", "osm", "oauth", "sso", "fastapi", "django", "litestar"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -43,6 +43,10 @@ django = [
     "django>=4.2.0",
     "djangorestframework>=3.14.0",
 ]
+litestar = [
+    "litestar>=2.0.0",
+    "psycopg>=3.0.0",
+]
 dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
@@ -50,6 +54,7 @@ dev = [
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.5.0",
+    "psycopg>=3.0.0",
 ]
 
 [project.urls]
