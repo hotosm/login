@@ -4,8 +4,8 @@ import hashlib
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from hotosm_auth_fastapi import get_current_user
 from hotosm_auth.models import HankoUser
+from hotosm_auth_fastapi import get_current_user
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +22,7 @@ DB = Annotated[AsyncSession, Depends(get_db)]
 
 def get_gravatar_url(email: str, size: int = 200) -> str:
     """Generate Gravatar URL from email."""
-    email_hash = hashlib.md5(email.lower().strip().encode()).hexdigest()
+    email_hash = hashlib.md5(email.lower().strip().encode()).hexdigest()  # noqa: S324
     return f"https://www.gravatar.com/avatar/{email_hash}?s={size}&d=identicon"
 
 
@@ -33,10 +33,14 @@ async def get_my_profile(user: CurrentUser, db: DB) -> ProfileResponse:
     Creates a profile if it doesn't exist (using upsert to handle race conditions).
     """
     # Use INSERT ... ON CONFLICT DO NOTHING to handle race conditions
-    stmt = insert(UserProfile).values(
-        hanko_user_id=user.id,
-        picture_url=get_gravatar_url(user.email) if user.email else None,
-    ).on_conflict_do_nothing(index_elements=["hanko_user_id"])
+    stmt = (
+        insert(UserProfile)
+        .values(
+            hanko_user_id=user.id,
+            picture_url=get_gravatar_url(user.email) if user.email else None,
+        )
+        .on_conflict_do_nothing(index_elements=["hanko_user_id"])
+    )
     await db.execute(stmt)
     await db.commit()
 
@@ -76,12 +80,18 @@ async def update_my_profile(
     # Build insert values, using gravatar as default only if picture_url not provided
     insert_values = {"hanko_user_id": user.id}
     if "picture_url" not in update_data:
-        insert_values["picture_url"] = get_gravatar_url(user.email) if user.email else None
+        insert_values["picture_url"] = (
+            get_gravatar_url(user.email) if user.email else None
+        )
     insert_values.update(update_data)
 
-    stmt = insert(UserProfile).values(**insert_values).on_conflict_do_update(
-        index_elements=["hanko_user_id"],
-        set_=update_data if update_data else {"hanko_user_id": user.id},
+    stmt = (
+        insert(UserProfile)
+        .values(**insert_values)
+        .on_conflict_do_update(
+            index_elements=["hanko_user_id"],
+            set_=update_data if update_data else {"hanko_user_id": user.id},
+        )
     )
     await db.execute(stmt)
     await db.commit()
@@ -114,8 +124,6 @@ async def sync_osm_to_profile(user: CurrentUser, db: DB) -> dict:
 
     Call this after connecting OSM to cache the OSM user info in the profile.
     """
-    from hotosm_auth_fastapi import get_osm_connection
-
     # Try to get OSM connection
     # Note: This would need the request object, so we'll handle this differently
     # For now, this endpoint can be called with OSM data in the body

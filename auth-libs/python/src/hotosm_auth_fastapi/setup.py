@@ -1,17 +1,20 @@
 """FastAPI setup helpers and auth dependency aliases."""
 
-from typing import Optional, Annotated
-from fastapi import FastAPI, Depends, HTTPException, status
+from typing import Annotated, Optional
+
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth.logger import get_logger
+from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth_fastapi.dependencies import (
-    init_auth as _init_auth,
     get_current_user,
     get_current_user_optional,
     get_osm_connection,
+)
+from hotosm_auth_fastapi.dependencies import (
+    init_auth as _init_auth,
 )
 
 logger = get_logger(__name__)
@@ -22,8 +25,8 @@ class _AuthDep:
 
     def __init__(
         self,
-        user: HankoUser = Depends(get_current_user),
-        osm: Optional[OSMConnection] = Depends(get_osm_connection),
+        user: Annotated[HankoUser, Depends(get_current_user)],
+        osm: Annotated[Optional[OSMConnection], Depends(get_osm_connection)],
     ):
         self.user = user
         self.osm = osm
@@ -82,6 +85,7 @@ def setup_auth(
     # Register OSM OAuth routes if enabled
     if auto_osm_routes and config.osm_enabled:
         from hotosm_auth_fastapi.osm_routes import router as osm_router
+
         app.include_router(osm_router)
         logger.info("OSM OAuth routes registered at /auth/osm/*")
 

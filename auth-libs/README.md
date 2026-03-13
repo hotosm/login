@@ -213,6 +213,7 @@ OSM_CLIENT_SECRET=your-osm-client-secret
    ```
 
 2. **Standalone Mode** (development): Local Hanko + local login page
+
    ```html
    <hotosm-auth
      hanko-url="http://localhost:8002"
@@ -249,6 +250,7 @@ uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
 ```
 
 **Test categories:**
+
 - Core: config, crypto, JWT validation, OSM OAuth client
 - FastAPI: dependencies, OSM routes, admin routes
 - Django: middleware, OSM views, admin routes

@@ -1,11 +1,12 @@
 # OpenAerialMap Implementation
 
-**Stack:** FastAPI (STAC API) | **Repo:** `openaerialmap/` | **Branch:** `login_hanko` (vs `main`)
+**Stack:** FastAPI (STAC API) | **Repo:** `openaerialmap/` | **Branch:**
+`login_hanko` (vs `main`)
 
 ## Overview
 
 | Aspect | Detail |
-|--------|--------|
+| -------- | -------- |
 | Framework | FastAPI |
 | Type | Simple (no mapping) |
 | OSM Required | No |
@@ -126,7 +127,7 @@ VITE_STAC_TILER_PATHNAME=raster
 ### Available Dependencies (FastAPI)
 
 | Dependency | Type | Error if missing |
-|------------|------|------------------|
+| ------------ | ------ | ------------------ |
 | `CurrentUser` | `HankoUser` | 401 Unauthorized |
 | `CurrentUserOptional` | `Optional[HankoUser]` | None (no error) |
 | `OSMConnectionRequired` | `OSMConnection` | 403 Forbidden |
@@ -150,7 +151,8 @@ async def create_item(user: CurrentUser):
     return await stac.create(owner=user.id)
 ```
 
-**Features:**
+### Features
+
 - **Public endpoints**: Search/browse images (no auth)
 - **Protected endpoints**: Upload/manage images (with auth)
 - **No OSM**: Users don't need an OSM account to view images
@@ -185,7 +187,7 @@ dependencies = [
 
 ## API Endpoints
 
-```
+```text
 # STAC (public)
 GET /collections                  # List collections
 GET /collections/{id}             # Get collection

@@ -1,21 +1,19 @@
 """Integration tests for full JWT validation flow."""
 
 import time
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-import pytest
 import jwt
-
-from hotosm_auth.config import AuthConfig
-from hotosm_auth.jwt_validator import JWTValidator
-from hotosm_auth.exceptions import TokenExpiredError, TokenInvalidError
-
+import pytest
+from cryptography.hazmat.backends import default_backend
 
 # Generate a test RSA key pair for signing JWTs
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
+
+from hotosm_auth.config import AuthConfig
+from hotosm_auth.exceptions import TokenExpiredError, TokenInvalidError
+from hotosm_auth.jwt_validator import JWTValidator
 
 
 def _generate_test_keys():
@@ -81,7 +79,11 @@ class TestJWTValidation:
         mock_signing_key = MagicMock()
         mock_signing_key.key = public_key
 
-        with patch.object(validator._jwk_client, 'get_signing_key_from_jwt', return_value=mock_signing_key):
+        with patch.object(
+            validator._jwk_client,
+            "get_signing_key_from_jwt",
+            return_value=mock_signing_key,
+        ):
             user = await validator.validate_token(token)
 
         assert user.id == "user-abc-123"
@@ -108,9 +110,15 @@ class TestJWTValidation:
         mock_signing_key = MagicMock()
         mock_signing_key.key = public_key
 
-        with patch.object(validator._jwk_client, 'get_signing_key_from_jwt', return_value=mock_signing_key):
-            with pytest.raises(TokenExpiredError):
-                await validator.validate_token(token)
+        with (
+            patch.object(
+                validator._jwk_client,
+                "get_signing_key_from_jwt",
+                return_value=mock_signing_key,
+            ),
+            pytest.raises(TokenExpiredError),
+        ):
+            await validator.validate_token(token)
 
     @pytest.mark.asyncio
     async def test_rejects_wrong_issuer(self, config, keys):
@@ -132,9 +140,15 @@ class TestJWTValidation:
         mock_signing_key = MagicMock()
         mock_signing_key.key = public_key
 
-        with patch.object(validator._jwk_client, 'get_signing_key_from_jwt', return_value=mock_signing_key):
-            with pytest.raises(TokenInvalidError):
-                await validator.validate_token(token)
+        with (
+            patch.object(
+                validator._jwk_client,
+                "get_signing_key_from_jwt",
+                return_value=mock_signing_key,
+            ),
+            pytest.raises(TokenInvalidError),
+        ):
+            await validator.validate_token(token)
 
     @pytest.mark.asyncio
     async def test_rejects_wrong_audience(self, config, keys):
@@ -156,6 +170,12 @@ class TestJWTValidation:
         mock_signing_key = MagicMock()
         mock_signing_key.key = public_key
 
-        with patch.object(validator._jwk_client, 'get_signing_key_from_jwt', return_value=mock_signing_key):
-            with pytest.raises(TokenInvalidError):
-                await validator.validate_token(token)
+        with (
+            patch.object(
+                validator._jwk_client,
+                "get_signing_key_from_jwt",
+                return_value=mock_signing_key,
+            ),
+            pytest.raises(TokenInvalidError),
+        ):
+            await validator.validate_token(token)

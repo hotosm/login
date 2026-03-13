@@ -1,5 +1,4 @@
-"""
-OpenStreetMap OAuth 2.0 integration.
+"""OpenStreetMap OAuth 2.0 integration.
 
 Handles the OAuth flow for connecting OSM accounts:
 1. Generate authorization URL
@@ -9,15 +8,17 @@ Handles the OAuth flow for connecting OSM accounts:
 5. Revoke tokens
 """
 
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
 from urllib.parse import urlencode
 
 import httpx
 
 from hotosm_auth.config import AuthConfig
+from hotosm_auth.exceptions import OSMAPIError, OSMOAuthError
 from hotosm_auth.models import OSMConnection
-from hotosm_auth.exceptions import OSMOAuthError, OSMAPIError
+
+HTTP_FORBIDDEN = 403
 
 
 class OSMOAuthClient:
@@ -223,7 +224,11 @@ class OSMOAuthClient:
             except httpx.RequestError as e:
                 raise OSMOAuthError(f"Token refresh request failed: {str(e)}") from e
 
-    async def revoke_token(self, token: str, token_type_hint: str = "access_token"):
+    async def revoke_token(
+        self,
+        token: str,
+        token_type_hint: str | None = None,
+    ):
         """Revoke an OAuth token.
 
         Revokes the specified token on OpenStreetMap's authorization server.
@@ -247,6 +252,8 @@ class OSMOAuthClient:
             if osm_conn.refresh_token:
                 await client.revoke_token(osm_conn.refresh_token, "refresh_token")
         """
+        token_type_hint = token_type_hint or "access_token"
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
@@ -266,11 +273,12 @@ class OSMOAuthClient:
 
             except httpx.HTTPStatusError as e:
                 # Don't raise error for 403 - it means token was already invalid
-                if e.response.status_code == 403:
+                if e.response.status_code == HTTP_FORBIDDEN:
                     # Token already revoked or invalid - this is fine
                     return
                 raise OSMOAuthError(
-                    f"Token revocation failed: {e.response.status_code} {e.response.text}"
+                    "Token revocation failed: "
+                    f"{e.response.status_code} {e.response.text}"
                 ) from e
             except httpx.RequestError as e:
                 raise OSMOAuthError(f"Token revocation request failed: {str(e)}") from e
@@ -307,9 +315,7 @@ class OSMOAuthClient:
                 return user
 
             except httpx.HTTPStatusError as e:
-                raise OSMAPIError(
-                    f"OSM API error: {e.response.status_code}"
-                ) from e
+                raise OSMAPIError(f"OSM API error: {e.response.status_code}") from e
             except httpx.RequestError as e:
                 raise OSMAPIError(f"OSM API request failed: {str(e)}") from e
 

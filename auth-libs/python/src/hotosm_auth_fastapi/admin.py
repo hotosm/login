@@ -1,5 +1,4 @@
-"""
-FastAPI admin authentication.
+"""FastAPI admin authentication.
 
 Provides dependency for requiring admin access based on email whitelist.
 
@@ -17,16 +16,16 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.models import HankoUser
-from hotosm_auth_fastapi.dependencies import get_current_user, get_config
 from hotosm_auth.logger import get_logger
+from hotosm_auth.models import HankoUser
+from hotosm_auth_fastapi.dependencies import get_config, get_current_user
 
 logger = get_logger(__name__)
 
 
 async def require_admin(
-    user: HankoUser = Depends(get_current_user),
-    config: AuthConfig = Depends(get_config),
+    user: Annotated[HankoUser, Depends(get_current_user)],
+    config: Annotated[AuthConfig, Depends(get_config)],
 ) -> HankoUser:
     """Require admin access based on email whitelist.
 

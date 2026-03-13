@@ -6,20 +6,20 @@ from typing import Optional
 
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect
+from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.urls import path
 
+from hotosm_auth.exceptions import OSMOAuthError
+from hotosm_auth.logger import get_logger
 from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth.osm_oauth import OSMOAuthClient
-from hotosm_auth.exceptions import OSMOAuthError
 from hotosm_auth_django.middleware import (
-    get_osm_connection,
-    set_osm_cookie,
     clear_osm_cookie,
     get_auth_config,
+    get_osm_connection,
+    set_osm_cookie,
 )
-from hotosm_auth.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -36,7 +36,7 @@ def osm_login(request: HttpRequest):
     logger.debug(f"OSM login called for {request.path}")
 
     user: Optional[HankoUser] = None
-    if hasattr(request, 'hotosm') and request.hotosm:
+    if hasattr(request, "hotosm") and request.hotosm:
         user = request.hotosm.user
 
     if not user:
@@ -61,22 +61,20 @@ def osm_login(request: HttpRequest):
     state = secrets.token_urlsafe(32)
 
     # Store user ID and the page they came from for redirect after OAuth
-    referer = request.META.get('HTTP_REFERER', '')
+    referer = request.META.get("HTTP_REFERER", "")
     if referer:
         from urllib.parse import urlparse
+
         parsed = urlparse(referer)
         # Store the full path (including query params if any)
         redirect_url = parsed.path
         if parsed.query:
-            redirect_url += '?' + parsed.query
+            redirect_url += "?" + parsed.query
     else:
         # Fallback to current app's base path
-        redirect_url = request.path.rsplit('/auth/osm/login', 1)[0] or '/'
+        redirect_url = request.path.rsplit("/auth/osm/login", 1)[0] or "/"
 
-    _oauth_states[state] = {
-        "user_id": user.id,
-        "redirect_url": redirect_url
-    }
+    _oauth_states[state] = {"user_id": user.id, "redirect_url": redirect_url}
 
     # Generate authorization URL
     auth_url = osm_client.get_authorization_url(state=state)
@@ -98,7 +96,7 @@ def osm_callback(request: HttpRequest):
 
     # Get current user from middleware
     user: Optional[HankoUser] = None
-    if hasattr(request, 'hotosm') and request.hotosm:
+    if hasattr(request, "hotosm") and request.hotosm:
         user = request.hotosm.user
 
     if not user:
@@ -117,12 +115,6 @@ def osm_callback(request: HttpRequest):
 
     # Verify state (CSRF protection)
     state_data = _oauth_states.pop(state, None)
-    if not state_data:
-        return JsonResponse(
-            {"error": "Invalid OAuth state"},
-            status=400,
-        )
-
     # Backward compatibility with older state payload format.
     if isinstance(state_data, dict):
         stored_user_id = state_data.get("user_id")
@@ -132,7 +124,7 @@ def osm_callback(request: HttpRequest):
         stored_user_id = state_data
         redirect_url = "/"
 
-    if stored_user_id != user.id:
+    if not state_data or stored_user_id != user.id:
         return JsonResponse(
             {"error": "Invalid OAuth state"},
             status=400,
@@ -177,12 +169,14 @@ def osm_status(request: HttpRequest):
     if not osm:
         return JsonResponse({"connected": False})
 
-    return JsonResponse({
-        "connected": True,
-        "osm_user_id": osm.osm_user_id,
-        "osm_username": osm.osm_username,
-        "osm_avatar_url": osm.osm_avatar_url,
-    })
+    return JsonResponse(
+        {
+            "connected": True,
+            "osm_user_id": osm.osm_user_id,
+            "osm_username": osm.osm_username,
+            "osm_avatar_url": osm.osm_avatar_url,
+        }
+    )
 
 
 @csrf_exempt
@@ -231,7 +225,9 @@ def osm_disconnect(request: HttpRequest):
             logger.error(f"Failed to revoke OSM tokens: {e}")
 
     # Clear the cookie regardless of revocation result
-    response = JsonResponse({"status": "disconnected", "tokens_revoked": tokens_revoked})
+    response = JsonResponse(
+        {"status": "disconnected", "tokens_revoked": tokens_revoked}
+    )
     clear_osm_cookie(response)
 
     logger.debug("OSM cookie cleared, response ready to send")
@@ -241,8 +237,8 @@ def osm_disconnect(request: HttpRequest):
 
 # URL patterns for easy inclusion in Django apps
 urlpatterns = [
-    path('auth/osm/login/', osm_login, name='osm_login'),
-    path('auth/osm/callback/', osm_callback, name='osm_callback'),
-    path('auth/osm/status/', osm_status, name='osm_status'),
-    path('auth/osm/disconnect/', osm_disconnect, name='osm_disconnect'),
+    path("auth/osm/login/", osm_login, name="osm_login"),
+    path("auth/osm/callback/", osm_callback, name="osm_callback"),
+    path("auth/osm/status/", osm_status, name="osm_status"),
+    path("auth/osm/disconnect/", osm_disconnect, name="osm_disconnect"),
 ]

@@ -1,6 +1,7 @@
 # Web Component: `<hotosm-auth>`
 
-Lit-based web component for HOTOSM SSO authentication with Hanko and OpenStreetMap integration.
+Lit-based web component for HOTOSM SSO authentication with Hanko and
+OpenStreetMap integration.
 
 ## Installation
 
@@ -56,57 +57,57 @@ export function AuthButton({ hankoUrl, onLogin }) {
 
 ### Core
 
-| Attribute   | Type   | Default                  | Description                                |
-| ----------- | ------ | ------------------------ | ------------------------------------------ |
-| `hanko-url` | string | `window.location.origin` | Login service URL for Hanko authentication |
-| `base-path` | string | `""`                     | Base URL for OSM OAuth endpoints           |
-| `auth-path` | string | `/api/auth/osm`          | OSM auth endpoints path                    |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `hanko-url` | string | `window.location.origin` | Login service URL |
+| `base-path` | string | `""` | Base URL for OSM OAuth endpoints |
+| `auth-path` | string | `/api/auth/osm` | OSM auth endpoints path |
 
 ### Behavior
 
-| Attribute        | Type    | Default        | Description                |
-| ---------------- | ------- | -------------- | -------------------------- |
-| `osm-required`   | boolean | `false`        | Require OSM connection     |
-| `osm-scopes`     | string  | `"read_prefs"` | Space-separated OSM scopes |
-| `auto-connect`   | boolean | `false`        | Auto-redirect to OSM OAuth |
-| `verify-session` | boolean | `false`        | Verify session on return   |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `osm-required` | boolean | `false` | Require OSM connection |
+| `osm-scopes` | string | `"read_prefs"` | OSM scopes (space-separated) |
+| `auto-connect` | boolean | `false` | Auto redirect to OSM OAuth |
+| `verify-session` | boolean | `false` | Verify session on return flow |
 
 ### Display
 
-| Attribute        | Type    | Default    | Description                                                       |
-| ---------------- | ------- | ---------- | ----------------------------------------------------------------- |
-| `show-profile`   | boolean | `false`    | Show full profile (vs header button)                              |
-| `display-name`   | string  | `""`       | Override display name                                             |
-| `lang`           | string  | `"en"`     | Language/locale code (e.g., "en", "es", "fr"). Enlish as fallback |
-| `button-variant` | string  | `"filled"` | Button style: `filled`, `outline`, or `plain`                     |
-| `button-color`   | string  | `"primary"`| Button color: `primary`, `neutral`, or `danger`                   |
-| `display`        | string  | `"default"`| Display mode: `default` (compact avatar) or `bar` (full-width bar with avatar + email + arrow) |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `show-profile` | boolean | `false` | Show full profile |
+| `display-name` | string | `""` | Override display name |
+| `lang` | string | `"en"` | Locale (e.g., "en", "es", "fr"), fallback "en" |
+| `button-variant` | string | `"filled"` | `filled`, `outline`, or `plain` |
+| `button-color` | string | `"primary"` | `primary`, `neutral`, or `danger` |
+| `display` | string | `"default"` | `default` (avatar) or `bar` mode |
 
 ### Redirects
 
-| Attribute               | Type   | Default | Description                |
+| Attribute | Type | Default | Description |
 | ----------------------- | ------ | ------- | -------------------------- |
-| `redirect-after-login`  | string | `""`    | URL after successful login |
-| `redirect-after-logout` | string | `""`    | URL after logout           |
+| `redirect-after-login` | string | `""` | URL after successful login |
+| `redirect-after-logout` | string | `""` | URL after logout |
 
 ### Cross-app
 
-| Attribute           | Type   | Default | Description                   |
+| Attribute | Type | Default | Description |
 | ------------------- | ------ | ------- | ----------------------------- |
-| `mapping-check-url` | string | `""`    | URL to check user mapping     |
-| `app-id`            | string | `""`    | App identifier for onboarding |
+| `mapping-check-url` | string | `""` | URL to check user mapping |
+| `app-id` | string | `""` | App identifier for onboarding |
 
 ## Events
 
 The component dispatches the following custom events:
 
-| Event           | Detail                 | When                        |
+| Event | Detail | When |
 | --------------- | ---------------------- | --------------------------- |
-| `hanko-login`   | `{ user: HankoUser }`  | User logged in              |
-| `osm-connected` | `{ osmData: OSMData }` | OSM account linked          |
-| `osm-skipped`   | `{}`                   | User skipped OSM connection |
-| `auth-complete` | `{}`                   | Auth flow complete          |
-| `logout`        | `{}`                   | User logged out             |
+| `hanko-login` | `{ user: HankoUser }` | User logged in |
+| `osm-connected` | `{ osmData: OSMData }` | OSM account linked |
+| `osm-skipped` | `{}` | User skipped OSM connection |
+| `auth-complete` | `{}` | Auth flow complete |
+| `logout` | `{}` | User logged out |
 
 ### Event Handling Example
 
@@ -129,9 +130,12 @@ auth.addEventListener("logout", () => {
 
 ## Flash Prevention (localStorage cache)
 
-On remount (e.g. React navigation), the component checks `localStorage` for a cached user under the key `hotosm-auth-user`. If found, it skips the loading spinner and renders immediately with the cached user.
+On remount (e.g. React navigation), the component checks `localStorage` for a
+cached user under the key `hotosm-auth-user`. If found, it skips the loading
+spinner and renders immediately with the cached user.
 
-The component reads from this key but does not write to it. The host app is responsible for keeping it in sync:
+The component reads from this key but does not write to it. The host app is
+responsible for keeping it in sync:
 
 ```js
 // Write on login
@@ -145,7 +149,8 @@ auth.addEventListener("logout", () => {
 });
 ```
 
-If the key is absent (first visit, after logout, or cleared storage), the component falls back to its normal loading flow — no change in behavior.
+If the key is absent (first visit, after logout, or cleared storage), the
+component falls back to its normal loading flow - no change in behavior.
 
 ## Usage Modes
 
@@ -194,7 +199,8 @@ Customize the login button appearance with `button-variant` and `button-color`:
 
 ### Bar Mode
 
-Shows a full-width bar with avatar, email, and chevron arrow (ideal for mobile drawers/menus):
+Shows a full-width bar with avatar, email, and chevron arrow (ideal for mobile
+drawers/menus):
 
 ```html
 <hotosm-auth
@@ -226,26 +232,26 @@ The component uses Shadow DOM and can be customized using CSS custom properties.
 
 #### Whole component
 
-| Property          | Description                                   | Default                                 |
-| ----------------- | --------------------------------------------- | --------------------------------------- |
-| `--font-family`   | Font family for all text in the component     | `system-ui, -apple-system, sans-serif`  |
-| `--font-weight`   | Font weight for all text in the component     | `500`                                   |
+| Property | Description | Default |
+| - | - | - |
+| `--font-family` | Font family for all text | `system-ui` |
+| `--font-weight` | Font weight for all text | `500` |
 
 #### Login button
 
-| Property                      | Description                        | Default                                                |
-| ----------------------------- | ---------------------------------- | ------------------------------------------------------ |
-| `--login-btn-margin`          | Margin around the login button     | `0`                                                    |
-| `--login-btn-padding`         | Padding inside the login button    | `var(--hot-spacing-x-small) var(--hot-spacing-medium)` |
-| `--login-btn-bg-color`        | Background color of login button   | `var(--hot-color-primary-1000)`                        |
-| `--login-btn-hover-bg-color`  | Background color on hover          | `var(--hot-color-primary-900)`                         |
-| `--login-btn-border-radius`   | Border radius of login button      | `var(--hot-border-radius-medium)`                      |
-| `--login-btn-text-color`      | Text color of login button         | `white`                                                |
-| `--login-btn-text-size`       | Font size of login button text     | `var(--hot-font-size-medium)`                          |
-| `--login-btn-font-family`     | Font family of login button        | falls back to `--font-family`                          |
-| `--login-btn-font-weight`     | Font weight of login button        | falls back to `--font-weight`                          |
+| Property | Description | Default |
+| - | - | - |
+| `--login-btn-margin` | Margin around the login button | `0` |
+| `--login-btn-padding` | Padding inside button | `x-small ...` |
+| `--login-btn-bg-color` | Button bg color | `var(--hot-color-primary-1000)` |
+| `--login-btn-hover-bg-color` | Hover bg | `primary-900` |
+| `--login-btn-border-radius` | Button radius | `radius-medium` |
+| `--login-btn-text-color` | Button text color | `white` |
+| `--login-btn-text-size` | Button text size | `var(--hot-font-size-medium)` |
+| `--login-btn-font-family` | Button font family | from `--font-family` |
+| `--login-btn-font-weight` | Button font weight | from `--font-weight` |
 
-**Example:**
+### Example
 
 ```css
 hotosm-auth {

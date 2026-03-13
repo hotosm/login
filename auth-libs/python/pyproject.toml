@@ -59,20 +59,49 @@ Repository = "https://github.com/hotosm/login/tree/main/auth-libs/python"
 Issues = "https://github.com/hotosm/login/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/hotosm_auth", "src/hotosm_auth_fastapi", "src/hotosm_auth_django"]
+packages = ["src/hotosm_auth", "src/hotosm_auth_fastapi", "src/hotosm_auth_django", "src/hotosm_auth_litestar"]
+
+[tool.ruff]
+fix = true
+line-length = 88
+target-version = "py310"
+exclude = [
+    ".ruff_cache",
+    "src/hotosm_auth_django/migrations",
+]
+[tool.ruff.lint]
+select = ["I", "E", "W", "D", "B", "F", "N", "Q", "C90","B","S","SIM","PLR","C4","PERF"]
+ignore = []
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "E402",
+    "PLR2004",
+    "S101",
+    "S105",
+    "S106",
+    "SIM117",
+]
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+[tool.ruff.lint.pylint]
+max-args = 8
+max-branches = 12
+max-returns = 6
+max-statements = 50
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-
-[tool.black]
-line-length = 88
-target-version = ['py310']
-
-[tool.ruff]
-line-length = 88
-target-version = "py310"
-select = ["E", "F", "I", "N", "W"]
 
 [tool.mypy]
 python_version = "3.10"

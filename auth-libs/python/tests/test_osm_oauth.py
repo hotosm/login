@@ -1,15 +1,14 @@
 """Tests for OSM OAuth client with mocked HTTP responses."""
 
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import httpx
+import pytest
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.osm_oauth import OSMOAuthClient, make_osm_api_request
+from hotosm_auth.exceptions import OSMAPIError, OSMOAuthError
 from hotosm_auth.models import OSMConnection
-from hotosm_auth.exceptions import OSMOAuthError, OSMAPIError
+from hotosm_auth.osm_oauth import OSMOAuthClient, make_osm_api_request
 
 
 def _make_config():

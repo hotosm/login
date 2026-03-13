@@ -47,4 +47,5 @@ class UserProfile(Base):
     )
 
     def __repr__(self) -> str:
+        """Return short debug representation for logging."""
         return f"<UserProfile(hanko_user_id={self.hanko_user_id[:8]}...)>"

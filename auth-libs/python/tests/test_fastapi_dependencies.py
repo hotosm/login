@@ -11,20 +11,20 @@ fastapi = pytest.importorskip("fastapi")
 from fastapi import HTTPException
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth.crypto import CookieCrypto
 from hotosm_auth.exceptions import TokenExpiredError, TokenInvalidError
+from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth_fastapi.dependencies import (
-    init_auth,
+    clear_osm_cookie,
     get_config,
-    get_jwt_validator,
     get_cookie_crypto,
     get_current_user,
     get_current_user_optional,
+    get_jwt_validator,
     get_osm_connection,
+    init_auth,
     require_osm_connection,
     set_osm_cookie,
-    clear_osm_cookie,
 )
 
 
@@ -85,7 +85,9 @@ class TestGetCurrentUser:
         request = MagicMock()
         request.cookies = {"hanko": "valid-jwt-token"}
 
-        with patch.object(validator, 'validate_token', new_callable=AsyncMock) as mock_validate:
+        with patch.object(
+            validator, "validate_token", new_callable=AsyncMock
+        ) as mock_validate:
             mock_validate.return_value = user
 
             result = await get_current_user(request, validator, None)
@@ -117,7 +119,9 @@ class TestGetCurrentUser:
         request = MagicMock()
         request.cookies = {"hanko": "expired-token"}
 
-        with patch.object(validator, 'validate_token', new_callable=AsyncMock) as mock_validate:
+        with patch.object(
+            validator, "validate_token", new_callable=AsyncMock
+        ) as mock_validate:
             mock_validate.side_effect = TokenExpiredError("Token expired")
 
             with pytest.raises(HTTPException) as exc_info:
@@ -135,7 +139,9 @@ class TestGetCurrentUser:
         request = MagicMock()
         request.cookies = {"hanko": "bad-token"}
 
-        with patch.object(validator, 'validate_token', new_callable=AsyncMock) as mock_validate:
+        with patch.object(
+            validator, "validate_token", new_callable=AsyncMock
+        ) as mock_validate:
             mock_validate.side_effect = TokenInvalidError("Invalid signature")
 
             with pytest.raises(HTTPException) as exc_info:
@@ -158,7 +164,9 @@ class TestGetCurrentUserOptional:
         request = MagicMock()
         request.cookies = {"hanko": "valid-token"}
 
-        with patch.object(validator, 'validate_token', new_callable=AsyncMock) as mock_validate:
+        with patch.object(
+            validator, "validate_token", new_callable=AsyncMock
+        ) as mock_validate:
             mock_validate.return_value = user
 
             result = await get_current_user_optional(request, validator, None)
@@ -188,7 +196,9 @@ class TestGetCurrentUserOptional:
         request = MagicMock()
         request.cookies = {"hanko": "bad-token"}
 
-        with patch.object(validator, 'validate_token', new_callable=AsyncMock) as mock_validate:
+        with patch.object(
+            validator, "validate_token", new_callable=AsyncMock
+        ) as mock_validate:
             mock_validate.side_effect = TokenInvalidError("Bad token")
 
             result = await get_current_user_optional(request, validator, None)

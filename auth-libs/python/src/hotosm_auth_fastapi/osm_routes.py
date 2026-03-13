@@ -1,5 +1,4 @@
-"""
-Auto-registered OSM OAuth routes for FastAPI.
+"""Auto-registered OSM OAuth routes for FastAPI.
 
 These routes are automatically included when calling setup_auth() with OSM enabled.
 
@@ -11,23 +10,23 @@ Routes:
 """
 
 import secrets
-from typing import Optional
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Request, Response, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 
+from hotosm_auth.exceptions import OSMOAuthError
+from hotosm_auth.logger import get_logger
 from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth.osm_oauth import OSMOAuthClient
-from hotosm_auth.exceptions import OSMOAuthError
 from hotosm_auth_fastapi.dependencies import (
-    get_current_user,
-    get_osm_connection,
-    set_osm_cookie,
     clear_osm_cookie,
     get_config,
     get_cookie_crypto,
+    get_current_user,
+    get_osm_connection,
+    set_osm_cookie,
 )
-from hotosm_auth.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -41,11 +40,10 @@ _oauth_states = {}
 
 @router.get("/login")
 async def osm_login(
-    user: HankoUser = Depends(get_current_user),
+    user: Annotated[HankoUser, Depends(get_current_user)],
     request: Request = None,
 ):
-    """
-    Start OSM OAuth flow.
+    """Start OSM OAuth flow.
 
     Requires Hanko authentication first.
     Redirects to OSM authorization page.
@@ -62,24 +60,22 @@ async def osm_login(
     state = secrets.token_urlsafe(32)
 
     # Store user ID and the page they came from for redirect after OAuth
-    referer = request.headers.get('referer', '')
+    referer = request.headers.get("referer", "")
     if referer:
         from urllib.parse import urlparse
+
         parsed = urlparse(referer)
         # Store the full path (including query params if any)
         redirect_url = parsed.path
         if parsed.query:
-            redirect_url += '?' + parsed.query
+            redirect_url += "?" + parsed.query
     else:
         # Fallback to current app's base path
         path = str(request.url.path)
-        redirect_url = path.rsplit('/auth/osm/login', 1)[0] or '/'
+        redirect_url = path.rsplit("/auth/osm/login", 1)[0] or "/"
 
     logger.debug(f"OSM login: storing state with redirect_url={redirect_url}")
-    _oauth_states[state] = {
-        "user_id": user.id,
-        "redirect_url": redirect_url
-    }
+    _oauth_states[state] = {"user_id": user.id, "redirect_url": redirect_url}
 
     # Generate authorization URL
     auth_url = osm_client.get_authorization_url(state=state)
@@ -93,10 +89,9 @@ async def osm_callback(
     state: str,
     request: Request,
     response: Response,
-    user: HankoUser = Depends(get_current_user),
+    user: Annotated[HankoUser, Depends(get_current_user)],
 ):
-    """
-    Handle OSM OAuth callback.
+    """Handle OSM OAuth callback.
 
     OSM redirects here after user authorizes.
     Exchanges code for token and stores in httpOnly cookie.
@@ -145,15 +140,14 @@ async def osm_callback(
         return redirect_response
 
     except OSMOAuthError as e:
-        raise HTTPException(400, f"OSM OAuth failed: {str(e)}")
+        raise HTTPException(400, f"OSM OAuth failed: {str(e)}") from e
 
 
 @router.get("/status")
 async def osm_status(
-    osm: Optional[OSMConnection] = Depends(get_osm_connection),
+    osm: Annotated[Optional[OSMConnection], Depends(get_osm_connection)],
 ):
-    """
-    Check OSM connection status.
+    """Check OSM connection status.
 
     Returns connection details if connected, or {connected: false} if not.
     """
@@ -171,10 +165,9 @@ async def osm_status(
 @router.post("/disconnect")
 async def osm_disconnect(
     response: Response,
-    osm: Optional[OSMConnection] = Depends(get_osm_connection),
+    osm: Annotated[Optional[OSMConnection], Depends(get_osm_connection)],
 ):
-    """
-    Disconnect OSM account.
+    """Disconnect OSM account.
 
     Revokes OAuth tokens on OpenStreetMap and removes OSM connection cookie.
     User can reconnect later via /auth/osm/login.

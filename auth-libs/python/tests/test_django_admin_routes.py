@@ -2,7 +2,7 @@
 
 import os
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -15,9 +15,9 @@ from rest_framework.test import APIRequestFactory
 
 from hotosm_auth.models import HankoUser
 from hotosm_auth_django.admin_routes import (
+    create_admin_urlpatterns,
     get_admin_emails,
     is_admin_user,
-    create_admin_urlpatterns,
 )
 
 
@@ -201,13 +201,15 @@ class TestMappingsListView:
             def __exit__(self, *args):
                 pass
 
-        with patch(
-            "hotosm_auth_django.admin_routes.get_admin_emails",
-            return_value=["admin@example.com"],
+        with (
+            patch(
+                "hotosm_auth_django.admin_routes.get_admin_emails",
+                return_value=["admin@example.com"],
+            ),
+            patch("hotosm_auth_django.admin_routes.connection") as mock_conn,
         ):
-            with patch("hotosm_auth_django.admin_routes.connection") as mock_conn:
-                mock_conn.cursor.return_value = SmartMockCursor()
-                response = view(request)
+            mock_conn.cursor.return_value = SmartMockCursor()
+            response = view(request)
 
         assert response.status_code == 200
         assert response.data["total"] == 2
@@ -224,17 +226,21 @@ class TestMappingDetailView:
         request.hotosm = MockHotosmContext(user=_make_admin_user())
 
         now = datetime.now(timezone.utc)
-        mock_cursor = MockCursor(results=[
-            ("hanko-123", "app-456", "default", now, None),
-        ])
+        mock_cursor = MockCursor(
+            results=[
+                ("hanko-123", "app-456", "default", now, None),
+            ]
+        )
 
-        with patch(
-            "hotosm_auth_django.admin_routes.get_admin_emails",
-            return_value=["admin@example.com"],
+        with (
+            patch(
+                "hotosm_auth_django.admin_routes.get_admin_emails",
+                return_value=["admin@example.com"],
+            ),
+            patch("hotosm_auth_django.admin_routes.connection") as mock_conn,
         ):
-            with patch("hotosm_auth_django.admin_routes.connection") as mock_conn:
-                mock_conn.cursor.return_value = mock_cursor
-                response = view(request, hanko_user_id="hanko-123")
+            mock_conn.cursor.return_value = mock_cursor
+            response = view(request, hanko_user_id="hanko-123")
 
         assert response.status_code == 200
         assert response.data["hanko_user_id"] == "hanko-123"
@@ -249,13 +255,15 @@ class TestMappingDetailView:
 
         mock_cursor = MockCursor(results=[])
 
-        with patch(
-            "hotosm_auth_django.admin_routes.get_admin_emails",
-            return_value=["admin@example.com"],
+        with (
+            patch(
+                "hotosm_auth_django.admin_routes.get_admin_emails",
+                return_value=["admin@example.com"],
+            ),
+            patch("hotosm_auth_django.admin_routes.connection") as mock_conn,
         ):
-            with patch("hotosm_auth_django.admin_routes.connection") as mock_conn:
-                mock_conn.cursor.return_value = mock_cursor
-                response = view(request, hanko_user_id="nonexistent")
+            mock_conn.cursor.return_value = mock_cursor
+            response = view(request, hanko_user_id="nonexistent")
 
         assert response.status_code == 404
 
@@ -268,13 +276,15 @@ class TestMappingDetailView:
 
         mock_cursor = MockCursor(results=[("hanko-123",)])
 
-        with patch(
-            "hotosm_auth_django.admin_routes.get_admin_emails",
-            return_value=["admin@example.com"],
+        with (
+            patch(
+                "hotosm_auth_django.admin_routes.get_admin_emails",
+                return_value=["admin@example.com"],
+            ),
+            patch("hotosm_auth_django.admin_routes.connection") as mock_conn,
         ):
-            with patch("hotosm_auth_django.admin_routes.connection") as mock_conn:
-                mock_conn.cursor.return_value = mock_cursor
-                response = view(request, hanko_user_id="hanko-123")
+            mock_conn.cursor.return_value = mock_cursor
+            response = view(request, hanko_user_id="hanko-123")
 
         assert response.status_code == 204
 
@@ -287,13 +297,15 @@ class TestMappingDetailView:
 
         mock_cursor = MockCursor(results=[])
 
-        with patch(
-            "hotosm_auth_django.admin_routes.get_admin_emails",
-            return_value=["admin@example.com"],
+        with (
+            patch(
+                "hotosm_auth_django.admin_routes.get_admin_emails",
+                return_value=["admin@example.com"],
+            ),
+            patch("hotosm_auth_django.admin_routes.connection") as mock_conn,
         ):
-            with patch("hotosm_auth_django.admin_routes.connection") as mock_conn:
-                mock_conn.cursor.return_value = mock_cursor
-                response = view(request, hanko_user_id="nonexistent")
+            mock_conn.cursor.return_value = mock_cursor
+            response = view(request, hanko_user_id="nonexistent")
 
         assert response.status_code == 404
 
@@ -335,13 +347,15 @@ class TestMappingCreateView:
             def __exit__(self, *args):
                 pass
 
-        with patch(
-            "hotosm_auth_django.admin_routes.get_admin_emails",
-            return_value=["admin@example.com"],
+        with (
+            patch(
+                "hotosm_auth_django.admin_routes.get_admin_emails",
+                return_value=["admin@example.com"],
+            ),
+            patch("hotosm_auth_django.admin_routes.connection") as mock_conn,
         ):
-            with patch("hotosm_auth_django.admin_routes.connection") as mock_conn:
-                mock_conn.cursor.return_value = SmartMockCursor()
-                response = view(request)
+            mock_conn.cursor.return_value = SmartMockCursor()
+            response = view(request)
 
         assert response.status_code == 201
         assert response.data["hanko_user_id"] == "new-hanko"
@@ -359,13 +373,15 @@ class TestMappingCreateView:
 
         mock_cursor = MockCursor(results=[(1,)])  # Exists
 
-        with patch(
-            "hotosm_auth_django.admin_routes.get_admin_emails",
-            return_value=["admin@example.com"],
+        with (
+            patch(
+                "hotosm_auth_django.admin_routes.get_admin_emails",
+                return_value=["admin@example.com"],
+            ),
+            patch("hotosm_auth_django.admin_routes.connection") as mock_conn,
         ):
-            with patch("hotosm_auth_django.admin_routes.connection") as mock_conn:
-                mock_conn.cursor.return_value = mock_cursor
-                response = view(request)
+            mock_conn.cursor.return_value = mock_cursor
+            response = view(request)
 
         assert response.status_code == 409
 

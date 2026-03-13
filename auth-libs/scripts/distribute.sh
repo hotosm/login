@@ -11,7 +11,10 @@ LOGIN_DIR="$(dirname "$AUTH_LIBS_DIR")"
 HOT_DIR="$(dirname "$LOGIN_DIR")"
 
 # Get current version from pyproject.toml
-VERSION=$(grep '^version = ' "$AUTH_LIBS_DIR/python/pyproject.toml" | sed 's/version = "\(.*\)"/\1/')
+VERSION=$(
+    grep '^version = ' "$AUTH_LIBS_DIR/python/pyproject.toml" \
+        | sed 's/version = "\(.*\)"/\1/'
+)
 echo "📌 Current auth-libs version: v$VERSION"
 echo ""
 
@@ -57,11 +60,15 @@ distribute_python() {
 update_pyproject() {
     local file="$1"
     if [ -f "$file" ]; then
-        # Replace old repo URL (LawalCoop/hot-auth-libs) with new (hotosm/login)
+        # Replace old repo URL (LawalCoop/hot-auth-libs) with new (hotosm/login).
         # and update subdirectory path from python to auth-libs/python
-        sed -i "s|LawalCoop/hot-auth-libs.git@[^#]*#subdirectory=python|hotosm/login.git@auth-libs-v$VERSION#subdirectory=auth-libs/python|g" "$file"
+        sed -i \
+            "s|LawalCoop/hot-auth-libs.git@[^#]*#subdirectory=python|hotosm/login.git@auth-libs-v$VERSION#subdirectory=auth-libs/python|g" \
+            "$file"
         # Also handle if already using hotosm/login
-        sed -i "s|hotosm/login.git@[^#]*#subdirectory=auth-libs/python|hotosm/login.git@auth-libs-v$VERSION#subdirectory=auth-libs/python|g" "$file"
+        sed -i \
+            "s|hotosm/login.git@[^#]*#subdirectory=auth-libs/python|hotosm/login.git@auth-libs-v$VERSION#subdirectory=auth-libs/python|g" \
+            "$file"
         echo "  ✅ Updated: $file"
     fi
 }
@@ -70,7 +77,9 @@ update_docker_compose() {
     local file="$1"
     if [ -f "$file" ]; then
         # Replace any hotosm_auth-X.X.X-py3-none-any.whl with the current version
-        sed -i "s|hotosm_auth-[0-9.]*-py3-none-any.whl|hotosm_auth-$VERSION-py3-none-any.whl|g" "$file"
+        sed -i \
+            "s|hotosm_auth-[0-9.]*-py3-none-any.whl|hotosm_auth-$VERSION-py3-none-any.whl|g" \
+            "$file"
         echo "  ✅ Updated: $file"
     fi
 }
@@ -84,15 +93,24 @@ distribute_web_component "$HOT_DIR/portal/frontend/auth-libs/web-component" "por
 distribute_python "$HOT_DIR/portal/backend/auth-libs/python" "portal"
 
 # Drone-TM
-distribute_web_component "$HOT_DIR/drone-tm/src/frontend/auth-libs/web-component" "drone-tm"
-distribute_python "$HOT_DIR/drone-tm/src/backend/auth-libs" "drone-tm" "$HOT_DIR/drone-tm/src/backend/libs"
+distribute_web_component \
+    "$HOT_DIR/drone-tm/src/frontend/auth-libs/web-component" \
+    "drone-tm"
+distribute_python \
+    "$HOT_DIR/drone-tm/src/backend/auth-libs" \
+    "drone-tm" \
+    "$HOT_DIR/drone-tm/src/backend/libs"
 
 # Login (local - uses source directly, but still distribute for frontend)
 distribute_web_component "$LOGIN_DIR/frontend/auth-libs/web-component" "login"
 
 # OpenAerialMap
-distribute_web_component "$HOT_DIR/openaerialmap/frontend/auth-libs/web-component" "openaerialmap"
-distribute_python "$HOT_DIR/openaerialmap/backend/stac-api/auth-libs" "openaerialmap"
+distribute_web_component \
+    "$HOT_DIR/openaerialmap/frontend/auth-libs/web-component" \
+    "openaerialmap"
+distribute_python \
+    "$HOT_DIR/openaerialmap/backend/stac-api/auth-libs" \
+    "openaerialmap"
 
 # fAIr
 distribute_web_component "$HOT_DIR/fAIr/frontend/auth-libs/web-component" "fAIr"
@@ -151,4 +169,5 @@ echo "  - chatmap/chatmap-ui/auth-libs/web-component/dist/"
 echo "  - chatmap/chatmap-api/pyproject.toml → v$VERSION"
 echo "  - hot-dev-env/docker-compose.yml → v$VERSION"
 echo ""
-echo "Note: login/backend uses local reference to auth-libs (no version update needed)"
+echo "Note: login/backend uses local reference to auth-libs"
+echo "(no version update needed)"

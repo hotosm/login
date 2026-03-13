@@ -1,6 +1,4 @@
-"""
-Custom exceptions for hotosm-auth library.
-"""
+"""Custom exceptions for hotosm-auth library."""
 
 
 class AuthenticationError(Exception):
