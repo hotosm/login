@@ -1,5 +1,4 @@
-"""
-Django ORM models for HOTOSM authentication persistence.
+"""Django ORM models for HOTOSM authentication persistence.
 
 These models are equivalent to the SQLAlchemy models in hotosm_auth.db_models,
 allowing Django applications to use the same database schema.
@@ -24,6 +23,8 @@ class HankoUserMapping(models.Model):
     """
 
     class Meta:
+        """Model metadata and database constraints."""
+
         db_table = "hanko_user_mappings"
         constraints = [
             models.UniqueConstraint(
@@ -63,5 +64,6 @@ class HankoUserMapping(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
+        """Return concise mapping representation."""
         hanko_short = self.hanko_user_id[:8] if self.hanko_user_id else "?"
         return f"HankoUserMapping(hanko={hanko_short}..., app_user={self.app_user_id})"

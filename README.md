@@ -49,29 +49,35 @@ docker compose --profile prod up --build
 ### 4. Access the services
 
 **Development mode:**
-- Hanko API: https://dev.login.hotosm.org
-- Frontend: https://app.dev.login.hotosm.org
-- Backend API: https://dev.login.hotosm.org/api
-- Hanko Elements: https://elements.login.hotosm.org
-- Demo: https://demo.login.hotosm.org
+
+- Hanko API: <https://dev.login.hotosm.org>
+- Frontend: <https://app.dev.login.hotosm.org>
+- Backend API: <https://dev.login.hotosm.org/api>
+- Hanko Elements: <https://elements.login.hotosm.org>
+- Demo: <https://demo.login.hotosm.org>
 
 **Production mode:**
-- Hanko API: https://login.hotosm.org
-- Frontend: https://app.login.hotosm.org
-- Backend API: https://login.hotosm.org/api
+
+- Hanko API: <https://login.hotosm.org>
+- Frontend: <https://app.login.hotosm.org>
+- Backend API: <https://login.hotosm.org/api>
 
 All services are behind Traefik reverse proxy with automatic Let's Encrypt SSL.
 
 ## Services
 
 ### Hanko
+
 JWT-based authentication with support for:
+
 - Passkeys (WebAuthn)
 - Email/password
 - OAuth providers (configured via config.yaml)
 
 ### Backend (FastAPI)
+
 Custom authentication logic:
+
 - OSM OAuth integration
 - User ID mapping between Hanko and applications
 - Session validation endpoints
@@ -79,7 +85,9 @@ Custom authentication logic:
 Located in `backend/` directory.
 
 ### Frontend (React + Vite)
+
 Login UI with:
+
 - Hanko auth component integration
 - OSM account linking
 - Profile management
@@ -87,6 +95,7 @@ Login UI with:
 Located in `frontend/` directory.
 
 ### OSM-userinfo (Go)
+
 Fetches OpenStreetMap user information using OAuth tokens.
 
 Located in `osm-userinfo/` directory.
@@ -113,19 +122,23 @@ docker build -t test-osm-userinfo ./osm-userinfo
 ### Auth-libs Integration
 
 **Python library:**
+
 - Located in `auth-libs/python/`
 - Installed via pip during Docker build
 
 **Web component:**
+
 - Source: `frontend/auth-libs/web-component/`
 - Published to npm as `@hotosm/hanko-auth`
 - Other HOT projects install from npm:
+
   ```bash
   pnpm add @hotosm/hanko-auth
   pnpm add @awesome.me/webawesome  # peer dependency
   ```
 
 **Development:**
+
 - Edit source in respective directories
 - Build web component: `cd frontend/auth-libs/web-component && pnpm build`
 - Frontend imports from `../auth-libs/web-component/dist/hanko-auth.esm.js`
@@ -137,12 +150,14 @@ docker build -t test-osm-userinfo ./osm-userinfo
 The service deploys automatically to EC2:
 
 **Testing Environment:**
+
 - Branch: `develop`
 - Workflow: `.github/workflows/deploy-testing.yml`
 - Triggered by: Push to `develop` branch
 - Deploys to: EC2 testing server with `--profile dev`
 
 **Production Environment:**
+
 - Branch: `main`
 - Workflow: `.github/workflows/deploy-production.yml`
 - Triggered by: Push to `main` branch
@@ -165,12 +180,14 @@ The service deploys automatically to EC2:
 Configure these secrets in GitHub Settings → Environments:
 
 **Environment: Development**
+
 - `EC2_HOST`: Hostname of testing EC2 server
 - `EC2_USER`: SSH user (usually `admin`)
 - `EC2_SSH_KEY`: Private SSH key for EC2 access
 - `POSTGRES_PASSWORD`: PostgreSQL password for Hanko database
 
 **Environment: Production**
+
 - Same secrets but for production EC2 server
 
 ### Manual Deployment
@@ -202,19 +219,23 @@ docker image prune -af
 ### Environment Variables
 
 **Hanko:**
+
 - Configured via `config.yaml` (production) or `config_dev.yaml` (development)
 - See [Hanko documentation](https://docs.hanko.io/) for configuration options
 
 **Backend:**
-- `HANKO_URL`: Hanko API URL (default: http://hanko:8000)
+
+- `HANKO_URL`: Hanko API URL (default: <http://hanko:8000>)
 - `OSM_CLIENT_ID`: OSM OAuth client ID
 - `OSM_CLIENT_SECRET`: OSM OAuth client secret
 
 **Frontend:**
+
 - `VITE_HANKO_URL`: Hanko API URL for frontend
 - `VITE_BACKEND_URL`: Backend API URL
 
 **Database:**
+
 - `POSTGRES_USER`: Database user (default: hanko)
 - `POSTGRES_PASSWORD`: Database password (set in .env)
 - `POSTGRES_DB`: Database name (default: hanko)
@@ -235,8 +256,8 @@ docker compose logs -f frontend
 
 ### Health Checks
 
-- Backend: https://dev.login.hotosm.org/api/health
-- Frontend: https://app.dev.login.hotosm.org/ (nginx responds)
+- Backend: <https://dev.login.hotosm.org/api/health>
+- Frontend: <https://app.dev.login.hotosm.org/> (nginx responds)
 
 ## Troubleshooting
 
@@ -269,17 +290,20 @@ docker compose logs -f frontend
 ## Architecture Decisions
 
 ### Why Hanko?
+
 - Modern, open-source authentication
 - Built-in passkey support (WebAuthn)
 - JWT-based sessions
 - Self-hosted for data sovereignty
 
 ### Why Custom Backend?
+
 - OSM OAuth integration (not natively supported by Hanko)
 - User ID mapping between Hanko users and application-specific users
 - Custom session validation logic
 
 ### Why Traefik?
+
 - Automatic Let's Encrypt SSL certificates
 - Dynamic service discovery
 - Load balancing and routing

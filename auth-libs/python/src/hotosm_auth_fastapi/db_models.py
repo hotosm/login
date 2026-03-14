@@ -1,5 +1,4 @@
-"""
-SQLAlchemy models for HOTOSM authentication persistence.
+"""SQLAlchemy models for HOTOSM authentication persistence.
 
 These are REFERENCE IMPLEMENTATIONS. Each application should copy this
 to their own codebase and adapt as needed.
@@ -77,6 +76,7 @@ class HankoUserMapping(Base):
     )
 
     def __repr__(self) -> str:
+        """Return concise debug representation of a mapping row."""
         return (
             f"<HankoUserMapping(hanko={self.hanko_user_id[:8]}..., "
             f"app_user={self.app_user_id}, app={self.app_name})>"

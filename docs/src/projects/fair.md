@@ -5,7 +5,7 @@
 ## Overview
 
 | Aspect | Detail |
-|--------|--------|
+| -------- | -------- |
 | Framework | Django |
 | Type | With User Mapping |
 | OSM Required | Yes (legacy) |
@@ -239,15 +239,15 @@ const HankoAuthComponent = ({ displayBar }: { displayBar?: boolean }) => (
 );
 ```
 
-#### Atributos del componente
+#### Atributos del components
 
 | Atributo | Descripción |
-|----------|-------------|
+| -------- | ----------- |
 | `hanko-url` | URL del servicio de login (Hanko) |
-| `base-path` | Base URL para rutas internas del componente |
+| `base-path` | Base URL para rutas internas del widget |
 | `redirect-after-login` | URL de redirección después de login |
 | `redirect-after-logout` | URL de redirección después de logout |
-| `mapping-check-url` | Endpoint para verificar si el usuario tiene mapping en la app |
+| `mapping-check-url` | Endpoint para verificar mapping del usuario en la app |
 | `app-id` | Identificador de la aplicación para el mapping |
 | `button-variant` | Estilo del botón (`filled`, `outline`, etc.) |
 | `button-color` | Color del botón (`danger`, `primary`, etc.) |
@@ -264,7 +264,8 @@ VITE_BASE_API_URL=https://fair.hotosm.org/api/v1/
 VITE_FRONTEND_URL=https://fair.hotosm.org
 ```
 
-> **Note:** `VITE_HANKO_URL` points to the login service that handles both Hanko authentication and OSM OAuth endpoints.
+> **Note:** `VITE_HANKO_URL` points to the login service that handles both
+> Hanko authentication and OSM OAuth endpoints.
 
 ---
 
@@ -286,22 +287,23 @@ MIDDLEWARE = [
 
 ### Import Order
 
-!!! warning "Django App Registry"
-    `admin_routes` imports from `rest_framework` which requires apps to be ready.
-    Import directly from the module:
+#### Warning: Django App Registry
 
-    ```python
-    # Correct
-    from hotosm_auth_django.admin_routes import create_admin_urlpatterns
+`admin_routes` imports from `rest_framework`, which requires apps to be ready.
+Import directly from the module:
 
-    # Incorrect (causes AppRegistryNotReady)
-    from hotosm_auth_django import create_admin_urlpatterns
-    ```
+```python
+# Correct
+from hotosm_auth_django.admin_routes import create_admin_urlpatterns
+
+# Incorrect (causes AppRegistryNotReady)
+from hotosm_auth_django import create_admin_urlpatterns
+```
 
 ### Middleware vs Mixin
 
 | Component | Purpose |
-|-----------|---------|
+| ----------- | --------- |
 | **Middleware** | Injects `request.hotosm` in each request |
 | **Mixin** | Filters querysets by mapped user |
 
@@ -344,7 +346,7 @@ MIDDLEWARE = [
 
 ## API Endpoints
 
-```
+```text
 # Auth (legacy OSM login)
 POST /api/v1/auth/login/        # Start OSM OAuth
 GET  /api/v1/auth/callback/     # OSM callback

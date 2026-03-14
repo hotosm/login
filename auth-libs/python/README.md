@@ -87,6 +87,7 @@ uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
 ### Test Structure
 
 **Core tests** (no framework dependencies):
+
 - `tests/test_config.py` - Configuration loading and validation
 - `tests/test_crypto.py` - Cookie encryption/decryption
 - `tests/test_exceptions.py` - Exception hierarchy
@@ -97,12 +98,14 @@ uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
 - `tests/test_osm_oauth.py` - OSM OAuth client with mocked HTTP
 
 **FastAPI tests** (require `[fastapi]` extra):
+
 - `tests/test_fastapi_setup.py` - Auth dependency setup
 - `tests/test_fastapi_dependencies.py` - Dependency injection with mocked requests
 - `tests/test_fastapi_osm_routes.py` - OSM OAuth routes (login, callback, status, disconnect)
 - `tests/test_admin_routes.py` - Admin CRUD routes with mocked database
 
 **Django tests** (require `[django]` extra):
+
 - `tests/test_django_middleware.py` - Middleware and decorators
 - `tests/test_django_osm_views.py` - OSM OAuth views
 - `tests/test_django_admin_routes.py` - Admin CRUD routes with mocked database
@@ -110,6 +113,7 @@ uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
 ### Test Coverage
 
 Run with coverage report:
+
 ```bash
 uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
 ```

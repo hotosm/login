@@ -2,11 +2,11 @@
 
 from hotosm_auth.exceptions import (
     AuthenticationError,
+    CookieDecryptionError,
+    OSMAPIError,
+    OSMOAuthError,
     TokenExpiredError,
     TokenInvalidError,
-    CookieDecryptionError,
-    OSMOAuthError,
-    OSMAPIError,
 )
 
 

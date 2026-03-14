@@ -9,15 +9,14 @@ import pytest
 from django.test import RequestFactory
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.models import HankoUser, OSMConnection
-from hotosm_auth.crypto import CookieCrypto
 from hotosm_auth.exceptions import OSMOAuthError
+from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth_django.osm_views import (
-    osm_login,
-    osm_callback,
-    osm_status,
-    osm_disconnect,
     _oauth_states,
+    osm_callback,
+    osm_disconnect,
+    osm_login,
+    osm_status,
 )
 
 
@@ -93,7 +92,9 @@ class TestOSMLogin:
         request = rf.get("/auth/osm/login/")
         request.hotosm = MockHotosmContext(user=_make_user())
 
-        with patch("hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()):
+        with patch(
+            "hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()
+        ):
             response = osm_login(request)
 
         assert response.status_code == 302
@@ -105,7 +106,9 @@ class TestOSMLogin:
         request = rf.get("/auth/osm/login/")
         request.hotosm = MockHotosmContext(user=_make_user())
 
-        with patch("hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()):
+        with patch(
+            "hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()
+        ):
             osm_login(request)
 
         assert len(_oauth_states) == 1
@@ -151,7 +154,9 @@ class TestOSMCallback:
         config = _make_config()
 
         with patch("hotosm_auth_django.osm_views.get_auth_config", return_value=config):
-            with patch("hotosm_auth_django.osm_views.OSMOAuthClient") as mock_client_class:
+            with patch(
+                "hotosm_auth_django.osm_views.OSMOAuthClient"
+            ) as mock_client_class:
                 mock_client = MagicMock()
                 mock_client.exchange_code = AsyncMock(return_value=osm_conn)
                 mock_client_class.return_value = mock_client
@@ -174,7 +179,9 @@ class TestOSMCallback:
         request = rf.get("/auth/osm/callback/?code=auth-code&state=invalid-state")
         request.hotosm = MockHotosmContext(user=_make_user())
 
-        with patch("hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()):
+        with patch(
+            "hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()
+        ):
             response = osm_callback(request)
 
         assert response.status_code == 400
@@ -189,7 +196,9 @@ class TestOSMCallback:
             "redirect_url": "/",
         }
 
-        with patch("hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()):
+        with patch(
+            "hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()
+        ):
             response = osm_callback(request)
 
         assert response.status_code == 400
@@ -204,15 +213,20 @@ class TestOSMCallback:
             "redirect_url": "/",
         }
 
-        with patch("hotosm_auth_django.osm_views.get_auth_config", return_value=_make_config()):
-            with patch("hotosm_auth_django.osm_views.OSMOAuthClient") as mock_client_class:
-                mock_client = MagicMock()
-                mock_client.exchange_code = AsyncMock(
-                    side_effect=OSMOAuthError("Token exchange failed")
-                )
-                mock_client_class.return_value = mock_client
+        with (
+            patch(
+                "hotosm_auth_django.osm_views.get_auth_config",
+                return_value=_make_config(),
+            ),
+            patch("hotosm_auth_django.osm_views.OSMOAuthClient") as mock_client_class,
+        ):
+            mock_client = MagicMock()
+            mock_client.exchange_code = AsyncMock(
+                side_effect=OSMOAuthError("Token exchange failed")
+            )
+            mock_client_class.return_value = mock_client
 
-                response = osm_callback(request)
+            response = osm_callback(request)
 
         assert response.status_code == 400
 
@@ -222,6 +236,7 @@ class TestOSMStatus:
 
     def test_returns_connected_true_with_connection(self, rf):
         import json
+
         request = rf.get("/auth/osm/status/")
         osm = _make_osm_connection()
 
@@ -237,9 +252,12 @@ class TestOSMStatus:
 
     def test_returns_connected_false_without_connection(self, rf):
         import json
+
         request = rf.get("/auth/osm/status/")
 
-        with patch("hotosm_auth_django.osm_views.get_osm_connection", return_value=None):
+        with patch(
+            "hotosm_auth_django.osm_views.get_osm_connection", return_value=None
+        ):
             response = osm_status(request)
 
         assert response.status_code == 200
@@ -252,13 +270,18 @@ class TestOSMDisconnect:
 
     def test_revokes_tokens_and_clears_cookie(self, rf):
         import json
+
         request = rf.post("/auth/osm/disconnect/")
         osm = _make_osm_connection()
         config = _make_config()
 
         with patch("hotosm_auth_django.osm_views.get_auth_config", return_value=config):
-            with patch("hotosm_auth_django.osm_views.get_osm_connection", return_value=osm):
-                with patch("hotosm_auth_django.osm_views.OSMOAuthClient") as mock_client_class:
+            with patch(
+                "hotosm_auth_django.osm_views.get_osm_connection", return_value=osm
+            ):
+                with patch(
+                    "hotosm_auth_django.osm_views.OSMOAuthClient"
+                ) as mock_client_class:
                     mock_client = MagicMock()
                     mock_client.revoke_token = AsyncMock()
                     mock_client_class.return_value = mock_client
@@ -273,11 +296,14 @@ class TestOSMDisconnect:
 
     def test_clears_cookie_even_without_connection(self, rf):
         import json
+
         request = rf.post("/auth/osm/disconnect/")
         config = _make_config()
 
         with patch("hotosm_auth_django.osm_views.get_auth_config", return_value=config):
-            with patch("hotosm_auth_django.osm_views.get_osm_connection", return_value=None):
+            with patch(
+                "hotosm_auth_django.osm_views.get_osm_connection", return_value=None
+            ):
                 with patch("hotosm_auth_django.osm_views.clear_osm_cookie"):
                     response = osm_disconnect(request)
 

@@ -1,7 +1,6 @@
 """Shared pytest configuration for auth-libs tests."""
 
 import os
-import sys
 
 # Configure Django settings ONCE before any Django imports
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.django_test_settings")
@@ -14,7 +13,9 @@ try:
     if not settings.configured:
         settings.configure(
             DEBUG=True,
-            DATABASES={"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}},
+            DATABASES={
+                "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}
+            },
             INSTALLED_APPS=[
                 "django.contrib.contenttypes",
                 "django.contrib.auth",

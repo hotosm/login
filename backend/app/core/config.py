@@ -1,3 +1,5 @@
+"""Runtime configuration for the backend service."""
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

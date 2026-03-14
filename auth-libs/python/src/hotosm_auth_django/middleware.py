@@ -1,24 +1,24 @@
 """Django middleware, decorators, and helpers for HOTOSM auth."""
 
-from typing import Optional, Callable
-from functools import wraps
 from datetime import datetime
+from functools import wraps
+from typing import Callable, Optional
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils.functional import SimpleLazyObject
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.models import HankoUser, OSMConnection
-from hotosm_auth.jwt_validator import JWTValidator
 from hotosm_auth.crypto import CookieCrypto
 from hotosm_auth.exceptions import (
     AuthenticationError,
+    CookieDecryptionError,
     TokenExpiredError,
     TokenInvalidError,
-    CookieDecryptionError,
 )
+from hotosm_auth.jwt_validator import JWTValidator
 from hotosm_auth.logger import get_logger, log_auth_event
+from hotosm_auth.models import HankoUser, OSMConnection
 
 logger = get_logger(__name__)
 
@@ -39,7 +39,7 @@ def get_auth_config() -> AuthConfig:
                 f"HOTOSM Auth not configured. Either set environment variables "
                 f"(HANKO_API_URL, COOKIE_SECRET, etc.) or add HOTOSM_AUTH dict "
                 f"to settings.py. Error: {e}"
-            )
+            ) from e
 
     # Method 2: Use Django settings dict (legacy)
     config_dict = settings.HOTOSM_AUTH
@@ -99,10 +99,18 @@ async def get_current_user(request: HttpRequest) -> Optional[HankoUser]:
         logger.info(f"JWT validation successful for {user.email}")
         return user
     except (TokenExpiredError, TokenInvalidError, AuthenticationError) as e:
-        logger.warning(f"JWT validation failed for {request.path}: {type(e).__name__}: {e}")
+        logger.warning(
+            f"JWT validation failed for {request.path}: {type(e).__name__}: {e}"
+        )
         return None
     except Exception as e:
-        logger.error(f"Unexpected error during JWT validation for {request.path}: {type(e).__name__}: {e}", exc_info=True)
+        logger.error(
+            "Unexpected error during JWT validation for %s: %s: %s",
+            request.path,
+            type(e).__name__,
+            e,
+            exc_info=True,
+        )
         return None
 
 
@@ -121,7 +129,8 @@ def get_osm_connection(request: HttpRequest) -> Optional[OSMConnection]:
 
 
 class _HOTOSMNamespace:
-    """Namespace object for request.hotosm"""
+    """Namespace object for request.hotosm."""
+
     def __init__(self, request: HttpRequest):
         self._request = request
         self._user = None
@@ -131,7 +140,7 @@ class _HOTOSMNamespace:
 
     @property
     def user(self) -> Optional[HankoUser]:
-        """Get authenticated user (lazy-loaded)"""
+        """Get authenticated user (lazy-loaded)."""
         if not self._user_loaded:
             self._user = self._get_user_sync(self._request)
             self._user_loaded = True
@@ -139,15 +148,16 @@ class _HOTOSMNamespace:
 
     @property
     def osm(self) -> Optional[OSMConnection]:
-        """Get OSM connection (lazy-loaded)"""
+        """Get OSM connection (lazy-loaded)."""
         if not self._osm_loaded:
             self._osm = get_osm_connection(self._request)
             self._osm_loaded = True
         return self._osm
 
     def _get_user_sync(self, request: HttpRequest) -> Optional[HankoUser]:
-        """Synchronous wrapper for get_current_user"""
+        """Synchronous wrapper for get_current_user."""
         import asyncio
+
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -158,7 +168,10 @@ class _HOTOSMNamespace:
             result = loop.run_until_complete(get_current_user(request))
             return result
         except Exception as e:
-            logger.error(f"Exception in run_until_complete: {type(e).__name__}: {e}", exc_info=True)
+            logger.error(
+                f"Exception in run_until_complete: {type(e).__name__}: {e}",
+                exc_info=True,
+            )
             return None
 
 
@@ -166,25 +179,24 @@ class HankoAuthMiddleware:
     """Attach lazy ``request.hotosm.user`` and ``request.hotosm.osm``."""
 
     def __init__(self, get_response: Callable):
+        """Store next middleware/callable in the chain."""
         self.get_response = get_response
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
+        """Attach auth namespace and delegate request handling."""
         # Add namespace with lazy-loaded user and OSM connection
         request.hotosm = _HOTOSMNamespace(request)
 
         # Backwards compatibility: also set old attribute names
-        request.hanko_user = SimpleLazyObject(
-            lambda: request.hotosm.user
-        )
-        request.osm_connection = SimpleLazyObject(
-            lambda: request.hotosm.osm
-        )
+        request.hanko_user = SimpleLazyObject(lambda: request.hotosm.user)
+        request.osm_connection = SimpleLazyObject(lambda: request.hotosm.osm)
 
         return self.get_response(request)
 
 
 def login_required(view_func: Callable) -> Callable:
     """Decorator to require authentication."""
+
     @wraps(view_func)
     def wrapper(request: HttpRequest, *args, **kwargs):
         if not hasattr(request, "hanko_user") or not request.hanko_user:
@@ -199,6 +211,7 @@ def login_required(view_func: Callable) -> Callable:
 
 def osm_required(view_func: Callable) -> Callable:
     """Decorator to require OSM connection."""
+
     @wraps(view_func)
     def wrapper(request: HttpRequest, *args, **kwargs):
         if not hasattr(request, "osm_connection") or not request.osm_connection:
@@ -287,7 +300,9 @@ def get_mapped_user_id(
 
         if row:
             app_user_id = row[0]
-            logger.debug(f"Found mapping: {hanko_user.id} -> {app_user_id} ({app_name})")
+            logger.debug(
+                f"Found mapping: {hanko_user.id} -> {app_user_id} ({app_name})"
+            )
             log_auth_event(
                 "MAPPING_FOUND",
                 app_name,
@@ -299,7 +314,9 @@ def get_mapped_user_id(
 
         # No mapping found
         if not auto_create:
-            logger.debug(f"No mapping found for Hanko user {hanko_user.id} in {app_name}")
+            logger.debug(
+                f"No mapping found for Hanko user {hanko_user.id} in {app_name}"
+            )
             return None
 
         # Auto-create mapping
@@ -310,7 +327,9 @@ def get_mapped_user_id(
 
         cursor.execute(
             """
-            INSERT INTO hanko_user_mappings (hanko_user_id, app_user_id, app_name, created_at)
+            INSERT INTO hanko_user_mappings (
+                hanko_user_id, app_user_id, app_name, created_at
+            )
             VALUES (%s, %s, %s, NOW())
             """,
             [hanko_user.id, str(new_user_id), app_name],
@@ -331,7 +350,7 @@ def get_mapped_user_id(
 def get_auth_status(request: HttpRequest, app_name: str = "default") -> dict:
     """Return current auth + mapping status for the request."""
     # Check if hotosm middleware is present
-    if not hasattr(request, 'hotosm'):
+    if not hasattr(request, "hotosm"):
         return {
             "logged_in": False,
             "has_mapping": False,
@@ -386,7 +405,9 @@ def create_user_mapping(
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            INSERT INTO hanko_user_mappings (hanko_user_id, app_user_id, app_name, created_at)
+            INSERT INTO hanko_user_mappings (
+                hanko_user_id, app_user_id, app_name, created_at
+            )
             VALUES (%s, %s, %s, NOW())
             ON CONFLICT (hanko_user_id) DO UPDATE
                 SET app_user_id = EXCLUDED.app_user_id,

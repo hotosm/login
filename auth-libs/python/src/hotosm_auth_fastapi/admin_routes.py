@@ -1,5 +1,4 @@
-"""
-FastAPI admin routes for managing user mappings (SQLAlchemy version).
+"""FastAPI admin routes for managing user mappings (SQLAlchemy version).
 
 Provides a router factory that apps can use to expose admin endpoints
 for managing Hanko user mappings.
@@ -21,19 +20,19 @@ Usage:
     app.include_router(admin_router, prefix="/api")
 """
 
-from typing import Callable
+from typing import Annotated, Any, Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 
+from hotosm_auth.logger import get_logger
 from hotosm_auth.schemas.admin import (
-    MappingResponse,
-    MappingListResponse,
     MappingCreate,
+    MappingListResponse,
+    MappingResponse,
     MappingUpdate,
 )
 from hotosm_auth_fastapi.admin import AdminUser
-from hotosm_auth.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -55,11 +54,12 @@ def create_admin_mappings_router(
         APIRouter: Router with admin endpoints
     """
     router = APIRouter(prefix="/admin", tags=["Admin"])
+    db_dep = Annotated[Any, Depends(get_db)]
 
     @router.get("/mappings", response_model=MappingListResponse)
     async def list_mappings(
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
         page: int = Query(1, ge=1, description="Page number"),
         page_size: int = Query(50, ge=1, le=100, description="Items per page"),
     ) -> MappingListResponse:
@@ -110,7 +110,7 @@ def create_admin_mappings_router(
     async def get_mapping(
         hanko_user_id: str,
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
     ) -> MappingResponse:
         """Get a single user mapping by Hanko user ID."""
         result = await db.execute(
@@ -139,11 +139,13 @@ def create_admin_mappings_router(
             updated_at=row[4],
         )
 
-    @router.post("/mappings", response_model=MappingResponse, status_code=status.HTTP_201_CREATED)
+    @router.post(
+        "/mappings", response_model=MappingResponse, status_code=status.HTTP_201_CREATED
+    )
     async def create_mapping(
         data: MappingCreate,
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
     ) -> MappingResponse:
         """Create a new user mapping."""
         # Check if mapping already exists
@@ -157,22 +159,33 @@ def create_admin_mappings_router(
         if check_result.fetchone():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Mapping already exists for hanko_user_id: {data.hanko_user_id}",
+                detail=(
+                    f"Mapping already exists for hanko_user_id: {data.hanko_user_id}"
+                ),
             )
 
         # Create mapping
         result = await db.execute(
             text("""
-                INSERT INTO hanko_user_mappings (hanko_user_id, app_user_id, app_name, created_at)
+                INSERT INTO hanko_user_mappings (
+                    hanko_user_id, app_user_id, app_name, created_at
+                )
                 VALUES (:hanko_user_id, :app_user_id, :app_name, NOW())
                 RETURNING hanko_user_id, app_user_id, app_name, created_at, updated_at
             """),
-            {"hanko_user_id": data.hanko_user_id, "app_user_id": data.app_user_id, "app_name": app_name},
+            {
+                "hanko_user_id": data.hanko_user_id,
+                "app_user_id": data.app_user_id,
+                "app_name": app_name,
+            },
         )
         row = result.fetchone()
 
         logger.info(
-            f"Admin {admin.email} created mapping: {data.hanko_user_id} -> {data.app_user_id}"
+            "Admin %s created mapping: %s -> %s",
+            admin.email,
+            data.hanko_user_id,
+            data.app_user_id,
         )
 
         return MappingResponse(
@@ -188,7 +201,7 @@ def create_admin_mappings_router(
         hanko_user_id: str,
         data: MappingUpdate,
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
     ) -> MappingResponse:
         """Update an existing user mapping."""
         result = await db.execute(
@@ -198,7 +211,11 @@ def create_admin_mappings_router(
                 WHERE hanko_user_id = :hanko_user_id AND app_name = :app_name
                 RETURNING hanko_user_id, app_user_id, app_name, created_at, updated_at
             """),
-            {"app_user_id": data.app_user_id, "hanko_user_id": hanko_user_id, "app_name": app_name},
+            {
+                "app_user_id": data.app_user_id,
+                "hanko_user_id": hanko_user_id,
+                "app_name": app_name,
+            },
         )
         row = result.fetchone()
 
@@ -209,7 +226,10 @@ def create_admin_mappings_router(
             )
 
         logger.info(
-            f"Admin {admin.email} updated mapping: {hanko_user_id} -> {data.app_user_id}"
+            "Admin %s updated mapping: %s -> %s",
+            admin.email,
+            hanko_user_id,
+            data.app_user_id,
         )
 
         return MappingResponse(
@@ -224,7 +244,7 @@ def create_admin_mappings_router(
     async def delete_mapping(
         hanko_user_id: str,
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
     ) -> None:
         """Delete a user mapping."""
         result = await db.execute(

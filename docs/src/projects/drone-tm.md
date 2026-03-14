@@ -1,17 +1,19 @@
 # Drone-TM Implementation
 
-**Stack:** FastAPI + React | **Repo:** `drone-tm/` | **Branch:** `login-hanko` (vs `dev`)
+**Stack:** FastAPI + React | **Repo:** `drone-tm/` | **Branch:** `login-hanko`
+(vs `dev`)
 
 ## Overview
 
 | Aspect | Detail |
-|--------|--------|
+| -------- | -------- |
 | Framework | FastAPI |
 | Type | With User Mapping |
 | OSM Required | Yes |
 
 Drone-TM has legacy auth (Google OAuth). Instead of changing all routes,
-**we override `login_required`** to use Hanko internally but return the same `AuthUser`.
+**we override `login_required`** to use Hanko internally but return the same
+`AuthUser`.
 
 ---
 
@@ -131,7 +133,7 @@ async def get_me(user: AuthUser = Depends(login_required)):
 The Hanko -> Drone-TM mapping is stored in `hanko_user_mappings`:
 
 | hanko_user_id | app_user_id | app_name |
-|---------------|-------------|----------|
+| --------------- | ------------- | ---------- |
 | `550e8400-...` | `42` | `drone-tm` |
 
 ### 5. Helper Functions
@@ -207,7 +209,8 @@ VITE_HANKO_URL=https://login.hotosm.org
 VITE_FRONTEND_URL=https://dronetm.hotosm.org
 ```
 
-> **Note:** `VITE_HANKO_URL` is the only URL needed for authentication. It points to the login service that handles both Hanko authentication and OSM OAuth endpoints.
+> **Note:** `VITE_HANKO_URL` is the only URL needed for authentication. It
+> points to the login service that handles both Hanko auth and OSM OAuth.
 
 ---
 
@@ -216,7 +219,7 @@ VITE_FRONTEND_URL=https://dronetm.hotosm.org
 ### Available Dependencies (FastAPI)
 
 | Dependency | Type | Error if missing |
-|------------|------|------------------|
+| ------------ | ------ | ------------------ |
 | `CurrentUser` | `HankoUser` | 401 Unauthorized |
 | `CurrentUserOptional` | `Optional[HankoUser]` | None (no error) |
 | `OSMConnectionRequired` | `OSMConnection` | 403 Forbidden |
@@ -268,7 +271,7 @@ VITE_FRONTEND_URL=https://dronetm.hotosm.org
 
 ## API Endpoints
 
-```
+```text
 # Auth
 GET  /api/auth/osm/login          # Start OSM OAuth
 GET  /api/auth/osm/callback       # OSM OAuth callback

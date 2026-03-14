@@ -1,3 +1,5 @@
+"""Main FastAPI application for HOTOSM Login backend."""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -5,9 +7,10 @@ from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from hotosm_auth import AuthConfig
-from hotosm_auth_fastapi import init_auth, CurrentUser, osm_router
+from hotosm_auth_fastapi import CurrentUser, init_auth, osm_router
 
-from app.core.config import settings
+from app.api.routes import admin as admin_routes
+from app.api.routes import profile as profile_routes
 from app.schemas.auth import UserInfoResponse
 
 
@@ -102,18 +105,13 @@ app.include_router(
     tags=["auth"],
 )
 
-# Include admin routes for user mapping management
-from app.api.routes import admin as admin_routes
-from app.api.routes import profile as profile_routes
-
 app.include_router(admin_routes.router)
 app.include_router(profile_routes.router)
 
 
 @app.get("/me", response_model=UserInfoResponse)
 async def get_current_user(user: CurrentUser) -> UserInfoResponse:
-    """
-    Get current authenticated user information.
+    """Get current authenticated user information.
 
     Validates Hanko JWT from cookie or Authorization header.
 

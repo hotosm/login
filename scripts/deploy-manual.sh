@@ -51,7 +51,8 @@ BRANCH=$(git branch --show-current)
 echo -e "${BLUE}Current branch: ${BRANCH}${NC}"
 
 if [ "$ENVIRONMENT" = "dev" ] && [ "$BRANCH" != "develop" ]; then
-    echo -e "${YELLOW}⚠  Warning: You're on branch '${BRANCH}' but deploying to dev (usually uses 'develop')${NC}"
+    echo -e \
+        "${YELLOW}⚠  Warning: You're on branch '${BRANCH}' but deploying to dev (usually uses 'develop')${NC}"
     read -p "Continue? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -60,7 +61,8 @@ if [ "$ENVIRONMENT" = "dev" ] && [ "$BRANCH" != "develop" ]; then
 fi
 
 if [ "$ENVIRONMENT" = "prod" ] && [ "$BRANCH" != "main" ]; then
-    echo -e "${YELLOW}⚠  Warning: You're on branch '${BRANCH}' but deploying to production (should be 'main')${NC}"
+    echo -e \
+        "${YELLOW}⚠  Warning: You're on branch '${BRANCH}' but deploying to production (should be 'main')${NC}"
     read -p "Continue? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -93,7 +95,13 @@ fi
 echo "Connecting to ${SSH_USER}@${SSH_HOST}..."
 echo ""
 
-ssh ${SSH_USER}@${SSH_HOST} << EOF
+ssh "${SSH_USER}@${SSH_HOST}" \
+    BRANCH="${BRANCH}" \
+    PROFILE="${PROFILE}" \
+    DEPLOY_PATH="${DEPLOY_PATH}" \
+    SSH_HOST="${SSH_HOST}" \
+    SSH_USER="${SSH_USER}" \
+    'bash -s' <<'EOF'
 set -e
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -104,11 +112,11 @@ echo ""
 # Navigate to deploy directory
 if [ ! -d "${DEPLOY_PATH}" ]; then
     echo "Creating deploy directory..."
-    sudo mkdir -p ${DEPLOY_PATH}
-    sudo chown ${SSH_USER}:${SSH_USER} ${DEPLOY_PATH}
+    sudo mkdir -p "${DEPLOY_PATH}"
+    sudo chown "${SSH_USER}:${SSH_USER}" "${DEPLOY_PATH}"
 fi
 
-cd ${DEPLOY_PATH}
+cd "${DEPLOY_PATH}"
 
 # Clone or pull repository
 if [ ! -d ".git" ]; then
@@ -117,8 +125,8 @@ if [ ! -d ".git" ]; then
 else
     echo "→ Pulling latest changes..."
     git fetch origin
-    git checkout ${BRANCH}
-    git pull origin ${BRANCH}
+    git checkout "${BRANCH}"
+    git pull origin "${BRANCH}"
 fi
 
 echo "✓ Code updated"
@@ -142,10 +150,10 @@ echo "  Profile: ${PROFILE}"
 echo ""
 
 # Stop services
-docker compose --profile ${PROFILE} down
+docker compose --profile "${PROFILE}" down
 
 # Build and start
-docker compose --profile ${PROFILE} up -d --build
+docker compose --profile "${PROFILE}" up -d --build
 
 # Wait a bit for services to start
 echo ""
