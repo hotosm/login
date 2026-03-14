@@ -45,14 +45,14 @@ flowchart TB
 ### Core Concepts
 
 | Document | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | [**Overview**](overview.md) | Auth flow, JWT validation, user mapping |
 | [**Web Component**](web-component.md) | `<hotosm-auth>` Lit element |
 
 ### Project Implementations
 
 | Project | Stack | Documentation |
-|---------|-------|---------------|
+| --------- | ------- | --------------- |
 | Portal | FastAPI + React | [Implementation](projects/portal.md) |
 | Drone-TM | FastAPI + React | [Implementation](projects/drone-tm.md) |
 | fAIr | Django + React | [Implementation](projects/fair.md) |
@@ -71,6 +71,9 @@ pip install "hotosm-auth @ git+https://github.com/hotosm/login.git@auth-libs-v0.
 # With FastAPI
 pip install "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
 
+# With Litestar
+pip install "hotosm-auth[litestar] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
+
 # With Django
 pip install "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
 ```
@@ -79,7 +82,7 @@ pip install "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-
 
 Distributed as pre-built JS bundles. Copy from `auth-libs/web-component/dist/`:
 
-```
+```text
 hanko-auth.esm.js    # ES Module
 hanko-auth.iife.js   # Browser global
 hanko-auth.umd.js    # Universal
@@ -135,6 +138,20 @@ def my_view(request):
     return JsonResponse({"email": user.email})
 ```
 
+### Litestar (5 min)
+
+```python
+from litestar import Litestar, get
+from hotosm_auth_litestar import setup_auth, Auth
+
+@get("/me")
+async def me(auth: Auth):
+    return {"id": auth.user.id, "email": auth.user.email}
+
+deps, route_handlers = setup_auth()
+app = Litestar(route_handlers=[me, *route_handlers], dependencies=deps)
+```
+
 ### Frontend
 
 ```html
@@ -169,7 +186,7 @@ COOKIE_SECURE=true
 
 ## Source Repository
 
-```
+```text
 github.com/hotosm/login
 ├── backend/
 ├── frontend/
@@ -178,6 +195,7 @@ github.com/hotosm/login
 │   │   ├── src/
 │   │   │   ├── hotosm_auth/           # Core (JWT, config, crypto)
 │   │   │   ├── hotosm_auth_fastapi/   # FastAPI integration
+│   │   │   ├── hotosm_auth_litestar/  # Litestar integration
 │   │   │   └── hotosm_auth_django/    # Django integration
 │   │   └── pyproject.toml
 │   ├── web-component/

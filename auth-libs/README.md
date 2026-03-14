@@ -6,33 +6,34 @@ Shared authentication libraries for all HOTOSM projects.
 
 ### 1. Python Library (`python/`)
 
-**Python library** for FastAPI and Django integration.
+**Python library** for FastAPI, Django, and Litestar integration.
 
 **Installation** (in your `pyproject.toml`):
 
 ```python
 # From PyPI
 dependencies = [
-    "hotosm-auth[fastapi]==0.2.9",
+    "hotosm-auth[fastapi]==0.2.10",
 ]
 
 # Or from Git
 dependencies = [
-    "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@v0.2.9#subdirectory=auth-libs/python",
+    "hotosm-auth[litestar] @ git+https://github.com/hotosm/login.git@v0.2.10#subdirectory=auth-libs/python",
 ]
 ```
 
 **Usage**:
 
 ```python
-from hotosm_auth_fastapi import setup_auth, Auth
+from litestar import Litestar, get
+from hotosm_auth_litestar import setup_auth, Auth
 
-app = FastAPI()
-setup_auth(app)
-
-@app.get("/me")
+@get("/me")
 async def get_me(auth: Auth):
     return {"id": auth.user.id, "email": auth.user.email}
+
+deps, route_handlers = setup_auth()
+app = Litestar(route_handlers=[get_me, *route_handlers], dependencies=deps)
 ```
 
 Full documentation: [python/README.md](./python/README.md)
@@ -65,10 +66,10 @@ Projects can use PyPI or reference directly from GitHub:
 
 ```python
 # PyPI (recommended)
-"hotosm-auth[fastapi]==0.2.9",
+"hotosm-auth[fastapi]==0.2.10",
 
 # Git reference
-"hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@v0.2.9#subdirectory=auth-libs/python",
+"hotosm-auth[litestar] @ git+https://github.com/hotosm/login.git@v0.2.10#subdirectory=auth-libs/python",
 ```
 
 - No wheels to distribute or commit
@@ -167,44 +168,44 @@ OSM_CLIENT_SECRET=your-osm-client-secret
 
 #### Core
 
-| Attribute   | Type   | Default                  | Description                                             |
-| ----------- | ------ | ------------------------ | ------------------------------------------------------- |
-| `hanko-url` | string | `window.location.origin` | Hanko API URL for SDK initialization and JWT validation |
-| `login-url` | string | `${hanko-url}/app`       | Login page URL (override for standalone mode)           |
-| `base-path` | string | `""`                     | Base URL for OSM OAuth endpoints                        |
-| `auth-path` | string | `/api/auth/osm`          | OSM auth endpoints path (appended to base-path)         |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `hanko-url` | string | `window.location.origin` | Hanko API URL |
+| `login-url` | string | `${hanko-url}/app` | Login page URL |
+| `base-path` | string | `""` | Base URL for OSM OAuth |
+| `auth-path` | string | `/api/auth/osm` | OSM auth path (under base-path) |
 
 #### Behavior
 
-| Attribute        | Type    | Default        | Description                        |
-| ---------------- | ------- | -------------- | ---------------------------------- |
-| `osm-required`   | boolean | `false`        | Require OSM connection after login |
-| `osm-scopes`     | string  | `"read_prefs"` | Space-separated OSM scopes         |
-| `auto-connect`   | boolean | `false`        | Auto-redirect to OSM OAuth         |
-| `verify-session` | boolean | `false`        | Verify session on return           |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `osm-required` | boolean | `false` | Require OSM connection |
+| `osm-scopes` | string | `"read_prefs"` | Space-separated OSM scopes |
+| `auto-connect` | boolean | `false` | Auto-redirect to OSM OAuth |
+| `verify-session` | boolean | `false` | Verify session on return |
 
 #### Display
 
-| Attribute      | Type    | Default | Description                          |
+| Attribute | Type | Default | Description |
 | -------------- | ------- | ------- | ------------------------------------ |
 | `show-profile` | boolean | `false` | Show embedded form (login page mode) |
-| `display-name` | string  | `""`    | Override display name                |
+| `display-name` | string | `""` | Override display name |
 
 #### Redirects
 
-| Attribute               | Type   | Default | Description                  |
+| Attribute | Type | Default | Description |
 | ----------------------- | ------ | ------- | ---------------------------- |
-| `redirect-after-login`  | string | `""`    | URL to redirect after login  |
-| `redirect-after-logout` | string | `""`    | URL to redirect after logout |
+| `redirect-after-login` | string | `""` | URL to redirect after login |
+| `redirect-after-logout` | string | `""` | URL to redirect after logout |
 
 #### Cross-app
 
-| Attribute           | Type   | Default | Description                            |
-| ------------------- | ------ | ------- | -------------------------------------- |
-| `mapping-check-url` | string | `""`    | URL to check user mapping              |
-| `app-id`            | string | `""`    | App identifier for onboarding redirect |
+| Attribute | Type | Default | Description |
+| - | - | - | - |
+| `mapping-check-url` | string | `""` | Mapping check URL |
+| `app-id` | string | `""` | App ID for onboarding redirect |
 
-**Usage modes:**
+### Usage modes
 
 1. **SSO Mode** (production): Points to login.hotosm.org
 
@@ -239,20 +240,24 @@ uv run pytest
 # Run with FastAPI integration tests
 uv run --extra fastapi pytest
 
+# Run with Litestar integration tests
+uv run --extra litestar pytest
+
 # Run with Django integration tests
 uv run --extra django pytest
 
-# Run all tests (127 tests)
-uv run --extra fastapi --extra django pytest
+# Run all tests
+uv run --extra fastapi --extra litestar --extra django pytest
 
-# Run with coverage (72% coverage)
-uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
+# Run with coverage
+uv run --extra fastapi --extra litestar --extra django pytest --cov=src --cov-report=term-missing
 ```
 
 **Test categories:**
 
 - Core: config, crypto, JWT validation, OSM OAuth client
 - FastAPI: dependencies, OSM routes, admin routes
+- Litestar: dependencies, OSM routes, admin routes
 - Django: middleware, OSM views, admin routes
 
 ### Web Component
@@ -276,22 +281,22 @@ pnpm build
 
 ### Backend (Python)
 
-| Project       | File                              |
+| Project | File |
 | ------------- | --------------------------------- |
-| portal        | `backend/pyproject.toml`          |
-| drone-tm      | `src/backend/pyproject.toml`      |
-| fAIr          | `backend/pyproject.toml`          |
+| portal | `backend/pyproject.toml` |
+| drone-tm | `src/backend/pyproject.toml` |
+| fAIr | `backend/pyproject.toml` |
 | openaerialmap | `backend/stac-api/pyproject.toml` |
 
 ### Frontend (Web Component)
 
-| Project       | Location                                     |
+| Project | Location |
 | ------------- | -------------------------------------------- |
-| portal        | `frontend/auth-libs/web-component/dist/`     |
-| drone-tm      | `src/frontend/auth-libs/web-component/dist/` |
-| fAIr          | `frontend/auth-libs/web-component/dist/`     |
-| openaerialmap | `frontend/auth-libs/web-component/dist/`     |
-| login         | `frontend/auth-libs/web-component/dist/`     |
+| portal | `frontend/auth-libs/web-component/dist/` |
+| drone-tm | `src/frontend/auth-libs/web-component/dist/` |
+| fAIr | `frontend/auth-libs/web-component/dist/` |
+| openaerialmap | `frontend/auth-libs/web-component/dist/` |
+| login | `frontend/auth-libs/web-component/dist/` |
 
 ---
 
