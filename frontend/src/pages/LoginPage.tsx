@@ -191,7 +191,7 @@ function LoginPage() {
         <div className="toast-error">
           <div className="toast-content">
             <span className="toast-icon">⚠️</span>
-            <span className="toast-message">{errorMessage}</span>
+            <span className="toast-message">{t(errorMessage as keyof typeof t) || errorMessage}</span>
             <button className="toast-close" onClick={() => setShowError(false)}>
               ×
             </button>

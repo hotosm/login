@@ -46,6 +46,7 @@ export interface Translations {
 
   // Common
   login: string;
+  no_existing_osm_account: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -90,6 +91,7 @@ export const translations: Record<string, Translations> = {
     accountDeleted: "Your account has been deleted successfully.",
     profileUpdated: "Profile updated successfully",
     login: "Login",
+    no_existing_osm_account: "No existing account found for your OSM user. Please select 'Continue' to create a new account.",
   },
   es: {
     welcomeTo: "Bienvenido a HOT's",
@@ -133,6 +135,7 @@ export const translations: Record<string, Translations> = {
     accountDeleted: "Tu cuenta ha sido eliminada exitosamente.",
     profileUpdated: "Perfil actualizado exitosamente",
     login: "Inicio de sesión",
+    no_existing_osm_account: "No se encontró una cuenta existente para tu usuario de OSM. Por favor selecciona 'Continuar' para crear una nueva cuenta.",
   },
   fr: {
     welcomeTo: "Bienvenue sur HOT's",
@@ -175,6 +178,7 @@ export const translations: Record<string, Translations> = {
     accountDeleted: "Votre compte a été supprimé avec succès.",
     profileUpdated: "Profil mis à jour avec succès",
     login: "Connexion",
+    no_existing_osm_account: "Aucun compte existant trouvé pour votre utilisateur OSM. Veuillez sélectionner 'Continuer' pour créer un nouveau compte.",
   },
   pt: {
     welcomeTo: "Bem-vindo ao HOT's",
@@ -216,6 +220,7 @@ export const translations: Record<string, Translations> = {
     accountDeleted: "Sua conta foi excluída com sucesso.",
     profileUpdated: "Perfil atualizado com sucesso",
     login: "Login",
+    no_existing_osm_account: "Nenhuma conta existente encontrada para o seu usuário OSM. Por favor selecione 'Continuar' para criar uma nova conta.",
   },
 };
 
