@@ -8,7 +8,7 @@ repos:
 
   # Lint / autoformat: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.15.4"
+    rev: "v0.15.6"
     hooks:
       - id: ruff
         files: ^(?:backend|auth-libs/python)/.*\.py$
@@ -18,7 +18,7 @@ repos:
 
   # Deps: ensure Python uv lockfile is up to date
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.10.7
+    rev: 0.10.10
     hooks:
       - id: uv-lock
         files: ^backend/pyproject\.toml$
@@ -44,7 +44,7 @@ repos:
 
   # Spelling: Checks for common misspellings in text files.
   - repo: https://github.com/crate-ci/typos
-    rev: v1.44.0
+    rev: v1
     hooks:
       - id: typos
         pass_filenames: false
@@ -84,7 +84,7 @@ repos:
 
   # Lint: Markdown
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
         args:
