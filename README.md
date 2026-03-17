@@ -1,6 +1,6 @@
 # HOTOSM Login (SSO)
 
-Centralized authentication service for all HOTOSM applications using Hanko + OSM
+Centralized authentication and user management service for all HOTOSM applications using Hanko + OSM
 OAuth.
 
 For context behind this decision, see: [ADR-0011: SSO Authentication](https://docs.hotosm.org/decisions/0011-sso-auth/)
