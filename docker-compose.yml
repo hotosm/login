@@ -157,12 +157,12 @@ services:
       - LOG_LEVEL=INFO
       - ADMIN_EMAILS=hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org
       # App URLs for admin proxy (public URLs, not internal Docker)
-      - DRONETM_BACKEND_URL=https://testlogin.dronetm.hotosm.org
-      - FAIR_BACKEND_URL=https://testlogin.fair.hotosm.org
+      - DRONETM_BACKEND_URL=https://dronetm.testlogin.hotosm.org
+      - FAIR_BACKEND_URL=https://fair.testlogin.hotosm.org
       - PORTAL_BACKEND_URL=https://portal.hotosm.org
       - OAM_BACKEND_URL=https://openaerialmap.org
       - UMAP_BACKEND_URL=https://umap-dev.hotosm.org
-      - EXPORT_TOOL_BACKEND_URL=https://testlogin.export.hotosm.org
+      - EXPORT_TOOL_BACKEND_URL=https://export.testlogin.hotosm.org
     networks:
       - hotosm
     labels:

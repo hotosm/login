@@ -3,8 +3,8 @@ server:
     address: ":8000"
     cors:
       allow_origins:
+        # Local development (.hotosm.test)
         - "https://portal.hotosm.test"
-        - "https://dev.portal.hotosm.org"
         - "https://login.hotosm.test"
         - "https://dronetm.hotosm.test"
         - "https://fair.hotosm.test"
@@ -12,6 +12,27 @@ server:
         - "https://chatmap.hotosm.test"
         - "https://umap.hotosm.test"
         - "https://export-tool.hotosm.test"
+        # Test environments (.testlogin.hotosm.org)
+        - "https://dronetm.testlogin.hotosm.org"
+        - "https://fair.testlogin.hotosm.org"
+        - "https://umap.testlogin.hotosm.org"
+        - "https://export.testlogin.hotosm.org"
+        # Production/dev domains
+        - "https://dev.portal.hotosm.org"
+        - "https://dev.login.hotosm.org"
+        - "https://portal.hotosm.org"
+        - "https://login.hotosm.org"
+        - "https://dronetm.hotosm.org"
+        - "https://drone.hotosm.org"
+        - "https://drone-dev.hotosm.org"
+        - "https://fair.hotosm.org"
+        - "https://fair-dev.hotosm.org"
+        - "https://openaerialmap.hotosm.org"
+        - "https://chatmap.hotosm.org"
+        - "https://chatmap-dev.hotosm.org"
+        - "https://umap.hotosm.org"
+        - "https://umap-dev.hotosm.org"
+        - "https://export-tool.hotosm.org"
       allow_credentials: true
       unsafe_wildcard_origin_allowed: false
 
@@ -84,6 +105,7 @@ session:
   lifespan: 1h
   issuer: "https://login.hotosm.test"
   audience:
+    # Local development
     - "https://portal.hotosm.test"
     - "https://login.hotosm.test"
     - "https://dronetm.hotosm.test"
@@ -92,6 +114,25 @@ session:
     - "https://chatmap.hotosm.test"
     - "https://umap.hotosm.test"
     - "https://export-tool.hotosm.test"
+    # Test environments
+    - "https://dronetm.testlogin.hotosm.org"
+    - "https://fair.testlogin.hotosm.org"
+    - "https://umap.testlogin.hotosm.org"
+    - "https://export.testlogin.hotosm.org"
+    # Production/dev
+    - "https://dev.portal.hotosm.org"
+    - "https://dev.login.hotosm.org"
+    - "https://portal.hotosm.org"
+    - "https://login.hotosm.org"
+    - "https://dronetm.hotosm.org"
+    - "https://fair.hotosm.org"
+    - "https://fair-dev.hotosm.org"
+    - "https://openaerialmap.hotosm.org"
+    - "https://chatmap.hotosm.org"
+    - "https://chatmap-dev.hotosm.org"
+    - "https://umap.hotosm.org"
+    - "https://umap-dev.hotosm.org"
+    - "https://export-tool.hotosm.org"
   cookie:
     name: "hanko"
     domain: ".hotosm.test"  # .hotosm.test with dot enables cookie sharing across all *.hotosm.test subdomains
@@ -103,6 +144,7 @@ third_party:
   redirect_url: "https://login.hotosm.test/thirdparty/callback"
   error_redirect_url: "https://login.hotosm.test/error"
   allowed_redirect_urls:
+    # Local development
     - "https://portal.hotosm.test/**"
     - "https://login.hotosm.test/**"
     - "https://dronetm.hotosm.test/**"
@@ -111,6 +153,25 @@ third_party:
     - "https://chatmap.hotosm.test/**"
     - "https://umap.hotosm.test/**"
     - "https://export-tool.hotosm.test/**"
+    # Test environments
+    - "https://dronetm.testlogin.hotosm.org/**"
+    - "https://fair.testlogin.hotosm.org/**"
+    - "https://umap.testlogin.hotosm.org/**"
+    - "https://export.testlogin.hotosm.org/**"
+    # Production/dev
+    - "https://dev.portal.hotosm.org/**"
+    - "https://dev.login.hotosm.org/**"
+    - "https://portal.hotosm.org/**"
+    - "https://login.hotosm.org/**"
+    - "https://dronetm.hotosm.org/**"
+    - "https://fair.hotosm.org/**"
+    - "https://fair-dev.hotosm.org/**"
+    - "https://openaerialmap.hotosm.org/**"
+    - "https://chatmap.hotosm.org/**"
+    - "https://chatmap-dev.hotosm.org/**"
+    - "https://umap.hotosm.org/**"
+    - "https://umap-dev.hotosm.org/**"
+    - "https://export-tool.hotosm.org/**"
   cookie:
     domain: ".hotosm.test"  # .hotosm.test with dot enables cookie sharing across all *.hotosm.test subdomains
     http_only: true
