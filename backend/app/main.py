@@ -72,6 +72,7 @@ app.add_middleware(
         "https://dronetm.hotosm.org",
         "https://drone.hotosm.org",
         "https://drone-dev.hotosm.org",
+        "https://dev.drone.hotosm.org",
     ],
     allow_credentials=True,
     allow_methods=["*"],
