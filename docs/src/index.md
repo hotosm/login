@@ -74,21 +74,6 @@ async def me(user: CurrentUser):
     return {"id": user.id, "email": user.email}
 ```
 
-### Litestar
-
-```python
-from litestar import Litestar, get
-from hotosm_auth_litestar import setup_auth, AuthContext
-
-deps, route_handlers = setup_auth()
-
-@get("/me")
-async def me(auth: AuthContext) -> dict:
-    return {"id": auth.user.id, "email": auth.user.email}
-
-app = Litestar(route_handlers=[*route_handlers, me], dependencies=deps)
-```
-
 ### Django
 
 ```python
@@ -103,6 +88,21 @@ from hotosm_auth_django import login_required
 def my_view(request):
     user = request.hotosm.user
     return JsonResponse({"email": user.email})
+```
+
+### Litestar
+
+```python
+from litestar import Litestar, get
+from hotosm_auth_litestar import setup_auth, AuthContext
+
+deps, route_handlers = setup_auth()
+
+@get("/me")
+async def me(auth: AuthContext) -> dict:
+    return {"id": auth.user.id, "email": auth.user.email}
+
+app = Litestar(route_handlers=[*route_handlers, me], dependencies=deps)
 ```
 
 ### Frontend

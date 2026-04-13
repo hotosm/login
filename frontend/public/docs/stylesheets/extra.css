@@ -1,0 +1,105 @@
+/* =============================================
+   Mermaid diagrams — futuristic interactivity
+   ============================================= */
+
+/* Container */
+.mermaid {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  border: 1px solid rgba(100, 180, 255, 0.12);
+  background: rgba(0, 10, 30, 0.03);
+  transition: border-color 0.3s ease;
+}
+
+[data-md-color-scheme="slate"] .mermaid {
+  background: rgba(0, 10, 30, 0.25);
+  border-color: rgba(100, 180, 255, 0.15);
+}
+
+.mermaid:hover {
+  border-color: rgba(100, 180, 255, 0.3);
+}
+
+.mermaid:active {
+  cursor: grabbing;
+}
+
+/* Zoom hint */
+.mermaid::after {
+  content: 'scroll · drag · dbl-click to reset';
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 10px;
+  font-family: var(--md-code-font-family);
+  color: rgba(100, 180, 255, 0.4);
+  pointer-events: none;
+  letter-spacing: 0.05em;
+}
+
+/* SVG root smooth transform */
+.mermaid svg {
+  display: block;
+}
+
+.mermaid svg > g {
+  transition: transform 0.05s linear;
+}
+
+/* ---- Node shapes ---- */
+.mermaid svg .node rect,
+.mermaid svg .node circle,
+.mermaid svg .node ellipse,
+.mermaid svg .node polygon,
+.mermaid svg .node path {
+  transition: filter 0.25s ease;
+}
+
+.mermaid svg .node:hover rect,
+.mermaid svg .node:hover circle,
+.mermaid svg .node:hover ellipse,
+.mermaid svg .node:hover polygon {
+  filter:
+    drop-shadow(0 0 5px rgba(64, 160, 255, 0.95))
+    drop-shadow(0 0 18px rgba(64, 160, 255, 0.55))
+    drop-shadow(0 0 40px rgba(64, 160, 255, 0.25));
+}
+
+/* ---- Cluster / subgraph ---- */
+.mermaid svg .cluster rect {
+  transition: filter 0.3s ease;
+}
+
+.mermaid svg .cluster:hover rect {
+  filter:
+    drop-shadow(0 0 6px rgba(80, 200, 255, 0.45))
+    drop-shadow(0 0 20px rgba(80, 200, 255, 0.2));
+}
+
+/* ---- Edges ---- */
+.mermaid svg .edgePath path {
+  transition: filter 0.2s ease, stroke-width 0.2s ease;
+}
+
+.mermaid svg .edgePath:hover path {
+  filter: drop-shadow(0 0 4px rgba(64, 160, 255, 0.7));
+  stroke-width: 2px;
+}
+
+/* ---- Labels ---- */
+.mermaid svg .node .label {
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+/* Dim non-hovered nodes slightly when any node is focused */
+.mermaid svg:has(.node:hover) .node:not(:hover) rect,
+.mermaid svg:has(.node:hover) .node:not(:hover) circle,
+.mermaid svg:has(.node:hover) .node:not(:hover) ellipse,
+.mermaid svg:has(.node:hover) .node:not(:hover) polygon {
+  opacity: 0.55;
+  transition: opacity 0.25s ease;
+}
