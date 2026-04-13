@@ -1,17 +1,20 @@
 # fAIr Implementation
 
-**Stack:** Django + React | **Repo:** `fAIr/` | **Branch:** `login_hanko` (vs `develop`)
+**Stack:** Django + React | **Repo:** `fAIr/`
 
 ## Overview
 
 | Aspect | Detail |
-| -------- | -------- |
-| Framework | Django |
-| Type | With User Mapping |
-| OSM Required | Yes (legacy) |
+|--------|--------|
+| Framework | Django (DRF) |
+| Frontend | React SPA (Vite) |
+| Legacy Auth | OSM OAuth (`osm-login-python`) |
+| User Model | Custom `OsmUser` (with `osm_id`) |
+| Auth Mechanism | DRF `HankoAuthentication` class (dynamic switch) |
+| Onboarding | Explicit `/onboarding` endpoint |
+| OSM Required | Optional (synthetic IDs for Hanko-only users) |
 
-fAIr uses Django with middleware to inject `request.hotosm` into each request.
-The `HankoUserFilterMixin` filters querysets by the mapped user.
+fAIr uses a DRF authentication class that dynamically switches between `LegacyOsmAuthentication` and `HankoAuthentication` based on `AUTH_PROVIDER`. The Hanko class maps Hanko users to existing `OsmUser` records. Users without an OSM account get a synthetic negative `osm_id`.
 
 ---
 
@@ -22,191 +25,201 @@ The `HankoUserFilterMixin` filters querysets by the mapped user.
 ```toml
 # backend/pyproject.toml
 dependencies = [
-    "hotosm-auth[django]==0.2.9",
+    "hotosm-auth[django]==0.2.10",
 ]
 ```
 
-> **Note:** También se puede usar la referencia git para una versión específica:
-> `"hotosm-auth[django] @ git+https://github.com/hotosm/login.git@v0.3.3#subdirectory=auth-libs/python"`
-
-### 2. Initialization
+### 2. Configuration
 
 ```python
 # backend/fairproject/settings.py
 
-AUTH_PROVIDER = env("AUTH_PROVIDER", default="legacy")
+class AuthProvider:
+    LEGACY = "legacy"
+    HANKO = "hanko"
 
-# Hanko SSO Configuration
-if AUTH_PROVIDER == "hanko":
+AUTH_PROVIDER = env("AUTH_PROVIDER", default=AuthProvider.LEGACY)
+
+if AUTH_PROVIDER == AuthProvider.HANKO:
     HANKO_API_URL = env("HANKO_API_URL")
     COOKIE_SECRET = env("COOKIE_SECRET")
     COOKIE_DOMAIN = env("COOKIE_DOMAIN", default=None)
     COOKIE_SECURE = env.bool("COOKIE_SECURE", default=not DEBUG)
+    JWT_AUDIENCE = env("JWT_AUDIENCE", default=None)
+    LOGIN_URL = env("LOGIN_URL", default="https://login.hotosm.org")
+    OSM_REDIRECT_URI = env("OSM_REDIRECT_URI", default=...)
 
-# INSTALLED_APPS
-INSTALLED_APPS = [
-    ...
-    'rest_framework',  # fAIr ya lo tenía
-    ...
-]
-
-if AUTH_PROVIDER == "hanko":
     INSTALLED_APPS.append("hotosm_auth_django")
 
-# Middleware
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    ...
-]
-
-if AUTH_PROVIDER == "hanko":
     MIDDLEWARE.insert(
         MIDDLEWARE.index("django.contrib.auth.middleware.AuthenticationMiddleware"),
         "hotosm_auth_django.HankoAuthMiddleware",
     )
 ```
 
-### 3. Protected Routes
+Middleware order: `HankoAuthMiddleware` → `AuthenticationMiddleware` (must be before).
 
-#### How the Middleware Works
+!!! warning "Django App Registry"
+    Import `create_admin_urlpatterns` directly from the module, not from the package root:
+    ```python
+    from hotosm_auth_django.admin_routes import create_admin_urlpatterns  # Correct
+    ```
 
-The `HankoAuthMiddleware` adds `request.hotosm` to **every request**:
+### 3. Auth Mechanism
+
+A DRF authentication class dynamically selected at module load:
 
 ```python
-request.hotosm.user  # HankoUser (or None if not authenticated)
-request.hotosm.osm   # OSMConnection (or None if not connected)
-```
+# backend/login/authentication.py
 
-#### Protect Endpoints
-
-```python
-# backend/login/views.py
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-class ProtectedView(APIView):
-    def get(self, request):
-        # Verify authentication
-        if not hasattr(request, 'hotosm') or not request.hotosm.user:
-            return Response(
-                {"error": "Not authenticated"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+class HankoAuthentication(authentication.BaseAuthentication):
+    """Hanko SSO authentication using user mappings."""
+    def authenticate(self, request):
+        from hotosm_auth_django import get_mapped_user_id
 
         hanko_user = request.hotosm.user
-        return Response({
-            "user_id": hanko_user.id,
-            "email": hanko_user.email,
-        })
+        if not hanko_user:
+            return (None, None)
 
-class OSMRequiredView(APIView):
-    def get(self, request):
-        if not request.hotosm.user:
-            return Response({"error": "Not authenticated"}, status=401)
+        mapped_osm_id = get_mapped_user_id(hanko_user, app_name="fair")
+        if mapped_osm_id is not None:
+            user = OsmUser.objects.get(osm_id=int(mapped_osm_id))
+            return (user, None)
 
-        if not request.hotosm.osm:
-            return Response({"error": "OSM connection required"}, status=403)
+        request.needs_onboarding = True
+        return (None, None)
 
-        osm = request.hotosm.osm
-        return Response({
-            "osm_username": osm.osm_username,
-            "osm_user_id": osm.osm_user_id,
-        })
+# Dynamic selection
+if settings.AUTH_PROVIDER == AuthProvider.HANKO:
+    OsmAuthentication = HankoAuthentication
+else:
+    OsmAuthentication = LegacyOsmAuthentication
 ```
 
-### 4. User Mapping
+All views use `OsmAuthentication` — the switch is transparent.
 
-#### HankoUserFilterMixin
-
-The mixin filters querysets by the mapped user:
+**Synthetic OSM IDs:** Users without an OSM account get a negative `osm_id`:
 
 ```python
 # backend/login/hanko_helpers.py
 
+def generate_synthetic_osm_id(hanko_id: str) -> int:
+    synthetic_id = -(abs(hash(hanko_id)) % 10**9)
+    return synthetic_id if synthetic_id != 0 else -1
+
+def is_real_osm_user(osm_id: int) -> bool:
+    return osm_id > 0
+```
+
+**HankoUserFilterMixin:** Filters querysets when `?mine=true` is passed:
+
+```python
 class HankoUserFilterMixin:
-    """Filters querysets by the mapped Hanko user."""
-
     def get_queryset(self):
-        qs = super().get_queryset()
-
-        if hasattr(self.request, 'hotosm') and self.request.hotosm.user:
-            from hotosm_auth_django import get_mapped_user_id
-            app_user_id = get_mapped_user_id(
-                self.request.hotosm.user,
-                app_name="fair"
-            )
-            if app_user_id:
-                return qs.filter(created_by_id=app_user_id)
-
-        return qs
+        queryset = super().get_queryset()
+        if self.request.query_params.get('mine', '').lower() == 'true':
+            if self.request.user and self.request.user.is_authenticated:
+                return queryset.filter(user=self.request.user)
+            return queryset.none()
+        return queryset
 ```
 
-#### Usage in ViewSets
+### 4. Onboarding
+
+Explicit `/onboarding` endpoint. The login service redirects here after the user chooses new/legacy:
 
 ```python
-# backend/core/views.py
+# backend/login/views.py
 
-from login.hanko_helpers import HankoUserFilterMixin
+class OnboardingCallback(APIView):
+    def get(self, request):
+        hanko_user = request.hotosm.user
+        is_new_user = request.query_params.get('new_user') == 'true'
 
-class DatasetViewSet(HankoUserFilterMixin, BaseSpatialViewSet):
-    """ViewSet that filters datasets by the current user."""
-    queryset = Dataset.objects.all()
-    serializer_class = DatasetSerializer
-    public_methods = ["GET"]
+        if is_new_user:
+            # Generate synthetic osm_id, create OsmUser + mapping
+            osm_id = generate_synthetic_osm_id(hanko_user.id)
+            username = hanko_user.email.split('@')[0]
+            create_osm_user(osm_id=osm_id, username=username, email=hanko_user.email)
+            create_user_mapping(hanko_user.id, str(osm_id), "fair")
+            return HttpResponseRedirect(settings.FRONTEND_URL)
+        else:
+            # Legacy: find existing OsmUser by OSM ID, update email, create mapping
+            osm_id = request.hotosm.osm.osm_user_id
+            existing_user = find_legacy_user_by_osm_id(osm_id)
+            existing_user.email = hanko_user.email
+            existing_user.email_verified = True
+            existing_user.save(update_fields=["email", "email_verified"])
+            create_user_mapping(hanko_user.id, str(osm_id), "fair")
+            return HttpResponseRedirect(settings.FRONTEND_URL)
 ```
 
-### 5. URLs (Admin Routes)
+**Auth Status** — the web component calls this to check if the user is mapped:
 
 ```python
+class AuthStatus(APIView):
+    def get(self, request):
+        # Returns: auth_provider, authenticated, needs_onboarding,
+        # user info (osm_id, username, is_real_osm), hanko_user info (id, email)
+```
+
+### 5. Helper Functions
+
+```python
+# backend/login/hanko_helpers.py
+
+def find_legacy_user_by_osm_id(osm_id)     # Find OsmUser by osm_id
+def create_osm_user(osm_id, username, ...)  # Create OsmUser, handle username conflicts
+def generate_synthetic_osm_id(hanko_id)     # Negative osm_id for Hanko-only users
+def is_real_osm_user(osm_id)                # Positive = real, negative = synthetic
+```
+
+### 6. URLs
+
+```python
+# backend/login/urls.py
+urlpatterns = [
+    path("login/", ...),                             # Legacy
+    path("callback/", ...),                          # Legacy
+    path("me/", ...),                                # Legacy (used by both)
+    path("me/request-email-verification/", ...),     # Legacy
+    path("me/verify-email/", ...),                   # Legacy
+    path("status/", views.AuthStatus.as_view()),     # Hanko status check
+]
+if settings.AUTH_PROVIDER == AuthProvider.HANKO:
+    urlpatterns.append(path("onboarding/", views.OnboardingCallback.as_view()))
+
 # backend/fairproject/urls.py
-
-from django.conf import settings
-from django.urls import path, include
-
-admin_mapping_patterns = []
-if getattr(settings, 'AUTH_PROVIDER', 'legacy') == 'hanko':
-    try:
-        from hotosm_auth_django.admin_routes import create_admin_urlpatterns
-        admin_mapping_patterns = create_admin_urlpatterns(
-            app_name="fair",
-            user_model="login.OsmUser",
-            user_id_column="osm_id",
-            user_name_column="username",
-            user_email_column="email",
-        )
-    except ImportError:
-        pass
-
+if settings.AUTH_PROVIDER == AuthProvider.HANKO:
+    admin_mapping_patterns = create_admin_urlpatterns(
+        app_name="fair", user_model="login.OsmUser",
+        user_id_column="osm_id", user_name_column="username", user_email_column="email",
+    )
 urlpatterns = [
     path("api/v1/auth/", include("login.urls")),
-    path("api/v1/", include("core.urls")),
     path("api/admin/", include(admin_mapping_patterns)),
+    path("django-admin/", admin.site.urls),
 ]
 ```
 
-### 6. Configuration (.env)
+### 7. Environment Variables
 
 ```bash
 # backend/.env
-
 AUTH_PROVIDER=hanko
-
-# Hanko SSO
 HANKO_API_URL=https://login.hotosm.org
 COOKIE_SECRET=your-32-byte-secret
 COOKIE_DOMAIN=.hotosm.org
-
-# OSM OAuth
+COOKIE_SECURE=true
+JWT_AUDIENCE=
+LOGIN_URL=https://login.hotosm.org
 OSM_CLIENT_ID=your-osm-client-id
 OSM_CLIENT_SECRET=your-osm-client-secret
 OSM_LOGIN_REDIRECT_URI=https://fair.hotosm.org/api/v1/auth/callback/
 OSM_SECRET_KEY=your-osm-secret-key
-
-# Admin
+OSM_REDIRECT_URI=https://fair.hotosm.org/api/v1/auth/osm/callback/
 ADMIN_EMAILS=admin@hotosm.org
+FRONTEND_URL=https://fair.hotosm.org
 ```
 
 ---
@@ -218,143 +231,93 @@ ADMIN_EMAILS=admin@hotosm.org
 ```tsx
 // frontend/src/components/layouts/navbar/navbar.tsx
 
-import { AUTH_PROVIDER, BASE_API_URL, FRONTEND_URL, HANKO_URL } from "@/config";
-
 if (AUTH_PROVIDER === "hanko") {
   import("@hotosm/hanko-auth");
 }
 
-const HankoAuthComponent = ({ displayBar }: { displayBar?: boolean }) => (
-  <hotosm-auth
-    hanko-url={HANKO_URL}
-    base-path={HANKO_URL}
-    redirect-after-login={FRONTEND_URL}
-    redirect-after-logout={FRONTEND_URL}
-    mapping-check-url={`${BASE_API_URL}auth/status/`}
-    app-id="fair"
-    button-variant="filled"
-    button-color="danger"
-    display={displayBar ? "bar" : "default"}
-  />
-);
+<hotosm-auth
+  hanko-url={HANKO_URL}
+  base-path={HANKO_URL}
+  redirect-after-login={FRONTEND_URL}
+  redirect-after-logout={FRONTEND_URL}
+  mapping-check-url={`${BASE_API_URL}auth/status/`}
+  app-id="fair"
+  button-variant="filled"
+  button-color="danger"
+  display={displayBar ? "bar" : "default"}
+/>
 ```
 
-#### Atributos del components
+### 2. Auth Logic
 
-| Atributo | Descripción |
-| -------- | ----------- |
-| `hanko-url` | URL del servicio de login (Hanko) |
-| `base-path` | Base URL para rutas internas del widget |
-| `redirect-after-login` | URL de redirección después de login |
-| `redirect-after-logout` | URL de redirección después de logout |
-| `mapping-check-url` | Endpoint para verificar mapping del usuario en la app |
-| `app-id` | Identificador de la aplicación para el mapping |
-| `button-variant` | Estilo del botón (`filled`, `outline`, etc.) |
-| `button-color` | Color del botón (`danger`, `primary`, etc.) |
-| `display` | Modo de visualización (`bar`, `default`) |
+The `AuthProvider` context handles dual mode:
 
-### 2. Configuration (.env)
+- **Hanko**: `withCredentials: true` (cookie-based), listens to `hanko-login`/`logout` events
+- **Legacy**: `access-token` header from localStorage
+
+```tsx
+// frontend/src/app/providers/auth-provider.tsx
+
+// API client: cookies for Hanko, header for legacy
+if (AUTH_PROVIDER === "hanko") {
+  apiClient.defaults.withCredentials = true;
+} else {
+  apiClient.defaults.headers.common["access-token"] = token;
+}
+
+// isAuthenticated: user-based for Hanko, user+token for legacy
+const isAuthenticated =
+  AUTH_PROVIDER === "hanko" ? user !== undefined : user !== undefined && token !== undefined;
+
+// Event listeners
+document.addEventListener("hanko-login", handleLogin);
+document.addEventListener("logout", handleLogout);
+
+// Polls /api/v1/auth/me/ every 15 seconds to keep user data in sync
+```
+
+### 3. Environment Variables
 
 ```bash
 # frontend/.env
-
 VITE_AUTH_PROVIDER=hanko
 VITE_HANKO_URL=https://login.hotosm.org
 VITE_BASE_API_URL=https://fair.hotosm.org/api/v1/
-VITE_FRONTEND_URL=https://fair.hotosm.org
 ```
-
-> **Note:** `VITE_HANKO_URL` points to the login service that handles both
-> Hanko authentication and OSM OAuth endpoints.
 
 ---
 
-## Framework Notes
+## Auth Flow
 
-### Middleware Order
-
-The `HankoAuthMiddleware` must be **before** `AuthenticationMiddleware`:
-
-```python
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'hotosm_auth_django.HankoAuthMiddleware',  # <- Before auth
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    ...
-]
-```
-
-### Import Order
-
-#### Warning: Django App Registry
-
-`admin_routes` imports from `rest_framework`, which requires apps to be ready.
-Import directly from the module:
-
-```python
-# Correct
-from hotosm_auth_django.admin_routes import create_admin_urlpatterns
-
-# Incorrect (causes AppRegistryNotReady)
-from hotosm_auth_django import create_admin_urlpatterns
-```
-
-### Middleware vs Mixin
-
-| Component | Purpose |
-| ----------- | --------- |
-| **Middleware** | Injects `request.hotosm` in each request |
-| **Mixin** | Filters querysets by mapped user |
-
----
-
-## Key Changes (vs `develop` branch)
-
-### settings.py
-
-```diff
-+ AUTH_PROVIDER = env("AUTH_PROVIDER", default="legacy")
-
-+ if AUTH_PROVIDER == "hanko":
-+     HANKO_API_URL = env("HANKO_API_URL")
-+     COOKIE_SECRET = env("COOKIE_SECRET")
-+     INSTALLED_APPS.append("hotosm_auth_django")
-
-+ if AUTH_PROVIDER == "hanko":
-+     MIDDLEWARE.insert(
-+         MIDDLEWARE.index("django.contrib.auth.middleware.AuthenticationMiddleware"),
-+         "hotosm_auth_django.HankoAuthMiddleware",
-+     )
-```
-
-### urls.py
-
-```diff
-+ from hotosm_auth_django.admin_routes import create_admin_urlpatterns
-
-+ admin_mapping_patterns = create_admin_urlpatterns(
-+     app_name="fair",
-+     user_model="login.OsmUser",
-+     ...
-+ )
-
-+ path("api/admin/", include(admin_mapping_patterns)),
-```
+| Step | What happens |
+|------|-------------|
+| 1. Login | Web component redirects to login service |
+| 2. Auth | User authenticates, gets session cookie |
+| 3. Return | Web component fires `hanko-login` event |
+| 4. Status check | Web component calls `/auth/status/` |
+| 5a. Mapped | `HankoAuthentication` resolves to `OsmUser` → authenticated |
+| 5b. Not mapped | Redirected to onboarding at login service |
+| 6. Onboarding | `OnboardingCallback` creates user + mapping |
+| 7. Done | Redirect to frontend, user is authenticated |
 
 ---
 
 ## API Endpoints
 
-```text
-# Auth (legacy OSM login)
-POST /api/v1/auth/login/        # Start OSM OAuth
-GET  /api/v1/auth/callback/     # OSM callback
+```
+# Hanko auth
+GET  /api/v1/auth/status/       # Auth status check (web component)
+GET  /api/v1/auth/onboarding/   # Onboarding callback (creates mapping)
 
-# Admin mappings (Hanko)
+# Admin mappings
 GET    /api/admin/mappings      # List mappings
 POST   /api/admin/mappings      # Create mapping
 GET    /api/admin/mappings/{id} # Get mapping
 PUT    /api/admin/mappings/{id} # Update mapping
 DELETE /api/admin/mappings/{id} # Delete mapping
+
+# Legacy (pre-existing)
+GET  /api/v1/auth/login/        # Start OSM OAuth (returns login_url)
+GET  /api/v1/auth/callback/     # OSM callback
+GET  /api/v1/auth/me/           # User profile (used by both)
 ```

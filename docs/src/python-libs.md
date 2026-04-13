@@ -44,7 +44,7 @@ class AuthConfig(BaseModel):
         """Load from environment variables."""
 ```
 
-### Smart Defaults
+**Smart Defaults:**
 
 - `cookie_domain`: `login.hotosm.org` → `.hotosm.org`
 - `cookie_secure`: `https://` → `True`
@@ -153,7 +153,7 @@ class CookieCrypto:
 
 ## FastAPI: `hotosm_auth_fastapi`
 
-### FastAPI Simple Setup
+### Simple Setup
 
 ```python
 from fastapi import FastAPI
@@ -175,7 +175,7 @@ async def upload(auth: Auth):
     return {"token": osm.access_token}
 ```
 
-### FastAPI Manual Setup
+### Manual Setup
 
 ```python
 from hotosm_auth import AuthConfig
@@ -215,7 +215,7 @@ async def edit(osm: OSMConnectionRequired):
 ### Dependencies
 
 | Dependency | Type | Raises |
-| ------------ | ------ | -------- |
+|------------|------|--------|
 | `CurrentUser` | `HankoUser` | 401 |
 | `CurrentUserOptional` | `Optional[HankoUser]` | - |
 | `OSMConnectionDep` | `Optional[OSMConnection]` | - |
@@ -223,7 +223,7 @@ async def edit(osm: OSMConnectionRequired):
 
 ### OSM Routes
 
-```text
+```
 GET  /auth/osm/login      → Redirect to OSM authorization
 GET  /auth/osm/callback   → Handle OAuth callback, set cookie
 GET  /auth/osm/status     → {"connected": true, "osm_username": "..."}
@@ -249,95 +249,12 @@ app.include_router(admin_router, prefix="/api/admin")
 
 Endpoints:
 
-```text
+```
 GET    /mappings              → List all mappings (paginated)
 POST   /mappings              → Create mapping
 GET    /mappings/{hanko_id}   → Get single mapping
 PUT    /mappings/{hanko_id}   → Update mapping
 DELETE /mappings/{hanko_id}   → Delete mapping
-```
-
----
-
-## Litestar: `hotosm_auth_litestar`
-
-### Litestar Simple Setup
-
-```python
-from litestar import Litestar, get
-from hotosm_auth_litestar import setup_auth, AuthContext
-
-
-@get("/me")
-async def me(auth: AuthContext) -> dict[str, str]:
-    return {"email": auth.user.email}
-
-
-deps, route_handlers = setup_auth()  # Loads from .env
-app = Litestar(
-    route_handlers=[me, *route_handlers],
-    dependencies=deps,
-)
-```
-
-### Litestar Manual Setup
-
-```python
-from litestar import Litestar, get
-from hotosm_auth import AuthConfig
-from hotosm_auth_litestar import (
-    create_dependencies,
-    init_auth,
-    osm_router,
-    AuthContext,
-)
-
-
-@get("/protected")
-async def protected(auth: AuthContext):
-    return {"id": auth.user.id}
-
-
-config = AuthConfig.from_env()
-init_auth(config)
-
-app = Litestar(
-    route_handlers=[protected, osm_router],
-    dependencies=create_dependencies(),
-)
-```
-
-Default dependency keys:
-
-| Key | Type | Raises |
-| --- | --- | --- |
-| `current_user` | `HankoUser` | 401 |
-| `current_user_optional` | `Optional[HankoUser]` | - |
-| `osm_connection` | `Optional[OSMConnection]` | - |
-| `osm_connection_required` | `OSMConnection` | 403 |
-| `auth` | `AuthContext` | 401 |
-| `optional_auth` | `OptionalAuthContext` | - |
-
-### Admin Routes (psycopg)
-
-```python
-from hotosm_auth_litestar import create_admin_mappings_router
-
-# get_db should provide a psycopg AsyncConnection
-admin_router = create_admin_mappings_router(
-    get_db,
-    app_name="drone-tm",
-    user_table="users",
-    user_id_column="id",
-    user_name_column="name",
-    user_email_column="email",
-)
-
-deps, route_handlers = setup_auth()
-app = Litestar(
-    route_handlers=[*route_handlers, admin_router],
-    dependencies=deps,
-)
 ```
 
 ---
@@ -403,7 +320,7 @@ class HankoAuthMiddleware:
     """
 ```
 
-### Admin Routes (Alternative)
+### Admin Routes
 
 ```python
 # urls.py

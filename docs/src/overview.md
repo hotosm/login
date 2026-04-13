@@ -9,18 +9,17 @@
 - **User Mapping**: Maps Hanko users to app-specific user IDs
 
 | Component | Purpose |
-| ----------- | --------- |
+|-----------|---------|
 | `hotosm_auth` | Core Python package (JWT, config, crypto) |
 | `hotosm_auth_fastapi` | FastAPI integration (dependencies, routes) |
 | `hotosm_auth_django` | Django integration (middleware, decorators) |
-| `hotosm_auth_litestar` | Litestar integration (dependencies, routes) |
 | `<hotosm-auth>` | Web component (Lit-based auth UI) |
 
 ---
 
 ## Package Structure
 
-```text
+```
 auth-libs/
 │
 ├── python/src/                       # Python packages
@@ -36,11 +35,6 @@ auth-libs/
 │   │   ├── dependencies.py           # CurrentUser, OSMConnectionRequired
 │   │   ├── osm_routes.py             # /auth/osm/* endpoints
 │   │   └── admin_routes.py           # User mapping admin API
-│   │
-│   ├── hotosm_auth_litestar/         # Litestar integration
-│   │   ├── dependencies.py           # current_user, auth context providers
-│   │   ├── setup.py                  # setup_auth helper
-│   │   └── osm_routes.py             # /auth/osm/* endpoints
 │   │
 │   └── hotosm_auth_django/           # Django integration
 │       ├── middleware.py             # HankoAuthMiddleware
@@ -81,7 +75,7 @@ Apps with existing users need to map Hanko UUIDs to app user IDs.
 
 ### Problem
 
-```text
+```
 Hanko: id="550e8400-..."    ←→    App: id=42
        email=user@x.com            email=user@x.com
 ```
@@ -104,57 +98,6 @@ CREATE TABLE hanko_user_mappings (
 2. **Create new user** - Create app user from Hanko data
 3. **Admin assigns** - Manual mapping via admin API
 4. **Onboarding flow** - User completes registration after login
-
-### FastAPI Flow
-
-```mermaid
-flowchart TD
-    A[Request with JWT] --> B[get_current_user]
-    B --> C{JWT Valid?}
-    C -->|No| D[401 Unauthorized]
-    C -->|Yes| E[HankoUser]
-    E --> F[get_mapped_user_id]
-    F --> G{Mapping exists?}
-    G -->|Yes| H[Return app_user_id]
-    G -->|No| I{auto_create?}
-    I -->|No| J[403 Forbidden]
-    I -->|Yes| K{email_lookup_fn?}
-    K -->|Found| L[Link existing user]
-    K -->|Not found| M{user_creator_fn?}
-    M -->|Yes| N[Create new user]
-    M -->|No| O[Use Hanko ID as app ID]
-    L --> P[INSERT mapping]
-    N --> P
-    O --> P
-    P --> H
-```
-
-### Django Flow
-
-```mermaid
-flowchart TD
-    A[Request] --> B[HankoAuthMiddleware]
-    B --> C[request.hotosm.user]
-    C --> D{JWT Valid?}
-    D -->|No| E[user = None]
-    D -->|Yes| F[HankoUser]
-    F --> G[get_mapped_user_id]
-    G --> H{Mapping exists?}
-    H -->|Yes| I[Return app_user_id]
-    H -->|No| J{auto_create?}
-    J -->|No default| K[Return None]
-    K --> L[App handles onboarding]
-    L --> M[User completes flow]
-    M --> N[create_user_mapping]
-    N --> O[User fully authenticated]
-    J -->|Yes| P[user_id_generator]
-    P --> Q[INSERT mapping]
-    Q --> I
-```
-
-> **Key Difference**: FastAPI supports auto-creation with `email_lookup_fn` and
-> `user_creator_fn`. Django defaults to `auto_create=False`, so the app handles
-> onboarding (for example, after OSM connect).
 
 ---
 
@@ -194,15 +137,15 @@ VITE_HANKO_URL=https://login.hotosm.org
 ### Variables by Project
 
 | Variable | Portal | Drone-TM | fAIr | OAM | Login |
-| ---------- | -------- | ---------- | ------ | ----- | ------- |
-| **Backend** | | | | | |
+|----------|--------|----------|------|-----|-------|
+| **Backend** |
 | `HANKO_API_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `COOKIE_SECRET` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `OSM_CLIENT_ID` | ✅ | - | ✅ | - | ✅ |
 | `OSM_CLIENT_SECRET` | ✅ | - | ✅ | - | ✅ |
 | `ADMIN_EMAILS` | ✅ | ✅ | ✅ | - | - |
 | `AUTH_PROVIDER` | - | ✅ | ✅ | - | - |
-| **Frontend** | | | | | |
+| **Frontend** |
 | `VITE_HANKO_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `VITE_AUTH_PROVIDER` | - | ✅ | ✅ | - | - |
 

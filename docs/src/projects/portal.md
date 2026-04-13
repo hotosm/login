@@ -5,7 +5,7 @@
 ## Overview
 
 | Aspect | Detail |
-| -------- | -------- |
+|--------|--------|
 | Framework | FastAPI |
 | Type | Simple (no mapping) |
 | OSM Required | Optional |
@@ -137,7 +137,7 @@ VITE_HANKO_URL=https://login.hotosm.org
 ### Available Dependencies (FastAPI)
 
 | Dependency | Type | Error if missing |
-| ------------ | ------ | ------------------ |
+|------------|------|------------------|
 | `CurrentUser` | `HankoUser` | 401 Unauthorized |
 | `CurrentUserOptional` | `Optional[HankoUser]` | None (no error) |
 | `OSMConnectionRequired` | `OSMConnection` | 403 Forbidden |
@@ -147,7 +147,7 @@ VITE_HANKO_URL=https://login.hotosm.org
 
 ## API Endpoints
 
-```text
+```
 GET /api/docs                    # Swagger UI
 GET /api/auth/osm/login          # Start OSM OAuth
 GET /api/auth/osm/callback       # OSM OAuth callback

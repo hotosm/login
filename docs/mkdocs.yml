@@ -81,7 +81,7 @@ nav:
     - Portal: projects/portal.md
     - Drone-TM: projects/drone-tm.md
     - fAIr: projects/fair.md
-    - OpenAerialMap: projects/oam.md
+    - uMap: projects/umap.md
 
 extra:
   social:

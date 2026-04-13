@@ -4,7 +4,7 @@ Lit-based web component for authentication UI.
 
 ## Source
 
-```text
+```
 auth-libs/web-component/
 ├── src/
 │   └── hanko-auth.ts       # Main component (1500+ lines)
@@ -68,16 +68,15 @@ export function AuthButton({ hankoUrl, onLogin }) {
 ### Core
 
 | Attribute | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
-| `hanko-url` | string | `window.location.origin` | Hanko API URL |
-| `login-url` | string | `${hanko-url}/app` | Login page URL |
-| `base-path` | string | `""` | Base URL for OSM OAuth endpoints |
-| `auth-path` | string | `/api/auth/osm` | OSM auth endpoints path |
+|-----------|------|---------|-------------|
+| `hanko-url` | string | `window.location.origin` | Login service URL (login.hotosm.org) for Hanko authentication |
+| `base-path` | string | `""` | Base URL for OSM OAuth endpoints. Usually same as `hanko-url` since login service hosts both Hanko and OSM auth |
+| `auth-path` | string | `/api/auth/osm` | OSM auth endpoints path (appended to `base-path`) |
 
 ### Behavior
 
 | Attribute | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
+|-----------|------|---------|-------------|
 | `osm-required` | boolean | `false` | Require OSM connection |
 | `osm-scopes` | string | `"read_prefs"` | Space-separated OSM scopes |
 | `auto-connect` | boolean | `false` | Auto-redirect to OSM OAuth |
@@ -86,21 +85,21 @@ export function AuthButton({ hankoUrl, onLogin }) {
 ### Display
 
 | Attribute | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
+|-----------|------|---------|-------------|
 | `show-profile` | boolean | `false` | Show full profile (vs header button) |
 | `display-name` | string | `""` | Override display name |
 
 ### Redirects
 
 | Attribute | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
+|-----------|------|---------|-------------|
 | `redirect-after-login` | string | `""` | URL after successful login |
 | `redirect-after-logout` | string | `""` | URL after logout |
 
 ### Cross-app
 
 | Attribute | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
+|-----------|------|---------|-------------|
 | `mapping-check-url` | string | `""` | URL to check user mapping |
 | `app-id` | string | `""` | App identifier for onboarding |
 
@@ -109,7 +108,7 @@ export function AuthButton({ hankoUrl, onLogin }) {
 ## Events
 
 | Event | Detail | When |
-| ------- | -------- | ------ |
+|-------|--------|------|
 | `hanko-login` | `{ user: HankoUser }` | User logged in |
 | `osm-connected` | `{ osmData: OSMData }` | OSM account linked |
 | `osm-skipped` | `{}` | User skipped OSM connection |
@@ -142,7 +141,6 @@ auth.addEventListener('logout', () => {
 ### Header Mode (`show-profile=false`)
 
 Default mode. Shows:
-
 - **Logged out**: "Log in" button → redirects to login.hotosm.org
 - **Logged in**: Avatar dropdown with:
   - Profile link
@@ -161,7 +159,6 @@ Default mode. Shows:
 ### Profile Mode (`show-profile=true`)
 
 Shows full Hanko auth form (for login page):
-
 - **Logged out**: Hanko passkey/email form
 - **Logged in**: Profile card + OSM status + logout button
 
@@ -181,7 +178,6 @@ Shows full Hanko auth form (for login page):
 ## Hanko URL Detection
 
 Priority order:
-
 1. `hanko-url` attribute
 2. `<meta name="hanko-url" content="...">` tag
 3. `window.HANKO_URL` global
@@ -274,7 +270,6 @@ document.addEventListener('visibilitychange', () => {
 ## Debug Mode
 
 Enable with:
-
 - URL param: `?debug=true`
 - LocalStorage: `localStorage.setItem('hanko-auth-debug', 'true')`
 
@@ -379,31 +374,6 @@ flowchart TD
   app-id="portal"
 ></hotosm-auth>
 ```
-
-### Standalone Mode (Local Hanko)
-
-For development/standalone deployments with a local Hanko instance:
-
-```html
-<!-- In header (show login button) -->
-<hotosm-auth
-  hanko-url="http://localhost:8002"
-  login-url="http://localhost:5173/app"
-></hotosm-auth>
-
-<!-- In /app route (show Hanko form) -->
-<hotosm-auth
-  hanko-url="http://localhost:8002"
-  show-profile
-  redirect-after-login="http://localhost:5173"
-></hotosm-auth>
-```
-
-### Key difference from SSO mode
-
-- **SSO mode**: `hanko-url` points to login.hotosm.org for API + login UI
-- **Standalone mode**: `hanko-url` points to local Hanko API, and `login-url`
-  points to your app's embedded login page
 
 ---
 
