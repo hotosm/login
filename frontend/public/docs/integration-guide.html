@@ -901,6 +901,117 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#litestar-simple-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Litestar: Simple Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Litestar: Simple Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-dependency_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Dependency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-initialization_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Initialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-protect-routes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Protect routes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-environment-variables_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#litestar-integration-with-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Litestar: Integration with Mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Litestar: Integration with Mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#steps-1-2-same-as-simple_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steps 1-2: Same as Simple
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-custom-auth-dependency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Custom auth dependency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-admin-routes-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Admin routes (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#frontend-all" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1192,6 +1303,11 @@
 <td><a href="#django-integration-with-mapping">With Mapping</a></td>
 </tr>
 <tr>
+<td><strong>Litestar</strong></td>
+<td><a href="#litestar-simple-integration">Simple</a></td>
+<td><a href="#litestar-integration-with-mapping">With Mapping</a></td>
+</tr>
+<tr>
 <td><strong>Frontend</strong></td>
 <td><a href="#frontend-all">All</a></td>
 <td><a href="#frontend-all">All</a></td>
@@ -1233,7 +1349,8 @@
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>
 </span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="c1"># Mount OSM OAuth routes (optional)</span>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">osm_router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/api/auth/osm&quot;</span><span class="p">)</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="c1"># router already has prefix=&quot;/auth/osm&quot; → routes: /api/auth/osm/login, /api/auth/osm/callback</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">osm_router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/api&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="step-3-protect-routes">Step 3: Protect routes<a class="headerlink" href="#step-3-protect-routes" title="Permanent link">&para;</a></h3>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># routes.py</span>
@@ -1369,18 +1486,90 @@
 </span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="n">urlpatterns</span> <span class="o">+=</span> <span class="p">[</span><span class="n">path</span><span class="p">(</span><span class="s2">&quot;api/admin/&quot;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="n">admin_patterns</span><span class="p">))]</span>
 </span></code></pre></div>
 <hr />
-<h2 id="frontend-all">Frontend (all)<a class="headerlink" href="#frontend-all" title="Permanent link">&para;</a></h2>
-<div class="language-tsx highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">// Import</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">import</span><span class="w"> </span><span class="s1">&#39;@hotosm/hanko-auth&#39;</span><span class="p">;</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1">// Use</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="p">&lt;</span><span class="nt">hotosm</span><span class="err">-</span><span class="na">auth</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">  </span><span class="na">hanko-url</span><span class="o">=</span><span class="p">{</span><span class="k">import</span><span class="p">.</span><span class="nx">meta</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VITE_HANKO_URL</span><span class="p">}</span>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">  </span><span class="na">redirect-after-login</span><span class="o">=</span><span class="s">&quot;/&quot;</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="p">/&gt;</span>
+<h2 id="litestar-simple-integration">Litestar: Simple Integration<a class="headerlink" href="#litestar-simple-integration" title="Permanent link">&para;</a></h2>
+<p>For apps <strong>without legacy auth</strong> (e.g.: Field-TM).</p>
+<h3 id="step-1-dependency_2">Step 1: Dependency<a class="headerlink" href="#step-1-dependency_2" title="Permanent link">&para;</a></h3>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># pyproject.toml</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="s2">&quot;hotosm-auth[litestar]==0.2.10&quot;</span><span class="p">,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="p">]</span>
 </span></code></pre></div>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># .env</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nv">VITE_HANKO_URL</span><span class="o">=</span>https://login.hotosm.org
+<h3 id="step-2-initialization_1">Step 2: Initialization<a class="headerlink" href="#step-2-initialization_1" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># main.py</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">litestar</span><span class="w"> </span><span class="kn">import</span> <span class="n">Litestar</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hotosm_auth_litestar</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_auth</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="c1"># setup_auth() loads config from env, returns (deps, route_handlers)</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="n">deps</span><span class="p">,</span> <span class="n">route_handlers</span> <span class="o">=</span> <span class="n">setup_auth</span><span class="p">()</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="n">app</span> <span class="o">=</span> <span class="n">Litestar</span><span class="p">(</span><span class="n">route_handlers</span><span class="o">=</span><span class="n">route_handlers</span><span class="p">,</span> <span class="n">dependencies</span><span class="o">=</span><span class="n">deps</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="step-3-protect-routes_1">Step 3: Protect routes<a class="headerlink" href="#step-3-protect-routes_1" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">litestar</span><span class="w"> </span><span class="kn">import</span> <span class="n">get</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hotosm_auth_litestar</span><span class="w"> </span><span class="kn">import</span> <span class="n">AuthContext</span><span class="p">,</span> <span class="n">OptionalAuthContext</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="nd">@get</span><span class="p">(</span><span class="s2">&quot;/me&quot;</span><span class="p">)</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">me</span><span class="p">(</span><span class="n">auth</span><span class="p">:</span> <span class="n">AuthContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Requires authentication.&quot;&quot;&quot;</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">auth</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">auth</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">}</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="nd">@get</span><span class="p">(</span><span class="s2">&quot;/public&quot;</span><span class="p">)</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">public</span><span class="p">(</span><span class="n">optional_auth</span><span class="p">:</span> <span class="n">OptionalAuthContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Optional auth.&quot;&quot;&quot;</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="n">optional_auth</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email</span> <span class="k">if</span> <span class="n">optional_auth</span><span class="o">.</span><span class="n">user</span> <span class="k">else</span> <span class="s2">&quot;anonymous&quot;</span><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="step-4-environment-variables_1">Step 4: Environment variables<a class="headerlink" href="#step-4-environment-variables_1" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nv">HANKO_API_URL</span><span class="o">=</span>https://login.hotosm.org
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nv">COOKIE_SECRET</span><span class="o">=</span>your-32-byte-secret
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Only if using OSM OAuth</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="nv">OSM_CLIENT_ID</span><span class="o">=</span>your-client-id
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="nv">OSM_CLIENT_SECRET</span><span class="o">=</span>your-client-secret
+</span></code></pre></div>
+<hr />
+<h2 id="litestar-integration-with-mapping">Litestar: Integration with Mapping<a class="headerlink" href="#litestar-integration-with-mapping" title="Permanent link">&para;</a></h2>
+<h3 id="steps-1-2-same-as-simple_1">Steps 1-2: Same as Simple<a class="headerlink" href="#steps-1-2-same-as-simple_1" title="Permanent link">&para;</a></h3>
+<h3 id="step-3-custom-auth-dependency">Step 3: Custom auth dependency<a class="headerlink" href="#step-3-custom-auth-dependency" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># auth_deps.py</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">litestar</span><span class="w"> </span><span class="kn">import</span> <span class="n">Request</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hotosm_auth_litestar</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_current_user</span><span class="p">,</span> <span class="n">get_mapped_user_id</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">login_required</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">):</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="n">hanko_user</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_current_user</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>    <span class="n">db</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">db</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>    <span class="n">user_id</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_mapped_user_id</span><span class="p">(</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>        <span class="n">hanko_user</span><span class="o">=</span><span class="n">hanko_user</span><span class="p">,</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>        <span class="n">db_conn</span><span class="o">=</span><span class="n">db</span><span class="p">,</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>        <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;my-app&quot;</span><span class="p">,</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>        <span class="n">auto_create</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>        <span class="n">email_lookup_fn</span><span class="o">=</span><span class="n">lookup_user_by_email</span><span class="p">,</span>
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>        <span class="n">user_creator_fn</span><span class="o">=</span><span class="n">create_app_user</span><span class="p">,</span>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>    <span class="p">)</span>
+</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">get_user_by_id</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="step-4-admin-routes-optional">Step 4: Admin routes (optional)<a class="headerlink" href="#step-4-admin-routes-optional" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># main.py</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hotosm_auth_litestar</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_admin_mappings_router</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="n">admin_router</span> <span class="o">=</span> <span class="n">create_admin_mappings_router</span><span class="p">(</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    <span class="n">get_db</span><span class="p">,</span> <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;my-app&quot;</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="p">)</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="n">deps</span><span class="p">,</span> <span class="n">route_handlers</span> <span class="o">=</span> <span class="n">setup_auth</span><span class="p">()</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="n">app</span> <span class="o">=</span> <span class="n">Litestar</span><span class="p">(</span><span class="n">route_handlers</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">route_handlers</span><span class="p">,</span> <span class="n">admin_router</span><span class="p">],</span> <span class="n">dependencies</span><span class="o">=</span><span class="n">deps</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="frontend-all">Frontend (all)<a class="headerlink" href="#frontend-all" title="Permanent link">&para;</a></h2>
+<div class="language-tsx highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1">// Import</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="k">import</span><span class="w"> </span><span class="s1">&#39;@hotosm/hanko-auth&#39;</span><span class="p">;</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1">// Use</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="p">&lt;</span><span class="nt">hotosm</span><span class="err">-</span><span class="na">auth</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">  </span><span class="na">hanko-url</span><span class="o">=</span><span class="p">{</span><span class="k">import</span><span class="p">.</span><span class="nx">meta</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VITE_HANKO_URL</span><span class="p">}</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">  </span><span class="na">redirect-after-login</span><span class="o">=</span><span class="s">&quot;/&quot;</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="p">/&gt;</span>
+</span></code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># .env</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nv">VITE_HANKO_URL</span><span class="o">=</span>https://login.hotosm.org
 </span></code></pre></div>
 <hr />
 <h2 id="checklist">Checklist<a class="headerlink" href="#checklist" title="Permanent link">&para;</a></h2>
@@ -1392,6 +1581,8 @@
 <th>FastAPI+Mapping</th>
 <th>Django Simple</th>
 <th>Django+Mapping</th>
+<th>Litestar Simple</th>
+<th>Litestar+Mapping</th>
 </tr>
 </thead>
 <tbody>
@@ -1401,13 +1592,17 @@
 <td>✓</td>
 <td>✓</td>
 <td>✓</td>
+<td>✓</td>
+<td>✓</td>
 </tr>
 <tr>
-<td>init_auth / middleware</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
+<td>Init</td>
+<td>init_auth</td>
+<td>init_auth</td>
+<td>middleware</td>
+<td>middleware</td>
+<td>setup_auth()</td>
+<td>setup_auth()</td>
 </tr>
 <tr>
 <td>Protect routes</td>
@@ -1415,9 +1610,13 @@
 <td>Override login_required</td>
 <td>request.hotosm</td>
 <td>request.hotosm</td>
+<td>AuthContext</td>
+<td>Custom dep</td>
 </tr>
 <tr>
 <td>Helper functions</td>
+<td>-</td>
+<td>✓</td>
 <td>-</td>
 <td>✓</td>
 <td>-</td>
@@ -1429,9 +1628,13 @@
 <td>Optional</td>
 <td>-</td>
 <td>Optional</td>
+<td>-</td>
+<td>Optional</td>
 </tr>
 <tr>
 <td>AUTH_PROVIDER env</td>
+<td>-</td>
+<td>✓</td>
 <td>-</td>
 <td>✓</td>
 <td>-</td>

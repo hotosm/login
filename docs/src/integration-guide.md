@@ -8,6 +8,7 @@ Step by step guide to integrate `hotosm-auth` in your project.
 |-----------|---------------------|------------------|
 | **FastAPI** | [Simple](#fastapi-simple-integration) | [With Mapping](#fastapi-integration-with-mapping) |
 | **Django** | [Simple](#django-simple-integration) | [With Mapping](#django-integration-with-mapping) |
+| **Litestar** | [Simple](#litestar-simple-integration) | [With Mapping](#litestar-integration-with-mapping) |
 | **Frontend** | [All](#frontend-all) | [All](#frontend-all) |
 
 ---
@@ -57,7 +58,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Mount OSM OAuth routes (optional)
-app.include_router(osm_router, prefix="/api/auth/osm")
+# router already has prefix="/auth/osm" → routes: /api/auth/osm/login, /api/auth/osm/callback
+app.include_router(osm_router, prefix="/api")
 ```
 
 ### Step 3: Protect routes
@@ -233,6 +235,102 @@ if getattr(settings, 'AUTH_PROVIDER', 'legacy') == 'hanko':
 
 ---
 
+## Litestar: Simple Integration
+
+For apps **without legacy auth** (e.g.: Field-TM).
+
+### Step 1: Dependency
+
+```toml
+# pyproject.toml
+dependencies = [
+    "hotosm-auth[litestar]==0.2.10",
+]
+```
+
+### Step 2: Initialization
+
+```python
+# main.py
+from litestar import Litestar
+from hotosm_auth_litestar import setup_auth
+
+# setup_auth() loads config from env, returns (deps, route_handlers)
+deps, route_handlers = setup_auth()
+
+app = Litestar(route_handlers=route_handlers, dependencies=deps)
+```
+
+### Step 3: Protect routes
+
+```python
+from litestar import get
+from hotosm_auth_litestar import AuthContext, OptionalAuthContext
+
+@get("/me")
+async def me(auth: AuthContext) -> dict:
+    """Requires authentication."""
+    return {"user_id": auth.user.id, "email": auth.user.email}
+
+@get("/public")
+async def public(optional_auth: OptionalAuthContext) -> dict:
+    """Optional auth."""
+    return {"user": optional_auth.user.email if optional_auth.user else "anonymous"}
+```
+
+### Step 4: Environment variables
+
+```bash
+HANKO_API_URL=https://login.hotosm.org
+COOKIE_SECRET=your-32-byte-secret
+
+# Only if using OSM OAuth
+OSM_CLIENT_ID=your-client-id
+OSM_CLIENT_SECRET=your-client-secret
+```
+
+---
+
+## Litestar: Integration with Mapping
+
+### Steps 1-2: Same as Simple
+
+### Step 3: Custom auth dependency
+
+```python
+# auth_deps.py
+from litestar import Request
+from hotosm_auth_litestar import get_current_user, get_mapped_user_id
+
+async def login_required(request: Request):
+    hanko_user = await get_current_user(request)
+    db = request.app.state.db
+    user_id = await get_mapped_user_id(
+        hanko_user=hanko_user,
+        db_conn=db,
+        app_name="my-app",
+        auto_create=True,
+        email_lookup_fn=lookup_user_by_email,
+        user_creator_fn=create_app_user,
+    )
+    return await get_user_by_id(db, user_id)
+```
+
+### Step 4: Admin routes (optional)
+
+```python
+# main.py
+from hotosm_auth_litestar import create_admin_mappings_router
+
+admin_router = create_admin_mappings_router(
+    get_db, app_name="my-app"
+)
+deps, route_handlers = setup_auth()
+app = Litestar(route_handlers=[*route_handlers, admin_router], dependencies=deps)
+```
+
+---
+
 ## Frontend (all)
 
 ```tsx
@@ -255,11 +353,11 @@ VITE_HANKO_URL=https://login.hotosm.org
 
 ## Checklist
 
-| Step | FastAPI Simple | FastAPI+Mapping | Django Simple | Django+Mapping |
-|------|----------------|-----------------|---------------|----------------|
-| Dependency | ✓ | ✓ | ✓ | ✓ |
-| init_auth / middleware | ✓ | ✓ | ✓ | ✓ |
-| Protect routes | CurrentUser | Override login_required | request.hotosm | request.hotosm |
-| Helper functions | - | ✓ | - | ✓ |
-| Admin routes | - | Optional | - | Optional |
-| AUTH_PROVIDER env | - | ✓ | - | ✓ |
+| Step | FastAPI Simple | FastAPI+Mapping | Django Simple | Django+Mapping | Litestar Simple | Litestar+Mapping |
+|------|----------------|-----------------|---------------|----------------|-----------------|------------------|
+| Dependency | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Init | init_auth | init_auth | middleware | middleware | setup_auth() | setup_auth() |
+| Protect routes | CurrentUser | Override login_required | request.hotosm | request.hotosm | AuthContext | Custom dep |
+| Helper functions | - | ✓ | - | ✓ | - | ✓ |
+| Admin routes | - | Optional | - | Optional | - | Optional |
+| AUTH_PROVIDER env | - | ✓ | - | ✓ | - | ✓ |

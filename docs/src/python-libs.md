@@ -359,3 +359,101 @@ Run migrations:
 ```bash
 python manage.py migrate hotosm_auth_django
 ```
+
+---
+
+## Litestar: `hotosm_auth_litestar`
+
+### Setup
+
+```python
+# main.py
+from litestar import Litestar
+from hotosm_auth_litestar import setup_auth
+
+# setup_auth() loads config from env, returns (deps, route_handlers)
+deps, route_handlers = setup_auth()
+
+app = Litestar(route_handlers=route_handlers, dependencies=deps)
+```
+
+This automatically:
+
+- Loads `AuthConfig.from_env()`
+- Registers OSM OAuth routes (`/auth/osm/login`, `/auth/osm/callback`, etc.)
+- Sets up `AuthContext` and `OptionalAuthContext` dependencies
+
+### Usage
+
+```python
+from litestar import get
+from hotosm_auth_litestar import AuthContext, OptionalAuthContext
+
+@get("/me")
+async def me(auth: AuthContext) -> dict:
+    """Requires authentication."""
+    return {"user_id": auth.user.id, "email": auth.user.email}
+
+@get("/public")
+async def public(optional_auth: OptionalAuthContext) -> dict:
+    """Optional auth."""
+    return {"user": optional_auth.user.email if optional_auth.user else "anonymous"}
+```
+
+### Dependencies
+
+| Dependency | Type | Raises |
+|------------|------|--------|
+| `AuthContext` | `AuthContext` (`.user`, `.osm`) | 401 |
+| `OptionalAuthContext` | `OptionalAuthContext` | - |
+| `AdminUser` | `HankoUser` | 403 |
+
+### OSM Routes
+
+```
+GET  /auth/osm/login      → Redirect to OSM authorization
+GET  /auth/osm/callback   → Handle OAuth callback, set cookie
+GET  /auth/osm/status     → {"connected": true, "osm_username": "..."}
+POST /auth/osm/disconnect → Revoke tokens, clear cookie
+```
+
+### Admin Routes
+
+```python
+from hotosm_auth_litestar import create_admin_mappings_router, setup_auth
+
+admin_router = create_admin_mappings_router(get_db, app_name="my-app")
+deps, route_handlers = setup_auth()
+app = Litestar(route_handlers=[*route_handlers, admin_router], dependencies=deps)
+```
+
+Endpoints:
+
+```
+GET    /mappings              → List all mappings (paginated)
+POST   /mappings              → Create mapping
+GET    /mappings/{hanko_id}   → Get single mapping
+PUT    /mappings/{hanko_id}   → Update mapping
+DELETE /mappings/{hanko_id}   → Delete mapping
+```
+
+### Mapping Integration
+
+```python
+# auth_deps.py
+from litestar import Request
+from hotosm_auth_litestar import get_current_user, get_mapped_user_id
+
+async def login_required(request: Request):
+    hanko_user = await get_current_user(request)
+    db = request.app.state.db
+    user_id = await get_mapped_user_id(
+        hanko_user=hanko_user,
+        db_conn=db,
+        app_name="my-app",
+        auto_create=True,
+        email_lookup_fn=lookup_user_by_email,
+        user_creator_fn=create_app_user,
+    )
+    return await get_user_by_id(db, user_id)
+```

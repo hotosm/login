@@ -82,6 +82,18 @@ urlpatterns += [
 
 Same endpoints as FastAPI. With `user_model` set, each mapping in the list response is enriched with the app's username and email alongside the Hanko data.
 
+### Litestar
+
+```python
+from hotosm_auth_litestar import create_admin_mappings_router, setup_auth
+
+admin_router = create_admin_mappings_router(get_db, app_name="my-app")
+deps, route_handlers = setup_auth()
+app = Litestar(route_handlers=[*route_handlers, admin_router], dependencies=deps)
+```
+
+Same endpoints as FastAPI.
+
 ---
 
 ## Custom Admin Endpoints
@@ -111,6 +123,18 @@ class MyAdminView(APIView):
         if not is_admin_user(request):
             return Response({"detail": "Admin access required"}, status=403)
         return Response({"ok": True})
+```
+
+### Litestar
+
+```python
+from litestar import get
+from hotosm_auth_litestar import AdminUser
+
+@get("/api/admin/stats")
+async def get_stats(admin: AdminUser) -> dict:
+    # admin is a HankoUser — email already verified as admin
+    return {"requested_by": admin.email}
 ```
 
 ---

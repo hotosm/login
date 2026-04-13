@@ -13,6 +13,7 @@
 | `hotosm_auth` | Core Python package (JWT, config, crypto) |
 | `hotosm_auth_fastapi` | FastAPI integration (dependencies, routes) |
 | `hotosm_auth_django` | Django integration (middleware, decorators) |
+| `hotosm_auth_litestar` | Litestar integration (dependencies, routes) |
 | `<hotosm-auth>` | Web component (Lit-based auth UI) |
 
 ---
@@ -36,10 +37,15 @@ auth-libs/
 │   │   ├── osm_routes.py             # /auth/osm/* endpoints
 │   │   └── admin_routes.py           # User mapping admin API
 │   │
-│   └── hotosm_auth_django/           # Django integration
-│       ├── middleware.py             # HankoAuthMiddleware
-│       ├── admin_routes.py           # Admin URL patterns
-│       └── models.py                 # HankoUserMapping model
+│   ├── hotosm_auth_django/           # Django integration
+│   │   ├── middleware.py             # HankoAuthMiddleware
+│   │   ├── admin_routes.py           # Admin URL patterns
+│   │   └── models.py                 # HankoUserMapping model
+│   │
+│   └── hotosm_auth_litestar/         # Litestar integration
+│       ├── dependencies.py           # AuthContext, setup_auth
+│       ├── osm_routes.py             # /auth/osm/* endpoints
+│       └── admin_routes.py           # User mapping admin API
 │
 └── web-component/                    # Frontend web component
     ├── src/hanko-auth.ts             # Lit web component
@@ -176,13 +182,19 @@ pip install "hotosm-auth[fastapi]==0.2.10"
 
 # With Django
 pip install "hotosm-auth[django]==0.2.10"
+
+# With Litestar
+pip install "hotosm-auth[litestar]==0.2.10"
 ```
 
 ### pyproject.toml
 
 ```toml
 dependencies = [
+    # Pick one:
     "hotosm-auth[fastapi]==0.2.10",
+    # "hotosm-auth[django]==0.2.10",
+    # "hotosm-auth[litestar]==0.2.10",
 ]
 ```
 

@@ -56,7 +56,6 @@ flowchart TB
 ### FastAPI
 
 ```python
-# main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from hotosm_auth import AuthConfig
@@ -64,12 +63,10 @@ from hotosm_auth_fastapi import init_auth, CurrentUser, osm_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    auth_config = AuthConfig.from_env()
-    init_auth(auth_config)
+    init_auth(AuthConfig.from_env())
     yield
 
 app = FastAPI(lifespan=lifespan)
-
 app.include_router(osm_router, prefix="/api")
 
 @app.get("/me")
@@ -77,12 +74,26 @@ async def me(user: CurrentUser):
     return {"id": user.id, "email": user.email}
 ```
 
+### Litestar
+
+```python
+from litestar import Litestar, get
+from hotosm_auth_litestar import setup_auth, AuthContext
+
+deps, route_handlers = setup_auth()
+
+@get("/me")
+async def me(auth: AuthContext) -> dict:
+    return {"id": auth.user.id, "email": auth.user.email}
+
+app = Litestar(route_handlers=[*route_handlers, me], dependencies=deps)
+```
+
 ### Django
 
 ```python
 # settings.py
 INSTALLED_APPS = [..., 'hotosm_auth_django']
-
 MIDDLEWARE = [..., 'hotosm_auth_django.HankoAuthMiddleware']
 
 # views.py
