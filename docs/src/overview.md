@@ -67,11 +67,7 @@ flowchart TD
     MAP -->|No - onboarding| ONBOARD[Redirect to\nonboarding flow]
     LINK --> APPUSER
 
-    APPUSER --> J{OSM required?}
-    J -->|No| K[Auth complete]
-    J -->|Yes| L{osm_connection cookie?}
-    L -->|Exists| M[Decrypt → OSMConnection]
-    L -->|No cookie| N[Redirect to OSM OAuth]
+    APPUSER --> K[Auth complete]
 ```
 
 ---

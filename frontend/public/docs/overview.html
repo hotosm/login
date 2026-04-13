@@ -1083,11 +1083,7 @@
     MAP --&gt;|No - onboarding| ONBOARD[Redirect to\nonboarding flow]
     LINK --&gt; APPUSER
 
-    APPUSER --&gt; J{OSM required?}
-    J --&gt;|No| K[Auth complete]
-    J --&gt;|Yes| L{osm_connection cookie?}
-    L --&gt;|Exists| M[Decrypt → OSMConnection]
-    L --&gt;|No cookie| N[Redirect to OSM OAuth]</code></pre>
+    APPUSER --&gt; K[Auth complete]</code></pre>
 <hr />
 <h2 id="user-mapping">User Mapping<a class="headerlink" href="#user-mapping" title="Permanent link">&para;</a></h2>
 <p>Apps with existing users need to map Hanko UUIDs to app user IDs.</p>
