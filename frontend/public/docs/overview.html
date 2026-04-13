@@ -911,6 +911,8 @@
       
         
       
+        
+      
     
     
     
@@ -973,6 +975,34 @@
     
   
     Portal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="projects/chatmap.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChatMap
   
 
     
@@ -1179,13 +1209,13 @@
     G --&gt;|No| I[401 Unauthorized]
     G --&gt;|Yes| H[HankoUser\nid=UUID, email=...]
 
-    H --&gt; MAP{hanko_user_mappings\nhas entry?}
+    H --&gt; NEEDMAP{App has\nlegacy users?}
+    NEEDMAP --&gt;|No| K[Auth complete]
+    NEEDMAP --&gt;|Yes| MAP{Mapping\nexists?}
     MAP --&gt;|Yes| APPUSER[app_user_id resolved\ne.g. id=42]
-    MAP --&gt;|No - auto link| LINK[Lookup by email\ncreate mapping]
-    MAP --&gt;|No - onboarding| ONBOARD[Redirect to\nonboarding flow]
+    MAP --&gt;|No| LINK[Auto-create mapping\nor app onboarding]
     LINK --&gt; APPUSER
-
-    APPUSER --&gt; K[Auth complete]</code></pre>
+    APPUSER --&gt; K</code></pre>
 <hr />
 <h2 id="user-mapping">User Mapping<a class="headerlink" href="#user-mapping" title="Permanent link">&para;</a></h2>
 <p>Apps with existing users need to map Hanko UUIDs to app user IDs.</p>
@@ -1251,6 +1281,7 @@
 <tr>
 <th>Variable</th>
 <th>Portal</th>
+<th>ChatMap</th>
 <th>Drone-TM</th>
 <th>fAIr</th>
 <th>uMap</th>
@@ -1265,9 +1296,11 @@
 <td></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><code>HANKO_API_URL</code></td>
+<td>✅</td>
 <td>✅</td>
 <td>✅</td>
 <td>✅</td>
@@ -1281,10 +1314,12 @@
 <td>✅</td>
 <td>✅</td>
 <td>✅</td>
+<td>✅</td>
 </tr>
 <tr>
 <td><code>OSM_CLIENT_ID</code></td>
 <td>✅</td>
+<td>-</td>
 <td>-</td>
 <td>✅</td>
 <td>-</td>
@@ -1294,6 +1329,7 @@
 <td><code>OSM_CLIENT_SECRET</code></td>
 <td>✅</td>
 <td>-</td>
+<td>-</td>
 <td>✅</td>
 <td>-</td>
 <td>✅</td>
@@ -1301,6 +1337,7 @@
 <tr>
 <td><code>ADMIN_EMAILS</code></td>
 <td>✅</td>
+<td>-</td>
 <td>✅</td>
 <td>✅</td>
 <td>-</td>
@@ -1308,6 +1345,7 @@
 </tr>
 <tr>
 <td><code>AUTH_PROVIDER</code></td>
+<td>-</td>
 <td>-</td>
 <td>✅</td>
 <td>✅</td>
@@ -1321,9 +1359,11 @@
 <td></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><code>VITE_HANKO_URL</code></td>
+<td>✅</td>
 <td>✅</td>
 <td>✅</td>
 <td>✅</td>
@@ -1332,6 +1372,7 @@
 </tr>
 <tr>
 <td><code>VITE_AUTH_PROVIDER</code></td>
+<td>-</td>
 <td>-</td>
 <td>✅</td>
 <td>✅</td>

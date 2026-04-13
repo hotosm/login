@@ -81,6 +81,7 @@ nav:
     - Admin: admin.md
   - Implementations:
     - Portal: projects/portal.md
+    - ChatMap: projects/chatmap.md
     - Drone-TM: projects/drone-tm.md
     - fAIr: projects/fair.md
     - uMap: projects/umap.md

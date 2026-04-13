@@ -140,6 +140,7 @@ app = Litestar(route_handlers=[*route_handlers, me], dependencies=deps)
 | Project | Stack | Documentation |
 |---------|-------|---------------|
 | Portal | FastAPI + React | [Implementation](projects/portal.md) |
+| ChatMap | FastAPI + React | [Implementation](projects/chatmap.md) |
 | Drone-TM | FastAPI + React | [Implementation](projects/drone-tm.md) |
 | fAIr | Django + React | [Implementation](projects/fair.md) |
 | uMap | Django (server-rendered) | [Implementation](projects/umap.md) |

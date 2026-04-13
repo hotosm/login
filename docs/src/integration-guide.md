@@ -18,7 +18,7 @@ Step by step guide to integrate `hotosm-auth` in your project.
 ```
 Does your app have an existing auth system (legacy)?
 │
-├─ NO → Simple Integration (Portal)
+├─ NO → Simple Integration (Portal, ChatMap)
 │       You only need to validate Hanko JWT
 │
 └─ YES → Integration with Mapping (Drone-TM, fAIr)
@@ -29,7 +29,7 @@ Does your app have an existing auth system (legacy)?
 
 ## FastAPI: Simple Integration
 
-For apps **without legacy auth** (e.g.: Portal).
+For apps **without legacy auth** (e.g.: Portal, ChatMap).
 
 ### Step 1: Dependency
 

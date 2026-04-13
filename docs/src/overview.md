@@ -67,13 +67,13 @@ flowchart TD
     G -->|No| I[401 Unauthorized]
     G -->|Yes| H[HankoUser\nid=UUID, email=...]
 
-    H --> MAP{hanko_user_mappings\nhas entry?}
+    H --> NEEDMAP{App has\nlegacy users?}
+    NEEDMAP -->|No| K[Auth complete]
+    NEEDMAP -->|Yes| MAP{Mapping\nexists?}
     MAP -->|Yes| APPUSER[app_user_id resolved\ne.g. id=42]
-    MAP -->|No - auto link| LINK[Lookup by email\ncreate mapping]
-    MAP -->|No - onboarding| ONBOARD[Redirect to\nonboarding flow]
+    MAP -->|No| LINK[Auto-create mapping\nor app onboarding]
     LINK --> APPUSER
-
-    APPUSER --> K[Auth complete]
+    APPUSER --> K
 ```
 
 ---
@@ -154,18 +154,18 @@ VITE_AUTH_PROVIDER=hanko             # "legacy" or "hanko"
 
 ### Variables by Project
 
-| Variable | Portal | Drone-TM | fAIr | uMap | Login |
-|----------|--------|----------|------|------|-------|
+| Variable | Portal | ChatMap | Drone-TM | fAIr | uMap | Login |
+|----------|--------|---------|----------|------|------|-------|
 | **Backend** |
-| `HANKO_API_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `COOKIE_SECRET` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `OSM_CLIENT_ID` | ✅ | - | ✅ | - | ✅ |
-| `OSM_CLIENT_SECRET` | ✅ | - | ✅ | - | ✅ |
-| `ADMIN_EMAILS` | ✅ | ✅ | ✅ | - | - |
-| `AUTH_PROVIDER` | - | ✅ | ✅ | - | - |
+| `HANKO_API_URL` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `COOKIE_SECRET` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `OSM_CLIENT_ID` | ✅ | - | - | ✅ | - | ✅ |
+| `OSM_CLIENT_SECRET` | ✅ | - | - | ✅ | - | ✅ |
+| `ADMIN_EMAILS` | ✅ | - | ✅ | ✅ | - | - |
+| `AUTH_PROVIDER` | - | - | ✅ | ✅ | - | - |
 | **Frontend** |
-| `VITE_HANKO_URL` | ✅ | ✅ | ✅ | - | ✅ |
-| `VITE_AUTH_PROVIDER` | - | ✅ | ✅ | - | - |
+| `VITE_HANKO_URL` | ✅ | ✅ | ✅ | ✅ | - | ✅ |
+| `VITE_AUTH_PROVIDER` | - | - | ✅ | ✅ | - | - |
 
 ---
 
