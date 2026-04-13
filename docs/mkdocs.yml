@@ -84,9 +84,8 @@ nav:
     - fAIr: projects/fair.md
     - uMap: projects/umap.md
 
+
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/hotosm
-    - icon: fontawesome/brands/twitter
-      link: https://twitter.com/hotabordeador
