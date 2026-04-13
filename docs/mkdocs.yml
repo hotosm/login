@@ -72,10 +72,9 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Architecture:
-    - Overview: overview.md
-    - Python Libraries: python-libs.md
-    - Web Component: web-component.md
+  - Overview: overview.md
+  - Python Libraries: python-libs.md
+  - Web Component: web-component.md
   - Integration Guide: integration-guide.md
   - Admin: admin.md
   - Implementations:
