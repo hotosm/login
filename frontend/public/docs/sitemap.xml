@@ -1,39 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://hotosm.github.io/auth-docs/index.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/index.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://hotosm.github.io/auth-docs/integration-guide.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/admin.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://hotosm.github.io/auth-docs/overview.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/integration-guide.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://hotosm.github.io/auth-docs/python-libs.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/overview.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://hotosm.github.io/auth-docs/web-component.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/python-libs.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://hotosm.github.io/auth-docs/projects/drone-tm.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/web-component.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://hotosm.github.io/auth-docs/projects/fair.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/projects/drone-tm.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://hotosm.github.io/auth-docs/projects/portal.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/projects/fair.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
     <url>
-         <loc>https://hotosm.github.io/auth-docs/projects/umap.html</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://login.hotosm.org/app/docs/projects/portal.html</loc>
+         <lastmod>2026-04-13</lastmod>
+    </url>
+    <url>
+         <loc>https://login.hotosm.org/app/docs/projects/umap.html</loc>
+         <lastmod>2026-04-13</lastmod>
     </url>
 </urlset>

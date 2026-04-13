@@ -19,27 +19,31 @@ auth-libs/web-component/
 
 ## Installation
 
-### Option 1: Script tag (IIFE)
+### Option 1: npm (React/Vite)
 
-```html
-<script src="/auth-libs/web-component/dist/hanko-auth.iife.js"></script>
-
-<hotosm-auth hanko-url="https://login.hotosm.org"></hotosm-auth>
+```bash
+pnpm add @hotosm/hanko-auth
 ```
 
-### Option 2: ES Module
-
 ```javascript
-import '/auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
 
 // Now <hotosm-auth> is registered
+```
+
+### Option 2: CDN (server-rendered apps)
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@hotosm/hanko-auth@0.5.2/dist/hanko-auth.esm.js"></script>
+
+<hotosm-auth hanko-url="https://login.hotosm.org"></hotosm-auth>
 ```
 
 ### Option 3: React wrapper
 
 ```tsx
 import { useEffect, useRef } from 'react';
-import '/auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
 
 export function AuthButton({ hankoUrl, onLogin }) {
   const ref = useRef<HTMLElement>(null);

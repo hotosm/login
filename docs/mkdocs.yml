@@ -1,6 +1,6 @@
 site_name: HOTOSM Auth
 site_description: Authentication documentation for HOTOSM applications
-site_url: https://hotosm.github.io/auth-docs
+site_url: https://login.hotosm.org/app/docs/
 docs_dir: src
 
 repo_name: hotosm/login
@@ -77,6 +77,7 @@ nav:
     - Python Libraries: python-libs.md
     - Web Component: web-component.md
   - Integration Guide: integration-guide.md
+  - Admin: admin.md
   - Implementations:
     - Portal: projects/portal.md
     - Drone-TM: projects/drone-tm.md

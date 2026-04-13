@@ -54,13 +54,20 @@ auth-libs/
 flowchart TD
     A[User visits app.hotosm.org] --> B[App redirects to login.hotosm.org]
     B --> C[User authenticates via Hanko]
-    C --> D[Hanko sets JWT cookie]
+    C --> D[Hanko sets JWT cookie\ndomain=.hotosm.org]
     D --> E[User redirected back to app]
     E --> F[App backend validates JWT via JWKS]
     F --> G{Token valid?}
-    G -->|Yes| H[HankoUser object]
     G -->|No| I[401 Unauthorized]
-    H --> J{OSM required?}
+    G -->|Yes| H[HankoUser\nid=UUID, email=...]
+
+    H --> MAP{hanko_user_mappings\nhas entry?}
+    MAP -->|Yes| APPUSER[app_user_id resolved\ne.g. id=42]
+    MAP -->|No - auto link| LINK[Lookup by email\ncreate mapping]
+    MAP -->|No - onboarding| ONBOARD[Redirect to\nonboarding flow]
+    LINK --> APPUSER
+
+    APPUSER --> J{OSM required?}
     J -->|No| K[Auth complete]
     J -->|Yes| L{osm_connection cookie?}
     L -->|Exists| M[Decrypt → OSMConnection]
@@ -110,34 +117,43 @@ CREATE TABLE hanko_user_mappings (
 HANKO_API_URL=https://login.hotosm.org
 COOKIE_SECRET=generate-with-python-secrets-32-bytes
 
-# OSM OAuth (enables OSM linking)
+# OSM OAuth (enables OSM linking when both are set)
 OSM_CLIENT_ID=your-osm-app-id
 OSM_CLIENT_SECRET=your-osm-app-secret
+OSM_REDIRECT_URI=https://your-app.hotosm.org/api/auth/osm/callback  # auto-generated if not set
+OSM_SCOPES=read_prefs                # space-separated, default: read_prefs
+OSM_API_URL=https://www.openstreetmap.org  # use OSM dev server for testing
 
-# Optional
-COOKIE_DOMAIN=.hotosm.org        # auto-detected from HANKO_API_URL
-ADMIN_EMAILS=admin@hotosm.org    # comma-separated, for admin routes
+# Cookie config (auto-detected from HANKO_API_URL when not set)
+COOKIE_DOMAIN=.hotosm.org
+COOKIE_SECURE=true                   # auto-detected from https scheme
+COOKIE_SAMESITE=lax                  # lax | strict | none
+
+# JWT validation
+JWT_ISSUER=https://login.hotosm.org  # default: auto (uses HANKO_API_URL)
+JWT_AUDIENCE=your-app-audience       # optional
+
+# Admin
+ADMIN_EMAILS=admin@hotosm.org        # comma-separated
 
 # Dual-auth apps (legacy + hanko)
-AUTH_PROVIDER=hanko              # "legacy" or "hanko"
+AUTH_PROVIDER=hanko                  # "legacy" or "hanko"
 ```
 
 ### Frontend
 
 ```bash
-# Authentication mode (for dual-auth apps)
-VITE_AUTH_PROVIDER=hanko         # "legacy" or "hanko"
-
 # Login service URL (handles Hanko auth and OSM OAuth)
 VITE_HANKO_URL=https://login.hotosm.org
-```
 
-> **Note:** `VITE_HANKO_URL` is the only authentication URL variable needed.
+# Authentication mode (for dual-auth apps)
+VITE_AUTH_PROVIDER=hanko             # "legacy" or "hanko"
+```
 
 ### Variables by Project
 
-| Variable | Portal | Drone-TM | fAIr | OAM | Login |
-|----------|--------|----------|------|-----|-------|
+| Variable | Portal | Drone-TM | fAIr | uMap | Login |
+|----------|--------|----------|------|------|-------|
 | **Backend** |
 | `HANKO_API_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `COOKIE_SECRET` | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -146,44 +162,48 @@ VITE_HANKO_URL=https://login.hotosm.org
 | `ADMIN_EMAILS` | ✅ | ✅ | ✅ | - | - |
 | `AUTH_PROVIDER` | - | ✅ | ✅ | - | - |
 | **Frontend** |
-| `VITE_HANKO_URL` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `VITE_HANKO_URL` | ✅ | ✅ | ✅ | - | ✅ |
 | `VITE_AUTH_PROVIDER` | - | ✅ | ✅ | - | - |
 
 ---
 
 ## Installation
 
-### Python (via git)
+### Python (pip)
 
 ```bash
 # Core only
-pip install "hotosm-auth @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
+pip install hotosm-auth==0.2.10
 
 # With FastAPI
-pip install "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
+pip install "hotosm-auth[fastapi]==0.2.10"
 
 # With Django
-pip install "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
+pip install "hotosm-auth[django]==0.2.10"
 ```
 
 ### pyproject.toml
 
 ```toml
 dependencies = [
-    "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python",
+    "hotosm-auth[fastapi]==0.2.10",
 ]
 ```
 
 ### Web Component
 
-```html
-<script src="/auth-libs/web-component/dist/hanko-auth.iife.js"></script>
-
-<hotosm-auth hanko-url="https://login.hotosm.org"></hotosm-auth>
+```bash
+pnpm add @hotosm/hanko-auth
 ```
 
-Or as ES module:
-
 ```javascript
-import '/auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
+
+// <hotosm-auth> is now registered
+```
+
+For server-rendered apps (no bundler), use CDN:
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@hotosm/hanko-auth@0.5.2/dist/hanko-auth.esm.js"></script>
 ```

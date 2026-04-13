@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://hotosm.github.io/auth-docs/overview.html">
+        <link rel="canonical" href="https://login.hotosm.org/app/docs/overview.html">
       
       
         <link rel="prev" href="index.html">
@@ -280,6 +280,25 @@
     
   
   Integration Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="admin.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Admin
 
       </a>
     </li>
@@ -659,10 +678,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#python-via-git" class="md-nav__link">
+  <a href="#python-pip" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Python (via git)
+        Python (pip)
       
     </span>
   </a>
@@ -801,6 +820,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="admin.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Admin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
       
@@ -827,10 +873,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -848,8 +894,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1064,13 +1110,20 @@
 <pre class="mermaid"><code>flowchart TD
     A[User visits app.hotosm.org] --&gt; B[App redirects to login.hotosm.org]
     B --&gt; C[User authenticates via Hanko]
-    C --&gt; D[Hanko sets JWT cookie]
+    C --&gt; D[Hanko sets JWT cookie\ndomain=.hotosm.org]
     D --&gt; E[User redirected back to app]
     E --&gt; F[App backend validates JWT via JWKS]
     F --&gt; G{Token valid?}
-    G --&gt;|Yes| H[HankoUser object]
     G --&gt;|No| I[401 Unauthorized]
-    H --&gt; J{OSM required?}
+    G --&gt;|Yes| H[HankoUser\nid=UUID, email=...]
+
+    H --&gt; MAP{hanko_user_mappings\nhas entry?}
+    MAP --&gt;|Yes| APPUSER[app_user_id resolved\ne.g. id=42]
+    MAP --&gt;|No - auto link| LINK[Lookup by email\ncreate mapping]
+    MAP --&gt;|No - onboarding| ONBOARD[Redirect to\nonboarding flow]
+    LINK --&gt; APPUSER
+
+    APPUSER --&gt; J{OSM required?}
     J --&gt;|No| K[Auth complete]
     J --&gt;|Yes| L{osm_connection cookie?}
     L --&gt;|Exists| M[Decrypt → OSMConnection]
@@ -1105,27 +1158,35 @@
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">HANKO_API_URL</span><span class="o">=</span>https://login.hotosm.org
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">COOKIE_SECRET</span><span class="o">=</span>generate-with-python-secrets-32-bytes
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># OSM OAuth (enables OSM linking)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># OSM OAuth (enables OSM linking when both are set)</span>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nv">OSM_CLIENT_ID</span><span class="o">=</span>your-osm-app-id
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nv">OSM_CLIENT_SECRET</span><span class="o">=</span>your-osm-app-secret
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># Optional</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="nv">COOKIE_DOMAIN</span><span class="o">=</span>.hotosm.org<span class="w">        </span><span class="c1"># auto-detected from HANKO_API_URL</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="nv">ADMIN_EMAILS</span><span class="o">=</span>admin@hotosm.org<span class="w">    </span><span class="c1"># comma-separated, for admin routes</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># Dual-auth apps (legacy + hanko)</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="nv">AUTH_PROVIDER</span><span class="o">=</span>hanko<span class="w">              </span><span class="c1"># &quot;legacy&quot; or &quot;hanko&quot;</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="nv">OSM_REDIRECT_URI</span><span class="o">=</span>https://your-app.hotosm.org/api/auth/osm/callback<span class="w">  </span><span class="c1"># auto-generated if not set</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nv">OSM_SCOPES</span><span class="o">=</span>read_prefs<span class="w">                </span><span class="c1"># space-separated, default: read_prefs</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="nv">OSM_API_URL</span><span class="o">=</span>https://www.openstreetmap.org<span class="w">  </span><span class="c1"># use OSM dev server for testing</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># Cookie config (auto-detected from HANKO_API_URL when not set)</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="nv">COOKIE_DOMAIN</span><span class="o">=</span>.hotosm.org
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="nv">COOKIE_SECURE</span><span class="o">=</span><span class="nb">true</span><span class="w">                   </span><span class="c1"># auto-detected from https scheme</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="nv">COOKIE_SAMESITE</span><span class="o">=</span>lax<span class="w">                  </span><span class="c1"># lax | strict | none</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="c1"># JWT validation</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="nv">JWT_ISSUER</span><span class="o">=</span>https://login.hotosm.org<span class="w">  </span><span class="c1"># default: auto (uses HANKO_API_URL)</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="nv">JWT_AUDIENCE</span><span class="o">=</span>your-app-audience<span class="w">       </span><span class="c1"># optional</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="c1"># Admin</span>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="nv">ADMIN_EMAILS</span><span class="o">=</span>admin@hotosm.org<span class="w">        </span><span class="c1"># comma-separated</span>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="c1"># Dual-auth apps (legacy + hanko)</span>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="nv">AUTH_PROVIDER</span><span class="o">=</span>hanko<span class="w">                  </span><span class="c1"># &quot;legacy&quot; or &quot;hanko&quot;</span>
 </span></code></pre></div>
 <h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Authentication mode (for dual-auth apps)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">VITE_AUTH_PROVIDER</span><span class="o">=</span>hanko<span class="w">         </span><span class="c1"># &quot;legacy&quot; or &quot;hanko&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Login service URL (handles Hanko auth and OSM OAuth)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">VITE_HANKO_URL</span><span class="o">=</span>https://login.hotosm.org
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Login service URL (handles Hanko auth and OSM OAuth)</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nv">VITE_HANKO_URL</span><span class="o">=</span>https://login.hotosm.org
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Authentication mode (for dual-auth apps)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nv">VITE_AUTH_PROVIDER</span><span class="o">=</span>hanko<span class="w">             </span><span class="c1"># &quot;legacy&quot; or &quot;hanko&quot;</span>
 </span></code></pre></div>
-<blockquote>
-<p><strong>Note:</strong> <code>VITE_HANKO_URL</code> is the only authentication URL variable needed.</p>
-</blockquote>
 <h3 id="variables-by-project">Variables by Project<a class="headerlink" href="#variables-by-project" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1134,7 +1195,7 @@
 <th>Portal</th>
 <th>Drone-TM</th>
 <th>fAIr</th>
-<th>OAM</th>
+<th>uMap</th>
 <th>Login</th>
 </tr>
 </thead>
@@ -1208,7 +1269,7 @@
 <td>✅</td>
 <td>✅</td>
 <td>✅</td>
-<td>✅</td>
+<td>-</td>
 <td>✅</td>
 </tr>
 <tr>
@@ -1223,28 +1284,30 @@
 </table>
 <hr />
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<h3 id="python-via-git">Python (via git)<a class="headerlink" href="#python-via-git" title="Permanent link">&para;</a></h3>
+<h3 id="python-pip">Python (pip)<a class="headerlink" href="#python-pip" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Core only</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;hotosm-auth @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python&quot;</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pip<span class="w"> </span>install<span class="w"> </span>hotosm-auth<span class="o">==</span><span class="m">0</span>.2.10
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># With FastAPI</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python&quot;</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;hotosm-auth[fastapi]==0.2.10&quot;</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># With Django</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python&quot;</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;hotosm-auth[django]==0.2.10&quot;</span>
 </span></code></pre></div>
 <h3 id="pyprojecttoml">pyproject.toml<a class="headerlink" href="#pyprojecttoml" title="Permanent link">&para;</a></h3>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="s2">&quot;hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python&quot;</span><span class="p">,</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="s2">&quot;hotosm-auth[fastapi]==0.2.10&quot;</span><span class="p">,</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="p">]</span>
 </span></code></pre></div>
 <h3 id="web-component">Web Component<a class="headerlink" href="#web-component" title="Permanent link">&para;</a></h3>
-<div class="language-html highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;/auth-libs/web-component/dist/hanko-auth.iife.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">&lt;</span><span class="nt">hotosm-auth</span> <span class="na">hanko-url</span><span class="o">=</span><span class="s">&quot;https://login.hotosm.org&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">hotosm-auth</span><span class="p">&gt;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pnpm<span class="w"> </span>add<span class="w"> </span>@hotosm/hanko-auth
 </span></code></pre></div>
-<p>Or as ES module:</p>
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">import</span><span class="w"> </span><span class="s1">&#39;/auth-libs/web-component/dist/hanko-auth.esm.js&#39;</span><span class="p">;</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">import</span><span class="w"> </span><span class="s1">&#39;@hotosm/hanko-auth&#39;</span><span class="p">;</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1">// &lt;hotosm-auth&gt; is now registered</span>
+</span></code></pre></div>
+<p>For server-rendered apps (no bundler), use CDN:</p>
+<div class="language-html highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://cdn.jsdelivr.net/npm/@hotosm/hanko-auth@0.5.2/dist/hanko-auth.esm.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
 </span></code></pre></div>
 
 

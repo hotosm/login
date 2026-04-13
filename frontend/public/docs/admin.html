@@ -10,25 +10,31 @@
       
       
       
+        <link rel="canonical" href="https://login.hotosm.org/app/docs/admin.html">
       
+      
+        <link rel="prev" href="integration-guide.html">
+      
+      
+        <link rel="next" href="projects/portal.html">
       
       
         
       
       
-      <link rel="icon" href="/app/docs/assets/images/favicon.png">
+      <link rel="icon" href="assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>HOTOSM Auth</title>
+        <title>Admin - HOTOSM Auth</title>
       
     
     
-      <link rel="stylesheet" href="/app/docs/assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="/app/docs/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -49,7 +55,7 @@
       
     
     
-    <script>__md_scope=new URL("/app/docs/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +79,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#admin-user-mapping-management" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -83,7 +94,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/app/docs/index.html" title="HOTOSM Auth" class="md-header__button md-logo" aria-label="HOTOSM Auth" data-md-component="logo">
+    <a href="index.html" title="HOTOSM Auth" class="md-header__button md-logo" aria-label="HOTOSM Auth" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -103,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Admin
             
           </span>
         </div>
@@ -219,7 +230,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="/app/docs/index.html" class="md-tabs__link">
+      <a href="index.html" class="md-tabs__link">
         
   
   
@@ -240,7 +251,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/app/docs/overview.html" class="md-tabs__link">
+        <a href="overview.html" class="md-tabs__link">
           
   
   
@@ -260,7 +271,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="/app/docs/integration-guide.html" class="md-tabs__link">
+      <a href="integration-guide.html" class="md-tabs__link">
         
   
   
@@ -277,9 +288,11 @@
   
   
   
+    
   
-    <li class="md-tabs__item">
-      <a href="/app/docs/admin.html" class="md-tabs__link">
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="admin.html" class="md-tabs__link">
         
   
   
@@ -300,7 +313,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/app/docs/projects/portal.html" class="md-tabs__link">
+        <a href="projects/portal.html" class="md-tabs__link">
           
   
   
@@ -338,7 +351,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/app/docs/index.html" title="HOTOSM Auth" class="md-nav__button md-logo" aria-label="HOTOSM Auth" data-md-component="logo">
+    <a href="index.html" title="HOTOSM Auth" class="md-nav__button md-logo" aria-label="HOTOSM Auth" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -368,7 +381,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/index.html" class="md-nav__link">
+      <a href="index.html" class="md-nav__link">
         
   
   
@@ -457,7 +470,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/overview.html" class="md-nav__link">
+      <a href="overview.html" class="md-nav__link">
         
   
   
@@ -485,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/python-libs.html" class="md-nav__link">
+      <a href="python-libs.html" class="md-nav__link">
         
   
   
@@ -513,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/web-component.html" class="md-nav__link">
+      <a href="web-component.html" class="md-nav__link">
         
   
   
@@ -548,7 +561,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/integration-guide.html" class="md-nav__link">
+      <a href="integration-guide.html" class="md-nav__link">
         
   
   
@@ -572,10 +585,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/app/docs/admin.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Admin
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="admin.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -591,6 +631,148 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access Control
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#app-side-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        App-Side Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="App-Side Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FastAPI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#django" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Django
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-admin-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Admin Endpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Admin Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastapi_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FastAPI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#django_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Django
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#login-backend-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Login Backend Config
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proxy-endpoints-login-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proxy Endpoints (Login Backend)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -666,7 +848,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/projects/portal.html" class="md-nav__link">
+      <a href="projects/portal.html" class="md-nav__link">
         
   
   
@@ -694,7 +876,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/projects/drone-tm.html" class="md-nav__link">
+      <a href="projects/drone-tm.html" class="md-nav__link">
         
   
   
@@ -722,7 +904,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/projects/fair.html" class="md-nav__link">
+      <a href="projects/fair.html" class="md-nav__link">
         
   
   
@@ -750,7 +932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/app/docs/projects/umap.html" class="md-nav__link">
+      <a href="projects/umap.html" class="md-nav__link">
         
   
   
@@ -791,8 +973,191 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+  
+  
+
+
+<h1 id="admin-user-mapping-management">Admin: User Mapping Management<a class="headerlink" href="#admin-user-mapping-management" title="Permanent link">&para;</a></h1>
+<p>Admins can manage user mappings across all apps from a single dashboard at the login service.</p>
+<hr />
+<h2 id="access-control">Access Control<a class="headerlink" href="#access-control" title="Permanent link">&para;</a></h2>
+<p>Admin access is controlled by the <code>ADMIN_EMAILS</code> env var in each app's backend:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">ADMIN_EMAILS</span><span class="o">=</span>alice@hotosm.org,bob@hotosm.org
+</span></code></pre></div>
+<p>Any user whose Hanko account email matches one of these addresses is an admin. The check happens at the JWT level — no database role needed.</p>
+<hr />
+<h2 id="dashboard">Dashboard<a class="headerlink" href="#dashboard" title="Permanent link">&para;</a></h2>
+<p>Navigate to <strong><code>https://login.hotosm.org/app/admin</code></strong> (or <code>dev.login.hotosm.org/app/admin</code> in dev).</p>
+<p>The dashboard shows:</p>
+<ul>
+<li><strong>User stats</strong> — total registered users, new signups by period (today / week / month / year), auth methods (passkey vs Google)</li>
+<li><strong>Per-app mappings</strong> — the <code>hanko_user_id → app_user_id</code> mapping table for each app, enriched with Hanko email and app username</li>
+<li><strong>User search</strong> — find any user by email across all apps</li>
+<li><strong>Mapping CRUD</strong> — create, update, delete mappings manually</li>
+</ul>
+<p>The login service acts as a <strong>proxy</strong>: it validates admin access once, then forwards requests to each app's <code>/api/admin/mappings</code> endpoint with the JWT cookie.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Browser → login.hotosm.org/api/admin/{app}/mappings
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>        → {app_backend}/api/admin/mappings   (proxied with JWT)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>        → App validates JWT + admin check → returns data
+</span></code></pre></div>
+<hr />
+<h2 id="app-side-setup">App-Side Setup<a class="headerlink" href="#app-side-setup" title="Permanent link">&para;</a></h2>
+<p>Each app must expose admin endpoints so the proxy can reach them.</p>
+<h3 id="fastapi">FastAPI<a class="headerlink" href="#fastapi" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hotosm_auth_fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_admin_mappings_router</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># In lifespan or startup</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">admin_router</span> <span class="o">=</span> <span class="n">create_admin_mappings_router</span><span class="p">(</span><span class="n">get_db</span><span class="p">,</span> <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;drone-tm&quot;</span><span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">admin_router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/api&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>This creates:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/admin/mappings</code></td>
+<td>List mappings (paginated)</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/admin/mappings</code></td>
+<td>Create a mapping</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/admin/mappings/{hanko_user_id}</code></td>
+<td>Get one mapping</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><code>/api/admin/mappings/{hanko_user_id}</code></td>
+<td>Update a mapping</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/api/admin/mappings/{hanko_user_id}</code></td>
+<td>Delete a mapping</td>
+</tr>
+</tbody>
+</table>
+<p>All endpoints require admin access (email in <code>ADMIN_EMAILS</code>).</p>
+<h3 id="django">Django<a class="headerlink" href="#django" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hotosm_auth_django.admin_routes</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_admin_urlpatterns</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># urls.py</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">urlpatterns</span> <span class="o">+=</span> <span class="p">[</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">path</span><span class="p">(</span><span class="s2">&quot;api/admin/&quot;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="n">create_admin_urlpatterns</span><span class="p">(</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;fair&quot;</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>        <span class="n">user_model</span><span class="o">=</span><span class="s2">&quot;users.User&quot;</span><span class="p">,</span>       <span class="c1"># optional: enrich with app username/email</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        <span class="n">user_id_column</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>        <span class="n">user_name_column</span><span class="o">=</span><span class="s2">&quot;username&quot;</span><span class="p">,</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>        <span class="n">user_email_column</span><span class="o">=</span><span class="s2">&quot;email&quot;</span><span class="p">,</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="p">)))</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="p">]</span>
+</span></code></pre></div>
+<p>Same endpoints as FastAPI. With <code>user_model</code> set, each mapping in the list response is enriched with the app's username and email alongside the Hanko data.</p>
+<hr />
+<h2 id="custom-admin-endpoints">Custom Admin Endpoints<a class="headerlink" href="#custom-admin-endpoints" title="Permanent link">&para;</a></h2>
+<p>To protect your own admin endpoints with the same email check:</p>
+<h3 id="fastapi_1">FastAPI<a class="headerlink" href="#fastapi_1" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hotosm_auth_fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdminUser</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/admin/stats&quot;</span><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_stats</span><span class="p">(</span><span class="n">admin</span><span class="p">:</span> <span class="n">AdminUser</span><span class="p">):</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="c1"># admin is a HankoUser — email already verified as admin</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;requested_by&quot;</span><span class="p">:</span> <span class="n">admin</span><span class="o">.</span><span class="n">email</span><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="django_1">Django<a class="headerlink" href="#django_1" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hotosm_auth_django.admin_routes</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_admin_user</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework.response</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework.views</span><span class="w"> </span><span class="kn">import</span> <span class="n">APIView</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyAdminView</span><span class="p">(</span><span class="n">APIView</span><span class="p">):</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_admin_user</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>            <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;Admin access required&quot;</span><span class="p">},</span> <span class="n">status</span><span class="o">=</span><span class="mi">403</span><span class="p">)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s2">&quot;ok&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+</span></code></pre></div>
+<hr />
+<h2 id="login-backend-config">Login Backend Config<a class="headerlink" href="#login-backend-config" title="Permanent link">&para;</a></h2>
+<p>The login backend needs to know each app's internal URL to proxy requests:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># docker-compose / k8s env</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">DRONETM_BACKEND_URL</span><span class="o">=</span>https://dev.drone.hotosm.org
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nv">FAIR_BACKEND_URL</span><span class="o">=</span>https://fair-dev.hotosm.org
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nv">UMAP_BACKEND_URL</span><span class="o">=</span>https://umap-dev.hotosm.org
+</span></code></pre></div>
+<p>These map to the app keys used in the proxy: <code>drone-tm</code>, <code>fair</code>, <code>umap</code>.</p>
+<hr />
+<h2 id="proxy-endpoints-login-backend">Proxy Endpoints (Login Backend)<a class="headerlink" href="#proxy-endpoints-login-backend" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/admin/check</code></td>
+<td>Check if current user is admin</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/admin/apps</code></td>
+<td>List configured apps</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/admin/{app}/mappings</code></td>
+<td>List mappings for an app (enriched with Hanko emails)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/admin/{app}/mappings/{hanko_user_id}</code></td>
+<td>Get one mapping</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/admin/{app}/mappings</code></td>
+<td>Create a mapping</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><code>/api/admin/{app}/mappings/{hanko_user_id}</code></td>
+<td>Update a mapping</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/api/admin/{app}/mappings/{hanko_user_id}</code></td>
+<td>Delete a mapping</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -862,10 +1227,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/app/docs/", "features": ["content.code.copy", "content.code.annotate", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "toc.integrate", "search.highlight", "search.share"], "search": "/app/docs/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["content.code.copy", "content.code.annotate", "navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "toc.integrate", "search.highlight", "search.share"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/app/docs/assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

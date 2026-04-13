@@ -66,23 +66,33 @@ flowchart TB
 
 ```bash
 # Core only
-pip install "hotosm-auth @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
+pip install hotosm-auth==0.2.10
 
 # With FastAPI
-pip install "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
+pip install "hotosm-auth[fastapi]==0.2.10"
 
 # With Django
-pip install "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
+pip install "hotosm-auth[django]==0.2.10"
 ```
 
 ### Web Component
 
-Distributed as pre-built JS bundles. Copy from `auth-libs/web-component/dist/`:
+Published to npm as `@hotosm/hanko-auth`.
 
+```bash
+# React/Vite projects
+pnpm add @hotosm/hanko-auth
 ```
-hanko-auth.esm.js    # ES Module
-hanko-auth.iife.js   # Browser global
-hanko-auth.umd.js    # Universal
+
+```javascript
+import '@hotosm/hanko-auth';
+// <hotosm-auth> is now registered
+```
+
+For server-rendered apps (no bundler), load from CDN:
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@hotosm/hanko-auth@0.5.2/dist/hanko-auth.esm.js"></script>
 ```
 
 ---
@@ -93,18 +103,22 @@ hanko-auth.umd.js    # Universal
 
 ```python
 # main.py
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from hotosm_auth import AuthConfig
 from hotosm_auth_fastapi import init_auth, CurrentUser, osm_router
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    auth_config = AuthConfig.from_env()
+    init_auth(auth_config)
+    yield
 
-# Initialize auth from .env
-auth_config = AuthConfig.from_env()
-init_auth(auth_config)
+app = FastAPI(lifespan=lifespan)
 
 # Mount OSM OAuth routes
-app.include_router(osm_router, prefix="/api/auth/osm")
+# router already has prefix="/auth/osm" → routes: /api/auth/osm/login, /api/auth/osm/callback
+app.include_router(osm_router, prefix="/api")
 
 # Protected endpoint
 @app.get("/me")
@@ -154,15 +168,24 @@ def my_view(request):
 HANKO_API_URL=https://login.hotosm.org
 COOKIE_SECRET=your-32-char-secret
 
-# OSM OAuth (for OSM linking)
+# OSM OAuth (enables OSM linking when both are set)
 OSM_CLIENT_ID=your-osm-client-id
 OSM_CLIENT_SECRET=your-osm-client-secret
-OSM_REDIRECT_URI=http://localhost:8000/api/auth/osm/callback
+OSM_REDIRECT_URI=https://your-app/api/auth/osm/callback  # auto-generated if not set
+OSM_SCOPES=read_prefs                 # default: read_prefs
+OSM_API_URL=https://www.openstreetmap.org
 
-# Optional
-JWT_AUDIENCE=your-app-audience
+# Cookie (auto-detected from HANKO_API_URL when not set)
 COOKIE_DOMAIN=.hotosm.org
 COOKIE_SECURE=true
+COOKIE_SAMESITE=lax
+
+# JWT
+JWT_ISSUER=https://login.hotosm.org  # default: auto (uses HANKO_API_URL)
+JWT_AUDIENCE=your-app-audience
+
+# Admin
+ADMIN_EMAILS=admin@hotosm.org        # comma-separated
 ```
 
 ---
@@ -173,18 +196,48 @@ COOKIE_SECURE=true
 github.com/hotosm/login
 ├── backend/
 ├── frontend/
-├── auth-libs/                      # ← Auth libraries
+├── auth-libs/                          # ← Auth libraries
 │   ├── python/
 │   │   ├── src/
-│   │   │   ├── hotosm_auth/           # Core (JWT, config, crypto)
-│   │   │   ├── hotosm_auth_fastapi/   # FastAPI integration
-│   │   │   └── hotosm_auth_django/    # Django integration
+│   │   │   ├── hotosm_auth/            # Core (JWT, config, crypto)
+│   │   │   │   ├── config.py
+│   │   │   │   ├── crypto.py
+│   │   │   │   ├── exceptions.py
+│   │   │   │   ├── jwt_validator.py
+│   │   │   │   ├── models.py
+│   │   │   │   ├── osm_oauth.py
+│   │   │   │   └── schemas/
+│   │   │   ├── hotosm_auth_fastapi/    # FastAPI integration
+│   │   │   │   ├── dependencies.py
+│   │   │   │   ├── osm_routes.py
+│   │   │   │   ├── db_models.py
+│   │   │   │   ├── admin.py
+│   │   │   │   ├── admin_routes.py
+│   │   │   │   └── setup.py
+│   │   │   ├── hotosm_auth_django/     # Django integration
+│   │   │   │   ├── middleware.py
+│   │   │   │   ├── osm_views.py
+│   │   │   │   ├── models.py
+│   │   │   │   ├── admin_routes.py
+│   │   │   │   └── migrations/
+│   │   │   └── hotosm_auth_litestar/   # Litestar integration
+│   │   │       ├── dependencies.py
+│   │   │       ├── osm_routes.py
+│   │   │       ├── admin.py
+│   │   │       ├── admin_routes.py
+│   │   │       └── setup.py
 │   │   └── pyproject.toml
 │   ├── web-component/
-│   │   ├── src/hanko-auth.ts          # Lit component source
-│   │   └── dist/                       # Built bundles
+│   │   ├── src/
+│   │   │   ├── hanko-auth.ts           # Main Lit component
+│   │   │   ├── hanko-auth.styles.ts
+│   │   │   ├── hanko-translations.ts
+│   │   │   ├── hanko-i18n-en.ts
+│   │   │   ├── hanko-i18n-es.ts
+│   │   │   ├── hanko-i18n-fr.ts
+│   │   │   └── hanko-i18n-pt.ts
+│   │   └── dist/                       # Published as @hotosm/hanko-auth on npm
 │   └── scripts/
-│       ├── build.sh                    # Build all
-│       └── distribute.sh               # Copy dist to projects
+│       └── build.sh                    # Build all
 └── ...
 ```

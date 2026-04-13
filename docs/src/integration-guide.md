@@ -35,7 +35,7 @@ For apps **without legacy auth** (e.g.: Portal, OAM).
 ```toml
 # pyproject.toml
 dependencies = [
-    "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python",
+    "hotosm-auth[fastapi]==0.2.10",
 ]
 ```
 
@@ -172,7 +172,7 @@ app.include_router(admin_router, prefix="/api/admin")
 
 ```toml
 dependencies = [
-    "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python",
+    "hotosm-auth[django]==0.2.10",
 ]
 ```
 
@@ -237,7 +237,7 @@ if getattr(settings, 'AUTH_PROVIDER', 'legacy') == 'hanko':
 
 ```tsx
 // Import
-import '/auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
 
 // Use
 <hotosm-auth

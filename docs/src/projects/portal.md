@@ -22,7 +22,7 @@ It doesn't need user mapping - it only validates Hanko JWT.
 ```toml
 # backend/pyproject.toml
 dependencies = [
-    "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python",
+    "hotosm-auth[fastapi]==0.2.10",
 ]
 ```
 
@@ -99,7 +99,7 @@ ADMIN_EMAILS=admin@hotosm.org
 
 ```tsx
 // frontend/src/main.tsx
-import '/auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
 ```
 
 ```tsx

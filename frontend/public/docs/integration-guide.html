@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://hotosm.github.io/auth-docs/integration-guide.html">
+        <link rel="canonical" href="https://login.hotosm.org/app/docs/integration-guide.html">
       
       
         <link rel="prev" href="web-component.html">
       
       
-        <link rel="next" href="projects/portal.html">
+        <link rel="next" href="admin.html">
       
       
         
@@ -280,6 +280,25 @@
     
   
   Integration Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="admin.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Admin
 
       </a>
     </li>
@@ -870,6 +889,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="admin.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Admin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
       
@@ -896,10 +942,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -917,8 +963,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1112,7 +1158,7 @@
 <h3 id="step-1-dependency">Step 1: Dependency<a class="headerlink" href="#step-1-dependency" title="Permanent link">&para;</a></h3>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># pyproject.toml</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="s2">&quot;hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python&quot;</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="s2">&quot;hotosm-auth[fastapi]==0.2.10&quot;</span><span class="p">,</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">]</span>
 </span></code></pre></div>
 <h3 id="step-2-initialization">Step 2: Initialization<a class="headerlink" href="#step-2-initialization" title="Permanent link">&para;</a></h3>
@@ -1222,7 +1268,7 @@
 <h2 id="django-simple-integration">Django: Simple Integration<a class="headerlink" href="#django-simple-integration" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-dependency_1">Step 1: Dependency<a class="headerlink" href="#step-1-dependency_1" title="Permanent link">&para;</a></h3>
 <div class="language-toml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="s2">&quot;hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python&quot;</span><span class="p">,</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="s2">&quot;hotosm-auth[django]==0.2.10&quot;</span><span class="p">,</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="p">]</span>
 </span></code></pre></div>
 <h3 id="step-2-settings">Step 2: Settings<a class="headerlink" href="#step-2-settings" title="Permanent link">&para;</a></h3>
@@ -1269,7 +1315,7 @@
 <hr />
 <h2 id="frontend-all">Frontend (all)<a class="headerlink" href="#frontend-all" title="Permanent link">&para;</a></h2>
 <div class="language-tsx highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">// Import</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">import</span><span class="w"> </span><span class="s1">&#39;/auth-libs/web-component/dist/hanko-auth.esm.js&#39;</span><span class="p">;</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">import</span><span class="w"> </span><span class="s1">&#39;@hotosm/hanko-auth&#39;</span><span class="p">;</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
 </span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1">// Use</span>
 </span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="p">&lt;</span><span class="nt">hotosm</span><span class="err">-</span><span class="na">auth</span>
