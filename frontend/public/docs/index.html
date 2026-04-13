@@ -1023,19 +1023,19 @@ flowchart TB
         direction LR
         subgraph Portal["Portal"]
             P1[FastAPI]
-            P2[(hanko_user_mappings\nhanko_id → user_id)]
+            P2[(User Mappings\nHanko user → App user)]
         end
         subgraph DroneTM["Drone-TM"]
             D1[FastAPI]
-            D2[(hanko_user_mappings\nhanko_id → user_id)]
+            D2[(User Mappings\nHanko user → App user)]
         end
         subgraph fAIr["fAIr"]
             F1[Django]
-            F2[(hanko_user_mappings\nhanko_id → osm_id)]
+            F2[(User Mappings\nHanko user → App user)]
         end
         subgraph uMap["uMap"]
             U1[Django]
-            U2[(hanko_user_mappings\nhanko_id → user_id)]
+            U2[(User Mappings\nHanko user → App user)]
         end
     end
 
