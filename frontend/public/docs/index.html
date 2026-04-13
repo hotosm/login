@@ -1078,33 +1078,44 @@
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px' }}}%%
 flowchart TB
-    subgraph Top[" "]
-        direction LR
-        Browser[🌐 **Browser**]
+    Browser[🌐 **Browser**]
 
-        subgraph LoginService["login.hotosm.org"]
-            direction LR
-            Hanko[**Hanko SSO**]
-            LoginAPI[**Login API**]
-        end
+    subgraph LoginService["login.hotosm.org"]
+        direction LR
+        Hanko[**Hanko SSO**]
+        LoginAPI[**Login API**]
     end
 
     subgraph Backends["Application Backends"]
         direction LR
-        Portal[**Portal**&lt;br/&gt;FastAPI]
-        DroneTM[**Drone-TM**&lt;br/&gt;FastAPI]
-        fAIr[**fAIr**&lt;br/&gt;Django]
-        uMap[**uMap**&lt;br/&gt;Django]
+        subgraph Portal["Portal"]
+            P1[FastAPI]
+            P2[(hanko_user_mappings\nhanko_id → user_id)]
+        end
+        subgraph DroneTM["Drone-TM"]
+            D1[FastAPI]
+            D2[(hanko_user_mappings\nhanko_id → user_id)]
+        end
+        subgraph fAIr["fAIr"]
+            F1[Django]
+            F2[(hanko_user_mappings\nhanko_id → osm_id)]
+        end
+        subgraph uMap["uMap"]
+            U1[Django]
+            U2[(hanko_user_mappings\nhanko_id → user_id)]
+        end
     end
 
     Browser --&gt;|"1️⃣ Authenticate"| LoginService
-    LoginService --&gt;|"2️⃣ Set-Cookie: JWT&lt;br/&gt;(domain=.hotosm.org)"| Browser
-    Browser --&gt;|"3️⃣ JWT Cookie"| Portal
-    Browser --&gt;|"3️⃣ JWT Cookie"| DroneTM
-    Browser --&gt;|"3️⃣ JWT Cookie"| fAIr
-    Browser --&gt;|"3️⃣ JWT Cookie"| uMap
-
-    style Top fill:none,stroke:none</code></pre>
+    LoginService --&gt;|"2️⃣ Set-Cookie: JWT\n(domain=.hotosm.org)"| Browser
+    Browser --&gt;|"3️⃣ JWT Cookie"| P1
+    Browser --&gt;|"3️⃣ JWT Cookie"| D1
+    Browser --&gt;|"3️⃣ JWT Cookie"| F1
+    Browser --&gt;|"3️⃣ JWT Cookie"| U1
+    P1 --&gt;|"4️⃣ lookup"| P2
+    D1 --&gt;|"4️⃣ lookup"| D2
+    F1 --&gt;|"4️⃣ lookup"| F2
+    U1 --&gt;|"4️⃣ lookup"| U2</code></pre>
 <hr />
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <h3 id="core-concepts">Core Concepts<a class="headerlink" href="#core-concepts" title="Permanent link">&para;</a></h3>

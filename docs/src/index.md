@@ -9,33 +9,44 @@
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px' }}}%%
 flowchart TB
-    subgraph Top[" "]
-        direction LR
-        Browser[🌐 **Browser**]
+    Browser[🌐 **Browser**]
 
-        subgraph LoginService["login.hotosm.org"]
-            direction LR
-            Hanko[**Hanko SSO**]
-            LoginAPI[**Login API**]
-        end
+    subgraph LoginService["login.hotosm.org"]
+        direction LR
+        Hanko[**Hanko SSO**]
+        LoginAPI[**Login API**]
     end
 
     subgraph Backends["Application Backends"]
         direction LR
-        Portal[**Portal**<br/>FastAPI]
-        DroneTM[**Drone-TM**<br/>FastAPI]
-        fAIr[**fAIr**<br/>Django]
-        uMap[**uMap**<br/>Django]
+        subgraph Portal["Portal"]
+            P1[FastAPI]
+            P2[(hanko_user_mappings\nhanko_id → user_id)]
+        end
+        subgraph DroneTM["Drone-TM"]
+            D1[FastAPI]
+            D2[(hanko_user_mappings\nhanko_id → user_id)]
+        end
+        subgraph fAIr["fAIr"]
+            F1[Django]
+            F2[(hanko_user_mappings\nhanko_id → osm_id)]
+        end
+        subgraph uMap["uMap"]
+            U1[Django]
+            U2[(hanko_user_mappings\nhanko_id → user_id)]
+        end
     end
 
     Browser -->|"1️⃣ Authenticate"| LoginService
-    LoginService -->|"2️⃣ Set-Cookie: JWT<br/>(domain=.hotosm.org)"| Browser
-    Browser -->|"3️⃣ JWT Cookie"| Portal
-    Browser -->|"3️⃣ JWT Cookie"| DroneTM
-    Browser -->|"3️⃣ JWT Cookie"| fAIr
-    Browser -->|"3️⃣ JWT Cookie"| uMap
-
-    style Top fill:none,stroke:none
+    LoginService -->|"2️⃣ Set-Cookie: JWT\n(domain=.hotosm.org)"| Browser
+    Browser -->|"3️⃣ JWT Cookie"| P1
+    Browser -->|"3️⃣ JWT Cookie"| D1
+    Browser -->|"3️⃣ JWT Cookie"| F1
+    Browser -->|"3️⃣ JWT Cookie"| U1
+    P1 -->|"4️⃣ lookup"| P2
+    D1 -->|"4️⃣ lookup"| D2
+    F1 -->|"4️⃣ lookup"| F2
+    U1 -->|"4️⃣ lookup"| U2
 ```
 
 ---
