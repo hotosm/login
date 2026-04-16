@@ -274,7 +274,7 @@ export const styles = css`
 
   .login-link {
     color: var(--login-btn-text-color, white);
-    font-size: var(--login-btn-text-size, var(--hot-font-size-medium));
+    font-size: var(--hot-font-size-small);
     border-radius: var(
       --login-btn-border-radius,
       var(--hot-border-radius-medium)
@@ -303,11 +303,11 @@ export const styles = css`
     border: none;
   }
   .login-link.filled.primary {
-    background: var(--login-btn-bg-color, var(--hot-color-primary-1000));
+    background: var(--hot-color-gray-950);
     color: var(--login-btn-text-color, white);
   }
   .login-link.filled.primary:hover {
-    background: var(--login-btn-hover-bg-color, var(--hot-color-primary-900));
+    background: var(--hot-color-primary-800);
   }
   .login-link.filled.neutral {
     background: var(--login-btn-bg-color, var(--hot-color-neutral-600));
@@ -330,8 +330,8 @@ export const styles = css`
     border: 1px solid;
   }
   .login-link.outline.primary {
-    border-color: var(--login-btn-bg-color, var(--hot-color-primary-1000));
-    color: var(--login-btn-text-color, var(--hot-color-primary-1000));
+    border-color: var(--login-btn-bg-color, var(--hot-color-primary-950));
+    color: var(--login-btn-text-color, var(--hot-color-primary-950));
   }
   .login-link.outline.primary:hover {
     background: var(--login-btn-hover-bg-color, var(--hot-color-primary-50));
@@ -357,7 +357,7 @@ export const styles = css`
     border: none;
   }
   .login-link.plain.primary {
-    color: var(--login-btn-text-color, var(--hot-color-primary-1000));
+    color: var(--login-btn-text-color, var(--hot-color-primary-950));
   }
   .login-link.plain.primary:hover {
     background: var(--login-btn-hover-bg-color, var(--hot-color-primary-50));
