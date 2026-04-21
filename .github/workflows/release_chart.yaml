@@ -4,7 +4,7 @@ on:
   # Push includes PR merge
   push:
     branches:
-      - dev
+      - develop
     paths:
       # Workflow is triggered only if chart dir changes
       - chart/**
