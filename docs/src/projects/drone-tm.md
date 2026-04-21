@@ -290,7 +290,7 @@ document.addEventListener('logout', () => {
 # src/frontend/.env
 VITE_AUTH_PROVIDER=hanko
 VITE_HANKO_URL=https://login.hotosm.org
-VITE_FRONTEND_URL=https://dronetm.hotosm.org
+VITE_FRONTEND_URL=https://drone.hotosm.org
 ```
 
 ---

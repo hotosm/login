@@ -70,7 +70,6 @@ app.add_middleware(
         "https://fair.testlogin.hotosm.org",
         "https://umap.testlogin.hotosm.org",
         "https://export.testlogin.hotosm.org",
-        "https://dronetm.hotosm.org",
         "https://drone.hotosm.org",
         "https://drone-dev.hotosm.org",
         "https://dev.drone.hotosm.org",
