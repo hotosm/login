@@ -1,8 +1,8 @@
 apiVersion: v2
 name: login
 description: HOTOSM Login Service - Hanko SSO + OSM OAuth
-version: "0.1.10"
-appVersion: "1.0.0"
+version: "0.1.11"
+appVersion: "0.3.6"
 maintainers:
   - email: sysadmin@hotosm.org
     name: HOTOSM
