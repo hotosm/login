@@ -1,6 +1,6 @@
 [project]
 name = "hotosm-login-backend"
-version = "1.0.0"
+version = "0.3.6"
 description = "HOTOSM Login Service - Authentication and SSO"
 requires-python = ">=3.12"
 dependencies = [

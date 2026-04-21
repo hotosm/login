@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from hotosm_auth import AuthConfig
 from hotosm_auth_fastapi import CurrentUser, init_auth, osm_router
 
+from app.__version__ import __version__
 from app.api.routes import admin as admin_routes
 from app.api.routes import profile as profile_routes
 from app.schemas.auth import UserInfoResponse
@@ -27,7 +28,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="HOTOSM Login Service",
     description="Authentication and SSO service for HOTOSM applications",
-    version="1.0.0",
+    version=__version__,
     lifespan=lifespan,
 )
 
@@ -140,6 +141,6 @@ async def root():
     """Root endpoint."""
     return {
         "message": "HOTOSM Login Service",
-        "version": "1.0.0",
+        "version": __version__,
         "docs": "/docs",
     }
