@@ -1,14 +1,14 @@
 repos:
   # Versioning: Commit messages & changelog
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.13.9
+    rev: v4.13.10
     hooks:
       - id: commitizen
         stages: [commit-msg]
 
   # Lint / autoformat: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.15.4"
+    rev: "v0.15.11"
     hooks:
       - id: ruff
         files: ^(?:backend|auth-libs/python)/.*\.py$
@@ -18,7 +18,7 @@ repos:
 
   # Deps: ensure Python uv lockfile is up to date
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.10.7
+    rev: 0.11.7
     hooks:
       - id: uv-lock
         files: ^backend/pyproject\.toml$
@@ -44,7 +44,7 @@ repos:
 
   # Spelling: Checks for common misspellings in text files.
   - repo: https://github.com/crate-ci/typos
-    rev: v1.44.0
+    rev: v1
     hooks:
       - id: typos
         pass_filenames: false
@@ -77,14 +77,14 @@ repos:
 
   # Lint: GH Workflows
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.11
+    rev: v1.7.12
     hooks:
       - id: actionlint
         args: [-ignore, SC]
 
   # Lint: Markdown
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
         args:

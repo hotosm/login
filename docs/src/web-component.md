@@ -145,6 +145,7 @@ auth.addEventListener('logout', () => {
 ### Header Mode (`show-profile=false`)
 
 Default mode. Shows:
+
 - **Logged out**: "Log in" button → redirects to login.hotosm.org
 - **Logged in**: Avatar dropdown with:
   - Profile link
@@ -163,6 +164,7 @@ Default mode. Shows:
 ### Profile Mode (`show-profile=true`)
 
 Shows full Hanko auth form (for login page):
+
 - **Logged out**: Hanko passkey/email form
 - **Logged in**: Profile card + OSM status + logout button
 
@@ -182,6 +184,7 @@ Shows full Hanko auth form (for login page):
 ## Hanko URL Detection
 
 Priority order:
+
 1. `hanko-url` attribute
 2. `<meta name="hanko-url" content="...">` tag
 3. `window.HANKO_URL` global
@@ -274,6 +277,7 @@ document.addEventListener('visibilitychange', () => {
 ## Debug Mode
 
 Enable with:
+
 - URL param: `?debug=true`
 - LocalStorage: `localStorage.setItem('hanko-auth-debug', 'true')`
 
