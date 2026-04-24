@@ -3,7 +3,7 @@
 import os
 from typing import Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 from hotosm_auth.logger import get_logger
 
@@ -77,6 +77,7 @@ def _resolve_jwt_issuer() -> str:
 
 
 class AuthConfig(BaseModel):
+    model_config = ConfigDict(frozen=True)
     """Runtime configuration for hotosm-auth."""
 
     # Hanko configuration
@@ -265,8 +266,3 @@ class AuthConfig(BaseModel):
             osm_api_url=osm_api_url,
             admin_emails=admin_emails,
         )
-
-    class Config:
-        """Pydantic configuration."""
-
-        frozen = True  # Make config immutable after creation
