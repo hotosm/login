@@ -3,11 +3,13 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MappingResponse(BaseModel):
     """Response schema for a single user mapping."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     hanko_user_id: str = Field(..., description="Hanko user UUID")
     app_user_id: str = Field(..., description="Application-specific user ID")
@@ -20,11 +22,6 @@ class MappingResponse(BaseModel):
     hanko_email: Optional[str] = Field(None, description="Email from Hanko")
     app_username: Optional[str] = Field(None, description="Username from app")
     app_email: Optional[str] = Field(None, description="Email from app")
-
-    class Config:
-        """Pydantic config for ORM attribute support."""
-
-        from_attributes = True
 
 
 class MappingListResponse(BaseModel):
