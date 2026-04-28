@@ -1,8 +1,9 @@
 """Database models for login backend."""
 
+import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, String, func
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
@@ -49,3 +50,35 @@ class UserProfile(Base):
     def __repr__(self) -> str:
         """Return short debug representation for logging."""
         return f"<UserProfile(hanko_user_id={self.hanko_user_id[:8]}...)>"
+
+
+class UserApiToken(Base):
+    """One non-expiring API token per (user, app) pair."""
+
+    __tablename__ = "user_api_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid,
+        primary_key=True,
+        server_default=func.gen_random_uuid(),
+    )
+    hanko_user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("user_profiles.hanko_user_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    app: Mapped[str] = mapped_column(Text, nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    last_used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    def __repr__(self) -> str:
+        """Return short debug representation for logging."""
+        return f"<UserApiToken(user={self.hanko_user_id[:8]}..., app={self.app})>"

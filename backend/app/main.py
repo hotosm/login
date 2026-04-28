@@ -11,6 +11,7 @@ from hotosm_auth_fastapi import CurrentUser, init_auth, osm_router
 
 from app.__version__ import __version__
 from app.api.routes import admin as admin_routes
+from app.api.routes import api_token as api_token_routes
 from app.api.routes import profile as profile_routes
 from app.schemas.auth import UserInfoResponse
 
@@ -98,7 +99,53 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 # Initialize authentication
 # AuthConfig.from_env() reads from environment variables automatically
 auth_config = AuthConfig.from_env()
-init_auth(auth_config)
+
+
+async def _local_pat_resolver(token_hash: str, app_name: str):
+    """Resolve a PAT directly from the login DB (no HTTP call to self)."""
+    from datetime import datetime, timezone
+
+    from sqlalchemy import select
+
+    from app.db.database import async_session_maker
+    from app.db.models import UserApiToken, UserProfile
+    from hotosm_auth.models import HankoUser
+
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(UserApiToken).where(
+                UserApiToken.token_hash == token_hash,
+                UserApiToken.app == app_name,
+            )
+        )
+        token_row = result.scalar_one_or_none()
+        if not token_row:
+            return None
+
+        from sqlalchemy import func
+
+        token_row.last_used_at = func.now()
+        await session.commit()
+
+        profile_result = await session.execute(
+            select(UserProfile).where(
+                UserProfile.hanko_user_id == token_row.hanko_user_id
+            )
+        )
+        profile = profile_result.scalar_one_or_none()
+        if not profile:
+            return None
+
+        return HankoUser(
+            id=profile.hanko_user_id,
+            email="",
+            email_verified=True,
+            created_at=profile.created_at,
+            updated_at=profile.updated_at or profile.created_at,
+        )
+
+
+init_auth(auth_config, app_name="portal", pat_resolver=_local_pat_resolver)
 
 # Include OSM OAuth routes
 api_v1_prefix = "/api"
@@ -110,6 +157,8 @@ app.include_router(
 
 app.include_router(admin_routes.router)
 app.include_router(profile_routes.router)
+app.include_router(api_token_routes.router)
+app.include_router(api_token_routes.internal_router)
 
 
 @app.get("/me", response_model=UserInfoResponse)

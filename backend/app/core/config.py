@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # Hanko database for admin lookups
     hanko_db_url: str = "postgresql://hanko:hanko@hanko-db:5432/hanko"
 
+    # Shared secret for internal service-to-service calls (PAT resolution)
+    login_internal_api_key: str = ""
+
     @property
     def app_urls(self) -> dict[str, str]:
         """Get app URLs as a dictionary."""
