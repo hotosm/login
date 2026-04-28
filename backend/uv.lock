@@ -290,7 +290,7 @@ wheels = [
 
 [[package]]
 name = "hotosm-auth"
-version = "0.2.11"
+version = "0.2.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
@@ -299,9 +299,9 @@ dependencies = [
     { name = "pyjwt", extra = ["crypto"] },
     { name = "python-dateutil" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9d/9f/d88433c20bfb82bde27ad14034981ac05b49e5683b7c70bcfbdd37bec31a/hotosm_auth-0.2.11.tar.gz", hash = "sha256:37a19edb4901b8c3d46116dbfb2cca0b525cb8b383a21c584ab43b242c953384", size = 151990, upload-time = "2026-04-28T13:50:12.085Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/79/cc/d1933e46168219816d78b9ac59d0c2d65efeb889d75094409f6f9af46419/hotosm_auth-0.2.12.tar.gz", hash = "sha256:89151926ff449139635013cda7c219cdd834818cbad2ecb9f886220399864126", size = 151995, upload-time = "2026-04-28T17:26:51.938Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/67/0a/d9306aad40f0f2e0be37c349c5ca7d02d898f87a9c776d821312a1e3ffed/hotosm_auth-0.2.11-py3-none-any.whl", hash = "sha256:b3ea830e4d856aa7305a5978e0564d6ec09da3796ffe22870d1bd9042ff79083", size = 55417, upload-time = "2026-04-28T13:50:09.524Z" },
+    { url = "https://files.pythonhosted.org/packages/23/0b/742a0b78c1895307b2dcdcad9c375606670ad93cc8add56ad1be19277eaf/hotosm_auth-0.2.12-py3-none-any.whl", hash = "sha256:a61f2634f84fe3d0ca2fb0da6fd0fdab8cadce77293453c019adf80247df7b3f", size = 55418, upload-time = "2026-04-28T17:26:53.752Z" },
 ]
 
 [package.optional-dependencies]
@@ -342,7 +342,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.14.0" },
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "fastapi", specifier = ">=0.115.6" },
-    { name = "hotosm-auth", extras = ["fastapi"], specifier = "==0.2.11" },
+    { name = "hotosm-auth", extras = ["fastapi"], specifier = "==0.2.12" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.0" },
