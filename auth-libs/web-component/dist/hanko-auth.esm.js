@@ -4848,7 +4848,7 @@ let oe = class extends qt {
   constructor() {
     super(), this.hankoUrlAttr = "", this.basePath = "", this.authPath = "/api/auth/osm", this.osmRequired = !1, this.osmScopes = "read_prefs", this.showProfile = !1, this.redirectAfterLogin = "", this.autoConnect = !1, this.verifySession = !1, this.redirectAfterLogout = "", this.displayNameAttr = "", this.mappingCheckUrl = "", this.appId = "", this.loginUrl = "", this.lang = "en", this.buttonVariant = "plain", this.buttonColor = "primary", this.display = "default", this.user = null, this.osmConnected = !1, this.osmData = null, this.osmLoading = !1, this.loading = !0, this.error = null, this.hankoReady = !1, this.profileDisplayName = "", this.profilePictureUrl = "", this.hasAppMapping = !1, this.userProfileLanguage = null, this.isOpen = !1, this.handleOutsideClick = (n) => {
       this.contains(n.target) || this.closeDropdown();
-    }, this._debugMode = !1, this._lastSessionId = null, this._hanko = null, this._isPrimary = !1, this._hankoObserver = null, this._signUpHeadlines = /* @__PURE__ */ new Set([
+    }, this._debugMode = !1, this._lastSessionId = null, this._hanko = null, this._isPrimary = !1, this._sessionCheckFailures = 0, this._sessionCheckBackoffTimer = null, this._hankoObserver = null, this._signUpHeadlines = /* @__PURE__ */ new Set([
       "Create an account",
       // en (our override)
       "Crear cuenta",
@@ -4875,9 +4875,9 @@ let oe = class extends qt {
       "Entrar"
       // pt loginEmailNoSignup
     ]), this._handleVisibilityChange = () => {
-      this._isPrimary && !document.hidden && !this.showProfile && !this.user && (this.log("Page visible, re-checking session..."), this.checkSession());
+      this._isPrimary && (this._sessionCheckBackoffTimer || !document.hidden && !this.showProfile && !this.user && (this.log("Page visible, re-checking session..."), this.checkSession()));
     }, this._handleWindowFocus = () => {
-      this._isPrimary && !this.showProfile && !this.user && (this.log("Window focused, re-checking session..."), this.checkSession());
+      this._isPrimary && (this._sessionCheckBackoffTimer || !this.showProfile && !this.user && (this.log("Window focused, re-checking session..."), this.checkSession()));
     }, this._handleExternalLogin = (n) => {
       var e;
       if (!this._isPrimary) return;
@@ -5040,6 +5040,13 @@ let oe = class extends qt {
       this.logError("Failed to initialize hanko-auth:", n), this.error = n.message, this.loading = !1, this._broadcastState();
     }
   }
+  _scheduleSessionRetry() {
+    if (this._sessionCheckBackoffTimer) return;
+    const n = Math.min(1e3 * 2 ** this._sessionCheckFailures, 6e4);
+    this.log(`Session check failed, retrying in ${n / 1e3}s (attempt ${this._sessionCheckFailures})`), this._sessionCheckBackoffTimer = setTimeout(() => {
+      this._sessionCheckBackoffTimer = null, this.checkSession();
+    }, n);
+  }
   async checkSession() {
     var n, t, e, o, i;
     if (this.log("Checking for existing Hanko session..."), !this._hanko) {
@@ -5070,7 +5077,7 @@ let oe = class extends qt {
             ));
             return;
           }
-          this.log("Valid Hanko session found via cookie"), this.log("Session data:", s);
+          this._sessionCheckFailures = 0, this.log("Valid Hanko session found via cookie"), this.log("Session data:", s);
           try {
             const d = await fetch(`${this.hankoUrl}/me`, {
               method: "GET",
@@ -5134,10 +5141,12 @@ let oe = class extends qt {
         } else
           this.log("No valid session cookie found - user needs to login");
       } catch (r) {
-        this.log("Session validation failed:", r), this.log("No valid session - user needs to login");
+        this._sessionCheckFailures++, this.log("Session validation failed:", r), this._scheduleSessionRetry();
+        return;
       }
     } catch (r) {
-      this.log("Session check error:", r), this.log("No existing session - user needs to login");
+      this._sessionCheckFailures++, this.log("Session check error:", r), this._scheduleSessionRetry();
+      return;
     } finally {
       this._isPrimary && this._broadcastState();
     }
