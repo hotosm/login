@@ -1,5 +1,7 @@
 """Django middleware, decorators, and helpers for HOTOSM auth."""
 
+import hashlib
+from collections.abc import Awaitable
 from datetime import datetime
 from functools import wraps
 from typing import Callable, Optional
@@ -22,10 +24,31 @@ from hotosm_auth.models import HankoUser, OSMConnection
 
 logger = get_logger(__name__)
 
+PatResolver = Callable[[str, str], Awaitable[Optional[HankoUser]]]
 
 # Global instances (initialized from Django settings)
 _jwt_validator: Optional[JWTValidator] = None
 _cookie_crypto: Optional[CookieCrypto] = None
+_pat_resolver: Optional[PatResolver] = None
+_app_name: Optional[str] = None
+
+
+def init_auth_django(
+    *,
+    app_name: Optional[str] = None,
+    pat_resolver: Optional[PatResolver] = None,
+) -> None:
+    """Configure PAT resolution for this Django project.
+
+    Call this in your AppConfig.ready() or settings module.
+    """
+    global _pat_resolver, _app_name
+
+    if pat_resolver and not app_name:
+        raise ValueError("app_name is required when pat_resolver is provided")
+
+    _pat_resolver = pat_resolver
+    _app_name = app_name
 
 
 def get_auth_config() -> AuthConfig:
@@ -84,33 +107,55 @@ def get_token_from_request(request: HttpRequest) -> Optional[str]:
     return request.COOKIES.get("hanko")
 
 
+def _looks_like_jwt(token: str) -> bool:
+    """Heuristic: JWTs have three base64 segments separated by dots."""
+    parts = token.split(".")
+    return len(parts) == 3 and all(parts)
+
+
 async def get_current_user(request: HttpRequest) -> Optional[HankoUser]:
-    """Get authenticated user from request."""
+    """Get authenticated user from request (JWT or opaque PAT)."""
     token = get_token_from_request(request)
 
     if not token:
         logger.debug(f"No JWT token found in request to {request.path}")
         return None
 
-    try:
-        validator = get_jwt_validator()
-        logger.debug(f"Validating JWT for {request.path}")
-        user = await validator.validate_token(token)
-        logger.info(f"JWT validation successful for {user.email}")
-        return user
-    except (TokenExpiredError, TokenInvalidError, AuthenticationError) as e:
-        logger.warning(
-            f"JWT validation failed for {request.path}: {type(e).__name__}: {e}"
-        )
+    if _looks_like_jwt(token):
+        try:
+            validator = get_jwt_validator()
+            logger.debug(f"Validating JWT for {request.path}")
+            user = await validator.validate_token(token)
+            logger.info(f"JWT validation successful for {user.email}")
+            return user
+        except (TokenExpiredError, TokenInvalidError, AuthenticationError) as e:
+            logger.warning(
+                f"JWT validation failed for {request.path}: {type(e).__name__}: {e}"
+            )
+            return None
+        except Exception as e:
+            logger.error(
+                "Unexpected error during JWT validation for %s: %s: %s",
+                request.path,
+                type(e).__name__,
+                e,
+                exc_info=True,
+            )
+            return None
+
+    # Opaque token — try PAT resolution
+    if not _pat_resolver or not _app_name:
+        logger.debug("Opaque bearer token but no PAT resolver configured")
         return None
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    try:
+        user = await _pat_resolver(token_hash, _app_name)
+        if user:
+            logger.info(f"PAT validation successful for {user.id} ({_app_name})")
+        return user
     except Exception as e:
-        logger.error(
-            "Unexpected error during JWT validation for %s: %s: %s",
-            request.path,
-            type(e).__name__,
-            e,
-            exc_info=True,
-        )
+        logger.error(f"PAT resolution failed: {type(e).__name__}: {e}", exc_info=True)
         return None
 
 

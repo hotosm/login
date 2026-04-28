@@ -13,6 +13,7 @@ from hotosm_auth_django.middleware import (
     get_mapped_user_id,
     get_osm_connection,
     get_token_from_request,
+    init_auth_django,
     login_required,
     osm_required,
     set_osm_cookie,
@@ -40,4 +41,6 @@ __all__ = [
     "get_mapped_user_id",
     "get_auth_status",
     "create_user_mapping",
+    # PAT
+    "init_auth_django",
 ]

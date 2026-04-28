@@ -1,5 +1,7 @@
 """FastAPI authentication dependencies and helpers."""
 
+import hashlib
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 from typing import Annotated, Optional
 
@@ -20,23 +22,45 @@ from hotosm_auth.models import HankoUser, OSMConnection
 
 logger = get_logger(__name__)
 
+PatResolver = Callable[[str, str], Awaitable[Optional[HankoUser]]]
 
 # Global instances (set by init_auth)
 _config: Optional[AuthConfig] = None
 _jwt_validator: Optional[JWTValidator] = None
 _cookie_crypto: Optional[CookieCrypto] = None
+_pat_resolver: Optional[PatResolver] = None
+_app_name: Optional[str] = None
 
 # Security scheme for Swagger UI
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def init_auth(config: AuthConfig) -> None:
-    """Initialize module-level auth dependencies for the app."""
-    global _config, _jwt_validator, _cookie_crypto
+def init_auth(
+    config: AuthConfig,
+    *,
+    app_name: Optional[str] = None,
+    pat_resolver: Optional[PatResolver] = None,
+) -> None:
+    """Initialize module-level auth dependencies for the app.
+
+    Args:
+        config: Auth configuration (Hanko URL, cookie secret, etc.).
+        app_name: Identifier for this project (e.g. "fair", "drone-tm").
+            Required when pat_resolver is provided.
+        pat_resolver: Async callable(token_hash, app_name) -> HankoUser | None.
+            If provided, opaque bearer tokens are resolved via this function
+            instead of being rejected as invalid JWTs.
+    """
+    global _config, _jwt_validator, _cookie_crypto, _pat_resolver, _app_name
+
+    if pat_resolver and not app_name:
+        raise ValueError("app_name is required when pat_resolver is provided")
 
     _config = config
     _jwt_validator = JWTValidator(config)
     _cookie_crypto = CookieCrypto(config.cookie_secret)
+    _pat_resolver = pat_resolver
+    _app_name = app_name
 
 
 def get_config() -> AuthConfig:
@@ -76,6 +100,12 @@ async def get_token_from_request(
     return token
 
 
+def _looks_like_jwt(token: str) -> bool:
+    """Heuristic: JWTs have three base64 segments separated by dots."""
+    parts = token.split(".")
+    return len(parts) == 3 and all(parts)
+
+
 async def get_current_user(
     request: Request,
     validator: Annotated[JWTValidator, Depends(get_jwt_validator)],
@@ -83,7 +113,7 @@ async def get_current_user(
         Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)
     ],
 ) -> HankoUser:
-    """Validate JWT and return the authenticated user."""
+    """Validate JWT or opaque PAT and return the authenticated user."""
     token = await get_token_from_request(request, credentials)
 
     if not token:
@@ -93,21 +123,42 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    try:
-        user = await validator.validate_token(token)
-        return user
-    except TokenExpiredError as exc:
+    # If the token looks like a JWT, validate it the existing way.
+    # Otherwise try resolving it as an opaque PAT via the injected resolver.
+    if _looks_like_jwt(token):
+        try:
+            user = await validator.validate_token(token)
+            return user
+        except TokenExpiredError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from exc
+        except (TokenInvalidError, AuthenticationError) as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e),
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from e
+
+    # Opaque token — try PAT resolution
+    if not _pat_resolver or not _app_name:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
+            detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
-    except (TokenInvalidError, AuthenticationError) as e:
+        )
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    user = await _pat_resolver(token_hash, _app_name)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
+            detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
-        ) from e
+        )
+    return user
 
 
 async def get_current_user_optional(

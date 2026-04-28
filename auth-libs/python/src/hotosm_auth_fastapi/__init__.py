@@ -36,6 +36,9 @@ from hotosm_auth_fastapi.dependencies import (
 # OSM routes
 from hotosm_auth_fastapi.osm_routes import router as osm_router
 
+# PAT resolver (re-exported from core)
+from hotosm_auth.remote_resolver import remote_pat_resolver
+
 # Simple setup API
 from hotosm_auth_fastapi.setup import (
     Auth,
@@ -76,4 +79,6 @@ __all__ = [
     "Base",
     # Routes
     "osm_router",
+    # PAT resolver
+    "remote_pat_resolver",
 ]
