@@ -171,6 +171,11 @@ jobs:
             sed -i 's|^OSM_CLIENT_ID=.*|OSM_CLIENT_ID=${{ secrets.OSM_CLIENT_ID }}|' .env
             sed -i 's|^OSM_CLIENT_SECRET=.*|OSM_CLIENT_SECRET=${{ secrets.OSM_CLIENT_SECRET }}|' .env
             sed -i 's|^OSM_REDIRECT_URI=.*|OSM_REDIRECT_URI=${{ secrets.OSM_REDIRECT_URI }}|' .env
+            if grep -q '^LOGIN_INTERNAL_API_KEY=' .env; then
+              sed -i 's|^LOGIN_INTERNAL_API_KEY=.*|LOGIN_INTERNAL_API_KEY=${{ secrets.LOGIN_INTERNAL_API_KEY }}|' .env
+            else
+              echo 'LOGIN_INTERNAL_API_KEY=${{ secrets.LOGIN_INTERNAL_API_KEY }}' >> .env
+            fi
             echo "✓ Updated secrets in .env"
 
             # Login to GitHub Container Registry
