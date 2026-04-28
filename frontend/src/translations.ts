@@ -44,6 +44,24 @@ export interface Translations {
   accountDeleted: string;
   profileUpdated: string;
 
+  // Developer Settings
+  developerSettings: string;
+  apiAccessTokens: string;
+  apiTokenWarning: string;
+  generateToken: string;
+  regenerateToken: string;
+  revokeToken: string;
+  tokenCreatedOn: string;
+  tokenLastUsed: string;
+  tokenNeverUsed: string;
+  tokenShownOnce: string;
+  tokenCopied: string;
+  copyToken: string;
+  iSavedIt: string;
+  regenerateConfirm: string;
+  revokeConfirm: string;
+  noTokensYet: string;
+
   // Common
   login: string;
   no_existing_osm_account: string;
@@ -90,6 +108,22 @@ export const translations: Record<string, Translations> = {
     accountCreated: "Account created",
     accountDeleted: "Your account has been deleted successfully.",
     profileUpdated: "Profile updated successfully",
+    developerSettings: "Developer Settings",
+    apiAccessTokens: "API Access Tokens",
+    apiTokenWarning: "Keep these tokens safe. Anyone with a token can access your account in the corresponding app.",
+    generateToken: "Generate Token",
+    regenerateToken: "Regenerate",
+    revokeToken: "Revoke",
+    tokenCreatedOn: "Created on",
+    tokenLastUsed: "Last used",
+    tokenNeverUsed: "Never used",
+    tokenShownOnce: "This token will not be shown again. Copy it now.",
+    tokenCopied: "Token copied!",
+    copyToken: "Copy Token",
+    iSavedIt: "I've saved it",
+    regenerateConfirm: "This will invalidate the previous token immediately. Continue?",
+    revokeConfirm: "This will permanently revoke this token. Continue?",
+    noTokensYet: "No tokens generated yet.",
     login: "Login",
     no_existing_osm_account: "No existing account found for your OSM user. Please select 'Continue' to create a new account.",
   },
@@ -134,6 +168,22 @@ export const translations: Record<string, Translations> = {
     accountCreated: "Cuenta creada",
     accountDeleted: "Tu cuenta ha sido eliminada exitosamente.",
     profileUpdated: "Perfil actualizado exitosamente",
+    developerSettings: "Configuración de Desarrollador",
+    apiAccessTokens: "Tokens de acceso API",
+    apiTokenWarning: "Mantén estos tokens seguros. Cualquiera con un token puede acceder a tu cuenta en la aplicación correspondiente.",
+    generateToken: "Generar Token",
+    regenerateToken: "Regenerar",
+    revokeToken: "Revocar",
+    tokenCreatedOn: "Creado el",
+    tokenLastUsed: "Último uso",
+    tokenNeverUsed: "Nunca usado",
+    tokenShownOnce: "Este token no se mostrará de nuevo. Cópialo ahora.",
+    tokenCopied: "¡Token copiado!",
+    copyToken: "Copiar Token",
+    iSavedIt: "Ya lo guardé",
+    regenerateConfirm: "Esto invalidará el token anterior inmediatamente. ¿Continuar?",
+    revokeConfirm: "Esto revocará permanentemente este token. ¿Continuar?",
+    noTokensYet: "No hay tokens generados aún.",
     login: "Inicio de sesión",
     no_existing_osm_account: "No se encontró una cuenta existente para tu usuario de OSM. Por favor selecciona 'Continuar' para crear una nueva cuenta.",
   },
@@ -177,6 +227,22 @@ export const translations: Record<string, Translations> = {
     accountCreated: "Compte créé",
     accountDeleted: "Votre compte a été supprimé avec succès.",
     profileUpdated: "Profil mis à jour avec succès",
+    developerSettings: "Paramètres Développeur",
+    apiAccessTokens: "Tokens d'accès API",
+    apiTokenWarning: "Gardez ces tokens en sécurité. Toute personne possédant un token peut accéder à votre compte dans l'application correspondante.",
+    generateToken: "Générer un Token",
+    regenerateToken: "Régénérer",
+    revokeToken: "Révoquer",
+    tokenCreatedOn: "Créé le",
+    tokenLastUsed: "Dernière utilisation",
+    tokenNeverUsed: "Jamais utilisé",
+    tokenShownOnce: "Ce token ne sera plus affiché. Copiez-le maintenant.",
+    tokenCopied: "Token copié !",
+    copyToken: "Copier le Token",
+    iSavedIt: "Je l'ai sauvegardé",
+    regenerateConfirm: "Cela invalidera immédiatement le token précédent. Continuer ?",
+    revokeConfirm: "Cela révoquera définitivement ce token. Continuer ?",
+    noTokensYet: "Aucun token généré pour l'instant.",
     login: "Connexion",
     no_existing_osm_account: "Aucun compte existant trouvé pour votre utilisateur OSM. Veuillez sélectionner 'Continuer' pour créer un nouveau compte.",
   },
@@ -219,6 +285,22 @@ export const translations: Record<string, Translations> = {
     accountCreated: "Conta criada",
     accountDeleted: "Sua conta foi excluída com sucesso.",
     profileUpdated: "Perfil atualizado com sucesso",
+    developerSettings: "Configurações de Desenvolvedor",
+    apiAccessTokens: "Tokens de acesso API",
+    apiTokenWarning: "Mantenha estes tokens seguros. Qualquer pessoa com um token pode acessar sua conta no aplicativo correspondente.",
+    generateToken: "Gerar Token",
+    regenerateToken: "Regenerar",
+    revokeToken: "Revogar",
+    tokenCreatedOn: "Criado em",
+    tokenLastUsed: "Último uso",
+    tokenNeverUsed: "Nunca usado",
+    tokenShownOnce: "Este token não será mostrado novamente. Copie-o agora.",
+    tokenCopied: "Token copiado!",
+    copyToken: "Copiar Token",
+    iSavedIt: "Já salvei",
+    regenerateConfirm: "Isso invalidará o token anterior imediatamente. Continuar?",
+    revokeConfirm: "Isso revogará permanentemente este token. Continuar?",
+    noTokensYet: "Nenhum token gerado ainda.",
     login: "Login",
     no_existing_osm_account: "Nenhuma conta existente encontrada para o seu usuário OSM. Por favor selecione 'Continuar' para criar uma nova conta.",
   },

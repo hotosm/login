@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Hanko } from "@teamhanko/hanko-elements";
 import { validateReturnTo } from "../utils/validateReturnTo";
@@ -6,6 +6,19 @@ import "@hotosm/tool-menu";
 import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
+
+const ALLOWED_APPS = [
+  { id: "fair", label: "fAIr" },
+  { id: "drone-tm", label: "Drone TM" },
+  { id: "oam", label: "OpenAerialMap" },
+];
+
+interface ApiTokenMeta {
+  id: string;
+  app: string;
+  created_at: string;
+  last_used_at: string | null;
+}
 
 interface UserProfile {
   hanko_user_id: string;
@@ -35,6 +48,15 @@ function ProfilePage() {
   const [lastName, setLastName] = useState("");
   const [pictureUrl, setPictureUrl] = useState("");
   const [language, setLanguage] = useState("en");
+
+  // API token state
+  const [tokens, setTokens] = useState<ApiTokenMeta[]>([]);
+  const [justCreatedToken, setJustCreatedToken] = useState<{
+    app: string;
+    token: string;
+  } | null>(null);
+  const [tokenCopied, setTokenCopied] = useState(false);
+  const [tokensExpanded, setTokensExpanded] = useState(false);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
   const hankoUrl = import.meta.env.VITE_HANKO_URL || "";
@@ -148,6 +170,75 @@ function ProfilePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchTokens = useCallback(async () => {
+    try {
+      const response = await fetch(`${backendUrl}/profile/me/api-tokens`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        setTokens(await response.json());
+      }
+    } catch {
+      // Silently fail — tokens section just shows empty
+    }
+  }, [backendUrl]);
+
+  useEffect(() => {
+    if (!loading && profile) {
+      fetchTokens();
+    }
+  }, [loading, profile, fetchTokens]);
+
+  const handleGenerateToken = async (app: string) => {
+    const existing = tokens.find((t) => t.app === app);
+    if (existing) {
+      if (!window.confirm(t("regenerateConfirm"))) return;
+    }
+    try {
+      const response = await fetch(`${backendUrl}/profile/me/api-tokens`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ app }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setJustCreatedToken({ app: data.app, token: data.token });
+        setTokenCopied(false);
+        await fetchTokens();
+      }
+    } catch {
+      setError("Failed to generate token");
+    }
+  };
+
+  const handleRevokeToken = async (tokenId: string) => {
+    if (!window.confirm(t("revokeConfirm"))) return;
+    try {
+      const response = await fetch(
+        `${backendUrl}/profile/me/api-tokens/${tokenId}`,
+        { method: "DELETE", credentials: "include" },
+      );
+      if (response.ok) {
+        await fetchTokens();
+        if (justCreatedToken) {
+          const revoked = tokens.find((tk) => tk.id === tokenId);
+          if (revoked && revoked.app === justCreatedToken.app) {
+            setJustCreatedToken(null);
+          }
+        }
+      }
+    } catch {
+      setError("Failed to revoke token");
+    }
+  };
+
+  const handleCopyToken = async (token: string) => {
+    await navigator.clipboard.writeText(token);
+    setTokenCopied(true);
+    setTimeout(() => setTokenCopied(false), 3000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -379,6 +470,113 @@ function ProfilePage() {
 
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
           <hanko-profile lang={language}></hanko-profile>
+        </div>
+
+        {/* Developer Settings (collapsible, after hanko-profile) */}
+        <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
+          <button
+            type="button"
+            onClick={() => setTokensExpanded(!tokensExpanded)}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <h2 className="text-lg font-semibold text-hot-gray-900">
+              {t("developerSettings")}
+            </h2>
+            <span className="text-hot-gray-400 text-xl">
+              {tokensExpanded ? "▲" : "▼"}
+            </span>
+          </button>
+
+          {!tokensExpanded ? null : <>
+          <h3 className="text-sm font-semibold text-hot-gray-700 mt-4 mb-2">
+            {t("apiAccessTokens")}
+          </h3>
+
+          <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+            {t("apiTokenWarning")}
+          </div>
+
+          {/* One row per app */}
+          <div className="divide-y divide-hot-gray-200">
+            {ALLOWED_APPS.map((app) => {
+              /* Show inline token reveal instead of the normal row */
+              if (justCreatedToken && justCreatedToken.app === app.id) {
+                return (
+                  <div key={app.id} className="py-3">
+                    <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+                      <p className="text-sm font-medium text-yellow-800 mb-2">
+                        {ALLOWED_APPS.find((a) => a.id === justCreatedToken.app)
+                          ?.label || justCreatedToken.app}{" "}
+                        — {t("tokenShownOnce")}
+                      </p>
+                      <code className="block w-full bg-white border border-yellow-300 rounded px-3 py-2 text-sm font-mono break-all select-all mb-2">
+                        {justCreatedToken.token}
+                      </code>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleCopyToken(justCreatedToken.token)}
+                          className="btn-primary-hot text-sm px-3 py-2"
+                        >
+                          {tokenCopied ? t("tokenCopied") : t("copyToken")}
+                        </button>
+                        <button
+                          onClick={() => setJustCreatedToken(null)}
+                          className="text-sm text-yellow-700 hover:text-yellow-900 underline"
+                        >
+                          {t("iSavedIt")}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              const token = tokens.find((tk) => tk.app === app.id);
+              return (
+                <div
+                  key={app.id}
+                  className="flex items-center justify-between py-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-hot-gray-900">
+                      {app.label}
+                    </p>
+                    {token && (
+                      <p className="text-xs text-hot-gray-500">
+                        {t("tokenCreatedOn")}{" "}
+                        {new Date(token.created_at).toLocaleDateString()}
+                        {" · "}
+                        {token.last_used_at
+                          ? `${t("tokenLastUsed")} ${new Date(token.last_used_at).toLocaleDateString()}`
+                          : t("tokenNeverUsed")}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleGenerateToken(app.id)}
+                      className={
+                        token
+                          ? "text-sm text-hot-gray-600 hover:text-hot-gray-900 border border-hot-gray-300 rounded px-3 py-1"
+                          : "text-sm btn-primary-hot px-3 py-1"
+                      }
+                    >
+                      {token ? t("regenerateToken") : t("generateToken")}
+                    </button>
+                    {token && (
+                      <button
+                        onClick={() => handleRevokeToken(token.id)}
+                        className="text-sm text-hot-red-600 hover:text-hot-red-800 border border-hot-red-300 rounded px-3 py-1"
+                      >
+                        {t("revokeToken")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          </>}
         </div>
 
         {/* Footer */}
