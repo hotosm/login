@@ -1,6 +1,6 @@
 """Core HOTOSM authentication package shared by framework integrations."""
 
-__version__ = "0.2.11"
+__version__ = "0.2.12"
 
 # Core models and configuration
 from hotosm_auth.config import AuthConfig

@@ -13,12 +13,12 @@ Shared authentication libraries for all HOTOSM projects.
 ```python
 # From PyPI
 dependencies = [
-    "hotosm-auth[fastapi]==0.2.11",
+    "hotosm-auth[fastapi]==0.2.12",
 ]
 
 # Or from Git
 dependencies = [
-    "hotosm-auth[litestar] @ git+https://github.com/hotosm/login.git@v0.2.11#subdirectory=auth-libs/python",
+    "hotosm-auth[litestar] @ git+https://github.com/hotosm/login.git@v0.2.12#subdirectory=auth-libs/python",
 ]
 ```
 
@@ -66,10 +66,10 @@ Projects can use PyPI or reference directly from GitHub:
 
 ```python
 # PyPI (recommended)
-"hotosm-auth[fastapi]==0.2.11",
+"hotosm-auth[fastapi]==0.2.12",
 
 # Git reference
-"hotosm-auth[litestar] @ git+https://github.com/hotosm/login.git@v0.2.11#subdirectory=auth-libs/python",
+"hotosm-auth[litestar] @ git+https://github.com/hotosm/login.git@v0.2.12#subdirectory=auth-libs/python",
 ```
 
 - No wheels to distribute or commit

@@ -23,7 +23,7 @@ from app.schemas.api_token import (
 )
 
 router = APIRouter(prefix="/api/profile/me/api-tokens", tags=["API Tokens"])
-internal_router = APIRouter(prefix="/internal", tags=["Internal"])
+internal_router = APIRouter(prefix="/api/internal", tags=["Internal"])
 
 CurrentUser = Annotated[HankoUser, Depends(get_current_user)]
 DB = Annotated[AsyncSession, Depends(get_db)]

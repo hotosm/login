@@ -48,7 +48,7 @@ def remote_pat_resolver(
             ),
         )
     """
-    url = f"{login_url.rstrip('/')}/internal/resolve-token"
+    url = f"{login_url.rstrip('/')}/api/internal/resolve-token"
     _epoch = datetime(2000, 1, 1, tzinfo=timezone.utc)
 
     async def resolver(token_hash: str, app_name: str) -> Optional[HankoUser]:
