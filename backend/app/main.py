@@ -103,13 +103,11 @@ auth_config = AuthConfig.from_env()
 
 async def _local_pat_resolver(token_hash: str, app_name: str):
     """Resolve a PAT directly from the login DB (no HTTP call to self)."""
-    from datetime import datetime, timezone
-
+    from hotosm_auth.models import HankoUser
     from sqlalchemy import select
 
     from app.db.database import async_session_maker
     from app.db.models import UserApiToken, UserProfile
-    from hotosm_auth.models import HankoUser
 
     async with async_session_maker() as session:
         result = await session.execute(
