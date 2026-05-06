@@ -48,6 +48,14 @@ class Settings(BaseSettings):
     # Shared secret for internal service-to-service calls (PAT resolution)
     login_internal_api_key: str = ""
 
+    # SMTP configuration for outbound emails (data deletion requests, etc.)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from_address: str = ""
+    smtp_starttls: bool = True
+
     @property
     def app_urls(self) -> dict[str, str]:
         """Get app URLs as a dictionary."""

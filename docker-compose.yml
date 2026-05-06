@@ -156,6 +156,11 @@ services:
       - OSM_SCOPE=${OSM_SCOPE:-read_prefs}
       - LOG_LEVEL=INFO
       - LOGIN_INTERNAL_API_KEY=${LOGIN_INTERNAL_API_KEY}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS:-}
       - ADMIN_EMAILS=hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org,dakota.benjamin@hotosm.org,sam.woodcock@hotosm.org
       # App URLs for admin proxy (public URLs, not internal Docker)
       - DRONETM_BACKEND_URL=https://dev.drone.hotosm.org

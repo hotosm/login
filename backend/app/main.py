@@ -12,6 +12,7 @@ from hotosm_auth_fastapi import CurrentUser, init_auth, osm_router
 from app.__version__ import __version__
 from app.api.routes import admin as admin_routes
 from app.api.routes import api_token as api_token_routes
+from app.api.routes import data_deletion as data_deletion_routes
 from app.api.routes import profile as profile_routes
 from app.schemas.auth import UserInfoResponse
 
@@ -159,6 +160,7 @@ app.include_router(admin_routes.router)
 app.include_router(profile_routes.router)
 app.include_router(api_token_routes.router)
 app.include_router(api_token_routes.internal_router)
+app.include_router(data_deletion_routes.router)
 
 
 @app.get("/me", response_model=UserInfoResponse)
