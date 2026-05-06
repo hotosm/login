@@ -176,6 +176,36 @@ jobs:
             else
               echo 'LOGIN_INTERNAL_API_KEY=${{ secrets.LOGIN_INTERNAL_API_KEY }}' >> .env
             fi
+            if grep -q '^SMTP_HOST=' .env; then
+              sed -i 's|^SMTP_HOST=.*|SMTP_HOST=${{ secrets.SMTP_HOST }}|' .env
+            else
+              echo 'SMTP_HOST=${{ secrets.SMTP_HOST }}' >> .env
+            fi
+            if grep -q '^SMTP_PORT=' .env; then
+              sed -i 's|^SMTP_PORT=.*|SMTP_PORT=587|' .env
+            else
+              echo 'SMTP_PORT=587' >> .env
+            fi
+            if grep -q '^SMTP_USER=' .env; then
+              sed -i 's|^SMTP_USER=.*|SMTP_USER=${{ secrets.SMTP_USER }}|' .env
+            else
+              echo 'SMTP_USER=${{ secrets.SMTP_USER }}' >> .env
+            fi
+            if grep -q '^SMTP_PASSWORD=' .env; then
+              sed -i 's|^SMTP_PASSWORD=.*|SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}|' .env
+            else
+              echo 'SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}' >> .env
+            fi
+            if grep -q '^SMTP_FROM_ADDRESS=' .env; then
+              sed -i 's|^SMTP_FROM_ADDRESS=.*|SMTP_FROM_ADDRESS=${{ secrets.SMTP_FROM_ADDRESS }}|' .env
+            else
+              echo 'SMTP_FROM_ADDRESS=${{ secrets.SMTP_FROM_ADDRESS }}' >> .env
+            fi
+            if grep -q '^SMTP_STARTTLS=' .env; then
+              sed -i 's|^SMTP_STARTTLS=.*|SMTP_STARTTLS=true|' .env
+            else
+              echo 'SMTP_STARTTLS=true' >> .env
+            fi
             echo "✓ Updated secrets in .env"
 
             # Login to GitHub Container Registry
