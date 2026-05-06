@@ -65,6 +65,7 @@ export interface Translations {
   // Data deletion across HOT apps
   dataDeletionTitle: string;
   dataDeletionDescription: string;
+  dataDeletionPrivacyPolicy: string;
   dataDeletionRequestButton: string;
   dataDeletionConfirmTitle: string;
   dataDeletionConfirmBody: string;
@@ -137,7 +138,8 @@ export const translations: Record<string, Translations> = {
     revokeConfirm: "This will permanently revoke this token. Continue?",
     noTokensYet: "No tokens generated yet.",
     dataDeletionTitle: "Data across HOT apps",
-    dataDeletionDescription: "Want HOT admins to remove your data from fAIr, drone-tm, OAM, and other HOT apps? This is independent from deleting your account above.",
+    dataDeletionDescription: "Request the permanent removal of your personal data from specific apps or the entire HOT Tech Suite. For more information on how we handle your information, please review our",
+    dataDeletionPrivacyPolicy: "Privacy Policy",
     dataDeletionRequestButton: "Request data deletion",
     dataDeletionConfirmTitle: "Request data deletion",
     dataDeletionConfirmBody: "We will email HOT admins asking them to remove your data from all HOT apps. They may contact you to coordinate.",
@@ -207,7 +209,8 @@ export const translations: Record<string, Translations> = {
     revokeConfirm: "Esto revocará permanentemente este token. ¿Continuar?",
     noTokensYet: "No hay tokens generados aún.",
     dataDeletionTitle: "Datos en las apps de HOT",
-    dataDeletionDescription: "¿Querés que los administradores de HOT eliminen tus datos de fAIr, drone-tm, OAM y otras apps de HOT? Esto es independiente de borrar tu cuenta arriba.",
+    dataDeletionDescription: "Solicitá la eliminación permanente de tus datos personales de apps específicas o de todo el HOT Tech Suite. Para más información sobre cómo manejamos tu información, consultá nuestra",
+    dataDeletionPrivacyPolicy: "Política de Privacidad",
     dataDeletionRequestButton: "Solicitar eliminación de datos",
     dataDeletionConfirmTitle: "Solicitar eliminación de datos",
     dataDeletionConfirmBody: "Enviaremos un email a los administradores de HOT pidiendo que eliminen tus datos de todas las apps. Es posible que se contacten con vos para coordinar.",
@@ -276,7 +279,8 @@ export const translations: Record<string, Translations> = {
     revokeConfirm: "Cela révoquera définitivement ce token. Continuer ?",
     noTokensYet: "Aucun token généré pour l'instant.",
     dataDeletionTitle: "Données sur les apps HOT",
-    dataDeletionDescription: "Vous voulez que les administrateurs de HOT suppriment vos données de fAIr, drone-tm, OAM et d'autres apps HOT ? Cela est indépendant de la suppression de votre compte ci-dessus.",
+    dataDeletionDescription: "Demandez la suppression définitive de vos données personnelles d'apps spécifiques ou de l'ensemble de la HOT Tech Suite. Pour plus d'informations sur la façon dont nous traitons vos données, consultez notre",
+    dataDeletionPrivacyPolicy: "Politique de confidentialité",
     dataDeletionRequestButton: "Demander la suppression des données",
     dataDeletionConfirmTitle: "Demander la suppression des données",
     dataDeletionConfirmBody: "Nous enverrons un email aux administrateurs de HOT pour leur demander de supprimer vos données de toutes les apps. Ils pourraient vous contacter pour coordonner.",
@@ -344,7 +348,8 @@ export const translations: Record<string, Translations> = {
     revokeConfirm: "Isso revogará permanentemente este token. Continuar?",
     noTokensYet: "Nenhum token gerado ainda.",
     dataDeletionTitle: "Dados nos apps HOT",
-    dataDeletionDescription: "Quer que os administradores do HOT removam seus dados do fAIr, drone-tm, OAM e outros apps HOT? Isto é independente de excluir sua conta acima.",
+    dataDeletionDescription: "Solicite a remoção permanente dos seus dados pessoais de apps específicos ou de todo o HOT Tech Suite. Para mais informações sobre como tratamos seus dados, consulte nossa",
+    dataDeletionPrivacyPolicy: "Política de Privacidade",
     dataDeletionRequestButton: "Solicitar exclusão de dados",
     dataDeletionConfirmTitle: "Solicitar exclusão de dados",
     dataDeletionConfirmBody: "Enviaremos um email aos administradores do HOT pedindo que removam seus dados de todos os apps. Eles podem entrar em contato para coordenar.",

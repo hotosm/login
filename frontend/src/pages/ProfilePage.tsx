@@ -510,7 +510,16 @@ function ProfilePage() {
             {t("dataDeletionTitle")}
           </h2>
           <p className="text-sm text-hot-gray-600 mb-4">
-            {t("dataDeletionDescription")}
+            {t("dataDeletionDescription")}{" "}
+            <a
+              href="https://www.hotosm.org/en/policies/privacy-policy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-hot-red-600 hover:underline"
+            >
+              {t("dataDeletionPrivacyPolicy")}
+            </a>
+            .
           </p>
           {dataDeletionSent ? (
             <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg text-sm">
