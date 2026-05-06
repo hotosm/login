@@ -62,6 +62,18 @@ export interface Translations {
   revokeConfirm: string;
   noTokensYet: string;
 
+  // Data deletion across HOT apps
+  dataDeletionTitle: string;
+  dataDeletionDescription: string;
+  dataDeletionRequestButton: string;
+  dataDeletionConfirmTitle: string;
+  dataDeletionConfirmBody: string;
+  dataDeletionConfirmButton: string;
+  dataDeletionSubmitting: string;
+  dataDeletionSent: string;
+  dataDeletionError: string;
+  cancel: string;
+
   // Common
   login: string;
   no_existing_osm_account: string;
@@ -124,6 +136,16 @@ export const translations: Record<string, Translations> = {
     regenerateConfirm: "This will invalidate the previous token immediately. Continue?",
     revokeConfirm: "This will permanently revoke this token. Continue?",
     noTokensYet: "No tokens generated yet.",
+    dataDeletionTitle: "Data across HOT apps",
+    dataDeletionDescription: "Want HOT admins to remove your data from fAIr, drone-tm, OAM, and other HOT apps? This is independent from deleting your account above.",
+    dataDeletionRequestButton: "Request data deletion",
+    dataDeletionConfirmTitle: "Request data deletion",
+    dataDeletionConfirmBody: "We will email HOT admins asking them to remove your data from all HOT apps. They may contact you to coordinate.",
+    dataDeletionConfirmButton: "Send request",
+    dataDeletionSubmitting: "Sending...",
+    dataDeletionSent: "Request sent. HOT admins will contact you to coordinate.",
+    dataDeletionError: "Failed to send request. Please try again later.",
+    cancel: "Cancel",
     login: "Login",
     no_existing_osm_account: "No existing account found for your OSM user. Please select 'Continue' to create a new account.",
   },
@@ -184,6 +206,16 @@ export const translations: Record<string, Translations> = {
     regenerateConfirm: "Esto invalidará el token anterior inmediatamente. ¿Continuar?",
     revokeConfirm: "Esto revocará permanentemente este token. ¿Continuar?",
     noTokensYet: "No hay tokens generados aún.",
+    dataDeletionTitle: "Datos en las apps de HOT",
+    dataDeletionDescription: "¿Querés que los administradores de HOT eliminen tus datos de fAIr, drone-tm, OAM y otras apps de HOT? Esto es independiente de borrar tu cuenta arriba.",
+    dataDeletionRequestButton: "Solicitar eliminación de datos",
+    dataDeletionConfirmTitle: "Solicitar eliminación de datos",
+    dataDeletionConfirmBody: "Enviaremos un email a los administradores de HOT pidiendo que eliminen tus datos de todas las apps. Es posible que se contacten con vos para coordinar.",
+    dataDeletionConfirmButton: "Enviar solicitud",
+    dataDeletionSubmitting: "Enviando...",
+    dataDeletionSent: "Tu solicitud fue enviada. Los administradores de HOT te contactarán si necesitan más información.",
+    dataDeletionError: "No se pudo enviar la solicitud. Por favor intentá de nuevo.",
+    cancel: "Cancelar",
     login: "Inicio de sesión",
     no_existing_osm_account: "No se encontró una cuenta existente para tu usuario de OSM. Por favor selecciona 'Continuar' para crear una nueva cuenta.",
   },
@@ -243,6 +275,16 @@ export const translations: Record<string, Translations> = {
     regenerateConfirm: "Cela invalidera immédiatement le token précédent. Continuer ?",
     revokeConfirm: "Cela révoquera définitivement ce token. Continuer ?",
     noTokensYet: "Aucun token généré pour l'instant.",
+    dataDeletionTitle: "Données sur les apps HOT",
+    dataDeletionDescription: "Vous voulez que les administrateurs de HOT suppriment vos données de fAIr, drone-tm, OAM et d'autres apps HOT ? Cela est indépendant de la suppression de votre compte ci-dessus.",
+    dataDeletionRequestButton: "Demander la suppression des données",
+    dataDeletionConfirmTitle: "Demander la suppression des données",
+    dataDeletionConfirmBody: "Nous enverrons un email aux administrateurs de HOT pour leur demander de supprimer vos données de toutes les apps. Ils pourraient vous contacter pour coordonner.",
+    dataDeletionConfirmButton: "Envoyer la demande",
+    dataDeletionSubmitting: "Envoi en cours...",
+    dataDeletionSent: "Votre demande a été envoyée. Les administrateurs de HOT vous contacteront si nécessaire.",
+    dataDeletionError: "Impossible d'envoyer la demande. Veuillez réessayer.",
+    cancel: "Annuler",
     login: "Connexion",
     no_existing_osm_account: "Aucun compte existant trouvé pour votre utilisateur OSM. Veuillez sélectionner 'Continuer' pour créer un nouveau compte.",
   },
@@ -301,6 +343,16 @@ export const translations: Record<string, Translations> = {
     regenerateConfirm: "Isso invalidará o token anterior imediatamente. Continuar?",
     revokeConfirm: "Isso revogará permanentemente este token. Continuar?",
     noTokensYet: "Nenhum token gerado ainda.",
+    dataDeletionTitle: "Dados nos apps HOT",
+    dataDeletionDescription: "Quer que os administradores do HOT removam seus dados do fAIr, drone-tm, OAM e outros apps HOT? Isto é independente de excluir sua conta acima.",
+    dataDeletionRequestButton: "Solicitar exclusão de dados",
+    dataDeletionConfirmTitle: "Solicitar exclusão de dados",
+    dataDeletionConfirmBody: "Enviaremos um email aos administradores do HOT pedindo que removam seus dados de todos os apps. Eles podem entrar em contato para coordenar.",
+    dataDeletionConfirmButton: "Enviar solicitação",
+    dataDeletionSubmitting: "Enviando...",
+    dataDeletionSent: "Sua solicitação foi enviada. Os administradores do HOT entrarão em contato se necessário.",
+    dataDeletionError: "Não foi possível enviar a solicitação. Por favor tente novamente.",
+    cancel: "Cancelar",
     login: "Login",
     no_existing_osm_account: "Nenhuma conta existente encontrada para o seu usuário OSM. Por favor selecione 'Continuar' para criar uma nova conta.",
   },

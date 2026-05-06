@@ -58,6 +58,11 @@ function ProfilePage() {
   const [tokenCopied, setTokenCopied] = useState(false);
   const [tokensExpanded, setTokensExpanded] = useState(false);
 
+  const [dataDeletionModalOpen, setDataDeletionModalOpen] = useState(false);
+  const [dataDeletionSubmitting, setDataDeletionSubmitting] = useState(false);
+  const [dataDeletionSent, setDataDeletionSent] = useState(false);
+  const [dataDeletionError, setDataDeletionError] = useState<string | null>(null);
+
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
   const hankoUrl = import.meta.env.VITE_HANKO_URL || "";
 
@@ -239,6 +244,33 @@ function ProfilePage() {
     await navigator.clipboard.writeText(token);
     setTokenCopied(true);
     setTimeout(() => setTokenCopied(false), 3000);
+  };
+
+  const handleRequestDataDeletion = async (): Promise<boolean> => {
+    setDataDeletionSubmitting(true);
+    setDataDeletionError(null);
+    try {
+      const response = await fetch(
+        `${backendUrl}/profile/me/request-data-deletion`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      setDataDeletionSent(true);
+      return true;
+    } catch (err) {
+      console.error("Data deletion request failed:", err);
+      setDataDeletionError(
+        err instanceof Error ? err.message : t("dataDeletionError"),
+      );
+      return false;
+    } finally {
+      setDataDeletionSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -471,6 +503,81 @@ function ProfilePage() {
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
           <hanko-profile lang={language}></hanko-profile>
         </div>
+
+        {/* Data deletion across HOT apps (independent from Hanko delete) */}
+        <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
+          <h2 className="text-lg font-semibold text-hot-gray-900 mb-2">
+            {t("dataDeletionTitle")}
+          </h2>
+          <p className="text-sm text-hot-gray-600 mb-4">
+            {t("dataDeletionDescription")}
+          </p>
+          {dataDeletionSent ? (
+            <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg text-sm">
+              {t("dataDeletionSent")}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setDataDeletionError(null);
+                setDataDeletionModalOpen(true);
+              }}
+              className="px-4 py-2 bg-hot-red-600 text-white rounded-lg hover:bg-hot-red-700 text-sm font-medium"
+            >
+              {t("dataDeletionRequestButton")}
+            </button>
+          )}
+        </div>
+
+        {dataDeletionModalOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => !dataDeletionSubmitting && setDataDeletionModalOpen(false)}
+          >
+            <div
+              className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold text-hot-gray-900 mb-2">
+                {t("dataDeletionConfirmTitle")}
+              </h3>
+              <p className="text-sm text-hot-gray-600 mb-4">
+                {t("dataDeletionConfirmBody")}
+              </p>
+              {dataDeletionError && (
+                <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-3 py-2 rounded mb-3 text-sm">
+                  {dataDeletionError}
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={dataDeletionSubmitting}
+                  onClick={() => setDataDeletionModalOpen(false)}
+                  className="px-4 py-2 bg-hot-gray-100 text-hot-gray-700 rounded-lg hover:bg-hot-gray-200 text-sm"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={dataDeletionSubmitting}
+                  onClick={async () => {
+                    const ok = await handleRequestDataDeletion();
+                    if (ok) {
+                      setDataDeletionModalOpen(false);
+                    }
+                  }}
+                  className="px-4 py-2 bg-hot-red-600 text-white rounded-lg hover:bg-hot-red-700 text-sm font-medium disabled:opacity-50"
+                >
+                  {dataDeletionSubmitting
+                    ? t("dataDeletionSubmitting")
+                    : t("dataDeletionConfirmButton")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Developer Settings (collapsible, after hanko-profile) */}
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
