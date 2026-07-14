@@ -67,11 +67,13 @@ app.add_middleware(
         "https://umap.hotosm.org",
         "https://umap-dev.hotosm.org",
         "https://field.hotosm.org",
+        "https://fieldtm.hotosm.org",
         # Test environments
         "https://dronetm.testlogin.hotosm.org",
         "https://fair.testlogin.hotosm.org",
         "https://umap.testlogin.hotosm.org",
         "https://export.testlogin.hotosm.org",
+        "https://fieldtm.testlogin.hotosm.org",
         "https://drone.hotosm.org",
         "https://drone-dev.hotosm.org",
         "https://dev.drone.hotosm.org",
