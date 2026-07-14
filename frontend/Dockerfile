@@ -1,12 +1,12 @@
 # Frontend Dockerfile with multi-stage build
 
 # Development stage
-FROM node:20-alpine AS dev
+FROM node:22-alpine AS dev
 
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 # Copy dependency files
 COPY package.json pnpm-lock.yaml* ./
@@ -24,12 +24,12 @@ EXPOSE 5174
 CMD ["pnpm", "dev"]
 
 # Build stage
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 # Copy dependency files
 COPY package.json pnpm-lock.yaml* ./
