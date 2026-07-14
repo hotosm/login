@@ -113,9 +113,17 @@ function LoginPage() {
   }, [isOnboarding]);
 
   useEffect(() => {
-    if (returnTo || isOnboarding) return;
+    if (isOnboarding) return;
     fetch("/api/profile/me", { credentials: "include" }).then((res) => {
-      if (res.ok) navigate("/profile");
+      if (!res.ok) return;
+      // Already authenticated: honour return_to so an existing session
+      // redirects straight back to the requesting app instead of getting
+      // stuck on the profile card. Falls back to /profile when no return_to.
+      if (returnTo) {
+        window.location.href = returnTo;
+      } else {
+        navigate("/profile");
+      }
     });
   }, []);
 
