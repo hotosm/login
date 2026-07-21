@@ -75,15 +75,9 @@ def mock_hanko_lookup():
         return {uid: known_ids[uid] for uid in user_ids if uid in known_ids}
 
     with (
-        patch(
-            "app.services.hanko_lookup.email_to_user_id", new=_email_to_user_id
-        ),
-        patch(
-            "app.services.hanko_lookup.email_has_account", new=_email_has_account
-        ),
-        patch(
-            "app.services.hanko_lookup.user_id_to_email", new=_user_id_to_email
-        ),
+        patch("app.services.hanko_lookup.email_to_user_id", new=_email_to_user_id),
+        patch("app.services.hanko_lookup.email_has_account", new=_email_has_account),
+        patch("app.services.hanko_lookup.user_id_to_email", new=_user_id_to_email),
         patch(
             "app.services.hanko_lookup.user_ids_to_emails",
             new=_user_ids_to_emails,

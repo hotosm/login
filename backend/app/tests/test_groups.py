@@ -53,9 +53,7 @@ async def test_list_my_groups_only_mine(client, auth):
 
 async def test_list_my_groups_type_filter(client):
     await _create_team(client, name="My Team")
-    await client.post(
-        "/api/groups", json={"type": "organization", "name": "My Org"}
-    )
+    await client.post("/api/groups", json={"type": "organization", "name": "My Org"})
     resp = await client.get("/api/groups", params={"type": "organization"})
     groups = resp.json()["groups"]
     assert len(groups) == 1
@@ -119,9 +117,7 @@ async def test_member_cannot_update_details(client, auth):
         json={"email": USER_B.email, "role": "member"},
     )
     auth["user"] = USER_B
-    resp = await client.patch(
-        f"/api/groups/{team['id']}", json={"description": "hi"}
-    )
+    resp = await client.patch(f"/api/groups/{team['id']}", json={"description": "hi"})
     assert resp.status_code == 403
 
 

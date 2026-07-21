@@ -33,9 +33,7 @@ async def _send_deletion_email_safe(
     """Wrapper used as a BackgroundTask: log success/failure, never raise."""
     try:
         await send_email(to=to, subject=subject, text_body=text_body)
-        logger.info(
-            "Data deletion email sent for hanko_user_id=%s", hanko_user_id
-        )
+        logger.info("Data deletion email sent for hanko_user_id=%s", hanko_user_id)
     except Exception:
         logger.exception(
             "Failed to send data deletion email for hanko_user_id=%s",

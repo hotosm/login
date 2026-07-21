@@ -64,9 +64,7 @@ async def _add_team_members_by_email(
             continue
         seen.add(member_id)
         db.add(
-            GroupMembership(
-                group_id=group_id, hanko_user_id=member_id, role="member"
-            )
+            GroupMembership(group_id=group_id, hanko_user_id=member_id, role="member")
         )
 
 
@@ -74,11 +72,11 @@ async def _add_team_members_by_email(
 
 
 @router.post("", response_model=GroupResponse, status_code=status.HTTP_201_CREATED)
-async def create_group(payload: GroupCreate, user: CurrentUser, db: DB) -> GroupResponse:
+async def create_group(
+    payload: GroupCreate, user: CurrentUser, db: DB
+) -> GroupResponse:
     """Create a team (approved) or organization (pending approval)."""
-    slug = await groups_service.generate_unique_slug(
-        db, payload.type, payload.name
-    )
+    slug = await groups_service.generate_unique_slug(db, payload.type, payload.name)
     group = Group(
         type=payload.type,
         name=payload.name,
@@ -92,14 +90,10 @@ async def create_group(payload: GroupCreate, user: CurrentUser, db: DB) -> Group
     db.add(group)
     await db.flush()
 
-    db.add(
-        GroupMembership(group_id=group.id, hanko_user_id=user.id, role="owner")
-    )
+    db.add(GroupMembership(group_id=group.id, hanko_user_id=user.id, role="owner"))
     # Teams may seed members directly by email; orgs use invitations.
     if payload.type == "team" and payload.member_emails:
-        await _add_team_members_by_email(
-            db, group.id, payload.member_emails, user.id
-        )
+        await _add_team_members_by_email(db, group.id, payload.member_emails, user.id)
     await db.commit()
     await db.refresh(group)
     members_count = await groups_service.count_members(db, group.id)
@@ -132,9 +126,7 @@ async def get_group(group_id: str, user: CurrentUser, db: DB) -> GroupResponse:
     group = await _load_group_or_404(db, group_id)
     role = await _require_access(db, group, user)
     members_count = await groups_service.count_members(db, group.id)
-    return groups_service.serialize_group(
-        group, role=role, members_count=members_count
-    )
+    return groups_service.serialize_group(group, role=role, members_count=members_count)
 
 
 @router.patch("/{group_id}", response_model=GroupResponse)
@@ -152,9 +144,7 @@ async def update_group(
     await db.commit()
     await db.refresh(group)
     members_count = await groups_service.count_members(db, group.id)
-    return groups_service.serialize_group(
-        group, role=role, members_count=members_count
-    )
+    return groups_service.serialize_group(group, role=role, members_count=members_count)
 
 
 @router.post("/{group_id}/name-change", response_model=GroupResponse)
@@ -179,9 +169,7 @@ async def change_group_name(
     await db.commit()
     await db.refresh(group)
     members_count = await groups_service.count_members(db, group.id)
-    return groups_service.serialize_group(
-        group, role=role, members_count=members_count
-    )
+    return groups_service.serialize_group(group, role=role, members_count=members_count)
 
 
 @router.delete("/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -235,12 +223,8 @@ async def list_group_members(
     """List a group's members (members and account managers only)."""
     group = await _load_group_or_404(db, group_id)
     await _require_access(db, group, user)
-    items, total = await groups_service.list_members(
-        db, group_id, page, page_size
-    )
-    return MemberListResponse(
-        items=items, total=total, page=page, page_size=page_size
-    )
+    items, total = await groups_service.list_members(db, group_id, page, page_size)
+    return MemberListResponse(items=items, total=total, page=page, page_size=page_size)
 
 
 @router.post(
@@ -310,7 +294,9 @@ async def update_member_role(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.delete("/{group_id}/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{group_id}/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 async def remove_group_member(
     group_id: str, member_id: str, user: CurrentUser, db: DB
 ) -> Response:

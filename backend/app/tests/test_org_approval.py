@@ -7,9 +7,7 @@ from app.tests.conftest import ADMIN, USER_A, USER_B, make_user
 
 
 async def _create_org(client, name="ADF Haiti"):
-    resp = await client.post(
-        "/api/groups", json={"type": "organization", "name": name}
-    )
+    resp = await client.post("/api/groups", json={"type": "organization", "name": name})
     assert resp.status_code == 201
     return resp.json()
 
@@ -30,9 +28,7 @@ async def test_approve_notifies_owner(client, auth):
     with patch(
         "app.api.routes.organizations_admin.send_email", new=AsyncMock()
     ) as mock:
-        resp = await client.post(
-            f"/api/admin/organizations/{org['id']}/approve"
-        )
+        resp = await client.post(f"/api/admin/organizations/{org['id']}/approve")
     assert resp.status_code == 204
     mock.assert_awaited_once()
     assert mock.await_args.kwargs["to"] == [USER_A.email]
@@ -87,9 +83,7 @@ async def test_name_change_requires_approval_when_approved(client, auth):
 
     # Account manager approves the name change.
     auth["user"] = ADMIN
-    resp = await client.post(
-        f"/api/admin/organizations/{org['id']}/approve-name"
-    )
+    resp = await client.post(f"/api/admin/organizations/{org['id']}/approve-name")
     assert resp.status_code == 204
 
     resp = await client.get(f"/api/groups/{org['id']}")

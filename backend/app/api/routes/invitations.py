@@ -68,9 +68,7 @@ def _invite_link(token: str) -> str:
     return f"{base}/app/invite?token={token}"
 
 
-async def _send_invite_email_safe(
-    *, to: str, group_name: str, token: str
-) -> None:
+async def _send_invite_email_safe(*, to: str, group_name: str, token: str) -> None:
     """BackgroundTask: send the invite email, never raise."""
     try:
         link = _invite_link(token)
@@ -212,9 +210,7 @@ async def revoke_invitation(
 # --- Recipient-side (the invited user) -------------------------------------
 
 
-async def _get_pending_invitation(
-    db: AsyncSession, token: str
-) -> GroupInvitation:
+async def _get_pending_invitation(db: AsyncSession, token: str) -> GroupInvitation:
     result = await db.execute(
         select(GroupInvitation).where(GroupInvitation.token == token)
     )
@@ -227,9 +223,7 @@ async def _get_pending_invitation(
 
 
 @me_router.get("", response_model=list[MyInvitationResponse])
-async def list_my_invitations(
-    user: CurrentUser, db: DB
-) -> list[MyInvitationResponse]:
+async def list_my_invitations(user: CurrentUser, db: DB) -> list[MyInvitationResponse]:
     """List the current user's pending, unexpired invitations."""
     if not user.email:
         return []
@@ -282,9 +276,7 @@ async def accept_invitation(token: str, user: CurrentUser, db: DB) -> Response:
             status_code=status.HTTP_410_GONE, detail="Invitation has expired"
         )
 
-    existing = await groups_service.get_membership(
-        db, invitation.group_id, user.id
-    )
+    existing = await groups_service.get_membership(db, invitation.group_id, user.id)
     if existing is None:
         db.add(
             GroupMembership(

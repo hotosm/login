@@ -10,9 +10,7 @@ from app.tests.conftest import USER_B, make_user
 
 
 async def _create_org(client, db, name="ADF Haiti"):
-    resp = await client.post(
-        "/api/groups", json={"type": "organization", "name": name}
-    )
+    resp = await client.post("/api/groups", json={"type": "organization", "name": name})
     org = resp.json()
     # Approve so invitations are allowed (pending orgs can't invite).
     group = await db.get(Group, org["id"])
@@ -22,9 +20,7 @@ async def _create_org(client, db, name="ADF Haiti"):
 
 
 async def _invite(client, org_id, email="invitee@test.org"):
-    with patch(
-        "app.api.routes.invitations.send_email", new=AsyncMock()
-    ) as mock:
+    with patch("app.api.routes.invitations.send_email", new=AsyncMock()) as mock:
         resp = await client.post(
             f"/api/groups/{org_id}/invitations", json={"email": email}
         )
@@ -40,9 +36,7 @@ async def test_invite_sends_email_and_creates_pending(client, db):
 
 
 async def test_teams_cannot_invite(client):
-    resp = await client.post(
-        "/api/groups", json={"type": "team", "name": "T"}
-    )
+    resp = await client.post("/api/groups", json={"type": "team", "name": "T"})
     team_id = resp.json()["id"]
     resp = await client.post(
         f"/api/groups/{team_id}/invitations", json={"email": "x@test.org"}
@@ -109,16 +103,12 @@ async def test_accept_expired_invitation(client, auth, db):
     invitee = make_user("invitee-id", "invitee@test.org")
     await _invite(client, org["id"], email=invitee.email)
 
-    invitation = (
-        await db.execute(select(GroupInvitation))
-    ).scalar_one()
+    invitation = (await db.execute(select(GroupInvitation))).scalar_one()
     invitation.expires_at = datetime.now(timezone.utc) - timedelta(days=1)
     await db.commit()
 
     auth["user"] = invitee
-    resp = await client.post(
-        f"/api/me/invitations/{invitation.token}/accept"
-    )
+    resp = await client.post(f"/api/me/invitations/{invitation.token}/accept")
     assert resp.status_code == 410
 
 
@@ -127,9 +117,7 @@ async def test_revoke_invitation(client, auth, db):
     resp, _ = await _invite(client, org["id"])
     invitation_id = resp.json()["id"]
 
-    resp = await client.delete(
-        f"/api/groups/{org['id']}/invitations/{invitation_id}"
-    )
+    resp = await client.delete(f"/api/groups/{org['id']}/invitations/{invitation_id}")
     assert resp.status_code == 204
 
     invitation = (await db.execute(select(GroupInvitation))).scalar_one()

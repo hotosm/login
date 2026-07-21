@@ -59,9 +59,7 @@ def slugify(value: str) -> str:
     return value[:80]
 
 
-async def generate_unique_slug(
-    db: AsyncSession, group_type: str, name: str
-) -> str:
+async def generate_unique_slug(db: AsyncSession, group_type: str, name: str) -> str:
     """Generate a slug unique within the given group type.
 
     Falls back to a random-suffixed slug when the name yields an empty or
@@ -75,9 +73,7 @@ async def generate_unique_slug(
     suffix = 2
     while True:
         exists = await db.execute(
-            select(Group.id).where(
-                Group.type == group_type, Group.slug == candidate
-            )
+            select(Group.id).where(Group.type == group_type, Group.slug == candidate)
         )
         if exists.scalar_one_or_none() is None:
             return candidate
@@ -104,9 +100,7 @@ async def get_membership(
     return result.scalar_one_or_none()
 
 
-async def get_user_role(
-    db: AsyncSession, group_id: str, user_id: str
-) -> str | None:
+async def get_user_role(db: AsyncSession, group_id: str, user_id: str) -> str | None:
     """Return the user's role in a group, or None if not a member."""
     membership = await get_membership(db, group_id, user_id)
     return membership.role if membership else None
@@ -122,9 +116,7 @@ async def load_group_or_404(db: AsyncSession, group_id: str) -> Group:
     return group
 
 
-async def require_access(
-    db: AsyncSession, group: Group, user: HankoUser
-) -> str | None:
+async def require_access(db: AsyncSession, group: Group, user: HankoUser) -> str | None:
     """Require the user to be a member (returns role) or an account manager.
 
     Non-members who aren't account managers get 404 (don't leak existence).
@@ -134,9 +126,7 @@ async def require_access(
         return role
     if await is_account_manager(user, db):
         return None
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail="Group not found"
-    )
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found")
 
 
 async def require_role(

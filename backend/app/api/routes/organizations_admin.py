@@ -139,12 +139,8 @@ async def list_organizations(
         .limit(page_size)
         .offset((page - 1) * page_size)
     )
-    items = [
-        groups_service.serialize_group(g) for g in result.scalars().all()
-    ]
-    return GroupListResponse(
-        items=items, total=total, page=page, page_size=page_size
-    )
+    items = [groups_service.serialize_group(g) for g in result.scalars().all()]
+    return GroupListResponse(items=items, total=total, page=page, page_size=page_size)
 
 
 async def _load_org_or_404(db: AsyncSession, group_id: str) -> Group:
@@ -157,7 +153,9 @@ async def _load_org_or_404(db: AsyncSession, group_id: str) -> Group:
     return group
 
 
-@router.post("/organizations/{group_id}/approve", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/organizations/{group_id}/approve", status_code=status.HTTP_204_NO_CONTENT
+)
 async def approve_organization(
     group_id: str,
     admin: AccountManagerUser,
@@ -184,13 +182,13 @@ async def reject_organization(
     group = await _load_org_or_404(db, group_id)
     group.status = "rejected"
     await db.commit()
-    await _notify_owner(
-        background_tasks, group, approved=False, reason=payload.reason
-    )
+    await _notify_owner(background_tasks, group, approved=False, reason=payload.reason)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post("/organizations/{group_id}/approve-name", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/organizations/{group_id}/approve-name", status_code=status.HTTP_204_NO_CONTENT
+)
 async def approve_name_change(
     group_id: str, admin: AccountManagerUser, db: DB
 ) -> Response:
@@ -223,9 +221,7 @@ async def set_organization_name(
     """Set an organization's name directly (account manager)."""
     group = await _load_org_or_404(db, group_id)
     group.name = payload.name
-    group.slug = await groups_service.generate_unique_slug(
-        db, group.type, payload.name
-    )
+    group.slug = await groups_service.generate_unique_slug(db, group.type, payload.name)
     group.pending_name = None
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -254,27 +250,23 @@ async def grant_account_manager(
 ) -> Response:
     """Grant the account-manager role to a user."""
     existing = await db.execute(
-        select(AccountManager).where(
-            AccountManager.hanko_user_id == hanko_user_id
-        )
+        select(AccountManager).where(AccountManager.hanko_user_id == hanko_user_id)
     )
     if existing.scalar_one_or_none() is None:
-        db.add(
-            AccountManager(hanko_user_id=hanko_user_id, granted_by=admin.id)
-        )
+        db.add(AccountManager(hanko_user_id=hanko_user_id, granted_by=admin.id))
         await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.delete("/account-managers/{hanko_user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/account-managers/{hanko_user_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 async def revoke_account_manager(
     hanko_user_id: str, admin: AdminUser, db: DB
 ) -> Response:
     """Revoke the account-manager role from a user."""
     result = await db.execute(
-        select(AccountManager).where(
-            AccountManager.hanko_user_id == hanko_user_id
-        )
+        select(AccountManager).where(AccountManager.hanko_user_id == hanko_user_id)
     )
     am = result.scalar_one_or_none()
     if am is not None:

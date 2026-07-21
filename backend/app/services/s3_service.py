@@ -44,9 +44,7 @@ def _get_s3_client():
     return boto3.client("s3", **kwargs)
 
 
-def upload_group_image_local(
-    data: bytes, group_id: str, kind: str, ext: str
-) -> str:
+def upload_group_image_local(data: bytes, group_id: str, kind: str, ext: str) -> str:
     """Store image bytes on the local filesystem. Returns storage key."""
     key = f"local/groups/{group_id}/{kind}/{uuid.uuid4()}{ext}"
     path = _local_path(key)
@@ -59,9 +57,7 @@ def get_group_image_local(key: str) -> tuple[bytes, str]:
     """Fetch image bytes and content-type from the local filesystem."""
     path = _local_path(key)
     ext = path.suffix.lower()
-    return path.read_bytes(), _CONTENT_TYPE_BY_EXT.get(
-        ext, "application/octet-stream"
-    )
+    return path.read_bytes(), _CONTENT_TYPE_BY_EXT.get(ext, "application/octet-stream")
 
 
 def delete_group_image_local(key: str) -> None:
@@ -85,9 +81,7 @@ def upload_group_image(
 
 def get_group_image(key: str) -> tuple[bytes, str]:
     """Fetch image bytes and content-type from S3."""
-    response = _get_s3_client().get_object(
-        Bucket=settings.s3_bucket_name, Key=key
-    )
+    response = _get_s3_client().get_object(Bucket=settings.s3_bucket_name, Key=key)
     data = response["Body"].read()
     content_type = response.get("ContentType", "application/octet-stream")
     return data, content_type
@@ -98,7 +92,9 @@ def delete_group_image(key: str) -> None:
     _get_s3_client().delete_object(Bucket=settings.s3_bucket_name, Key=key)
 
 
-def store_image(data: bytes, group_id: str, kind: str, ext: str, content_type: str) -> str:
+def store_image(
+    data: bytes, group_id: str, kind: str, ext: str, content_type: str
+) -> str:
     """Store an image via S3 or the local fallback, returning the key."""
     if is_s3_configured():
         return upload_group_image(data, content_type, group_id, kind, ext)

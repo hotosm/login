@@ -2,6 +2,8 @@
 
 # Core dependencies
 # Admin functionality
+# PAT resolver (re-exported from core)
+from hotosm_auth.remote_resolver import remote_pat_resolver
 from hotosm_auth_fastapi.admin import (
     AdminUser,
     require_admin,
@@ -35,9 +37,6 @@ from hotosm_auth_fastapi.dependencies import (
 
 # OSM routes
 from hotosm_auth_fastapi.osm_routes import router as osm_router
-
-# PAT resolver (re-exported from core)
-from hotosm_auth.remote_resolver import remote_pat_resolver
 
 # Simple setup API
 from hotosm_auth_fastapi.setup import (

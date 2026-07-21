@@ -32,17 +32,10 @@ async def lookup_user(
         return {"exists": False}
 
     result = await db.execute(
-        select(UserProfile).where(
-            UserProfile.hanko_user_id == hanko_user_id
-        )
+        select(UserProfile).where(UserProfile.hanko_user_id == hanko_user_id)
     )
     profile = result.scalar_one_or_none()
     name = None
     if profile:
-        name = (
-            " ".join(
-                p for p in (profile.first_name, profile.last_name) if p
-            )
-            or None
-        )
+        name = " ".join(p for p in (profile.first_name, profile.last_name) if p) or None
     return {"exists": True, "hanko_user_id": hanko_user_id, "name": name}

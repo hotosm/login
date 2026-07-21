@@ -33,9 +33,7 @@ async def _public_group_by_slug(
     result = await db.execute(select(Group).where(*conditions))
     group = result.scalar_one_or_none()
     if group is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     return group
 
 
@@ -70,32 +68,24 @@ async def _serialize_public_group(
 @router.get("/org/{slug}", response_model=PublicGroupResponse)
 async def public_organization(slug: str, db: DB) -> PublicGroupResponse:
     """Public profile of an approved, public organization."""
-    group = await _public_group_by_slug(
-        db, "organization", slug, require_approved=True
-    )
+    group = await _public_group_by_slug(db, "organization", slug, require_approved=True)
     return await _serialize_public_group(db, group)
 
 
 @router.get("/team/{slug}", response_model=PublicGroupResponse)
 async def public_team(slug: str, db: DB) -> PublicGroupResponse:
     """Public profile of a public team."""
-    group = await _public_group_by_slug(
-        db, "team", slug, require_approved=False
-    )
+    group = await _public_group_by_slug(db, "team", slug, require_approved=False)
     return await _serialize_public_group(db, group)
 
 
 @router.get("/user/{slug}", response_model=PublicUserResponse)
 async def public_user(slug: str, db: DB) -> PublicUserResponse:
     """Public profile of a user by slug."""
-    result = await db.execute(
-        select(UserProfile).where(UserProfile.slug == slug)
-    )
+    result = await db.execute(select(UserProfile).where(UserProfile.slug == slug))
     profile = result.scalar_one_or_none()
     if profile is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     return PublicUserResponse(
         slug=profile.slug,
         first_name=profile.first_name,

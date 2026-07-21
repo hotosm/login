@@ -137,15 +137,11 @@ class Group(Base):
     banner_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Teams are always 'approved'; orgs move pending -> approved/rejected.
-    status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="approved"
-    )
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="approved")
     # Proposed name change awaiting account-manager approval (orgs only).
     pending_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     # Whether the group exposes a public profile in portal (opt-in).
-    is_public: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -156,9 +152,7 @@ class Group(Base):
     )
 
     __table_args__ = (
-        CheckConstraint(
-            "type IN ('team', 'organization')", name="ck_groups_type"
-        ),
+        CheckConstraint("type IN ('team', 'organization')", name="ck_groups_type"),
         CheckConstraint(
             "status IN ('pending', 'approved', 'rejected')",
             name="ck_groups_status",
@@ -235,14 +229,10 @@ class GroupInvitation(Base):
     )
     email: Mapped[str] = mapped_column(String(320), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="member")
-    status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="pending"
-    )
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     invited_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    invited_hanko_user_id: Mapped[str | None] = mapped_column(
-        String(36), nullable=True
-    )
+    invited_hanko_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
