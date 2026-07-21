@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Hanko } from "@teamhanko/hanko-elements";
 import { validateReturnTo } from "../utils/validateReturnTo";
-import "@hotosm/tool-menu";
-import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
 
@@ -69,19 +67,6 @@ function ProfilePage() {
   // Get return URL from query params (passed by web component)
   const urlParams = new URLSearchParams(window.location.search);
   const returnTo = validateReturnTo(urlParams.get("return_to"));
-
-  // Determine back button text and destination
-  const backInfo = (() => {
-    if (!returnTo) return null;
-    try {
-      const url = new URL(returnTo);
-      const appName = url.hostname.split(".")[0];
-      const label = appName.charAt(0).toUpperCase() + appName.slice(1);
-      return { url: returnTo, label };
-    } catch {
-      return null;
-    }
-  })();
 
   // Fetch profile on mount
   useEffect(() => {
@@ -329,28 +314,8 @@ function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-hot-gray-50 py-8 px-4">
+    <div>
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={hotLogo} alt="HOT" className="h-10" />
-            </div>
-            <div className="flex items-center gap-4">
-              {backInfo && (
-                <button
-                  onClick={() => (window.location.href = backInfo.url)}
-                  className="text-hot-gray-1000 hover:text-hot-gray-900 text-sm transition-colors"
-                >
-                  {t("goBack")}
-                </button>
-              )}
-              <hotosm-tool-menu lang={language} />
-            </div>
-          </div>
-        </div>
-
         {/* Messages */}
         {error && (
           <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg mb-6">

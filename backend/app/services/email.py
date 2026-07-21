@@ -1,9 +1,9 @@
 """SMTP helper for outbound emails."""
 
 import logging
+from email.message import EmailMessage
 
 import aiosmtplib
-from email.message import EmailMessage
 
 from app.core.config import settings
 

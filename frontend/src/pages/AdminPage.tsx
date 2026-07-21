@@ -13,6 +13,9 @@ import {
   Cell,
 } from 'recharts';
 import hotLogo from '../assets/images/hot-logo.svg';
+import { useRoles } from '../hooks/useRoles';
+import { readError } from '../utils/api';
+import type { GroupResponse } from '../types/groups';
 
 interface Mapping {
   hanko_user_id: string;
@@ -78,6 +81,14 @@ interface SearchUser {
   apps: string[];
   created_at: string;
   last_login: string | null;
+  // Optional platform role, if provided by the backend (e.g. 'account_manager')
+  role?: string;
+}
+
+interface AccountManager {
+  hanko_user_id: string;
+  granted_by: string;
+  granted_at: string;
 }
 
 interface SearchResult {
@@ -217,10 +228,14 @@ const ProgressRing = ({
   );
 };
 
+type AdminTab = 'dashboard' | 'mappings' | 'users' | 'organizations';
+
 function AdminPage() {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'mappings'>('dashboard');
+  // Platform roles decide which tabs are visible (admin vs account manager)
+  const { isAdmin, isAccountManager, loading: rolesLoading } = useRoles();
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [tabInitialized, setTabInitialized] = useState(false);
 
   // Dashboard state
   const [period, setPeriod] = useState<Period>('month');
@@ -260,26 +275,36 @@ function AdminPage() {
   const [searchTotalPages, setSearchTotalPages] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  // Account managers (users tab) — set of hanko_user_ids that are AMs
+  const [accountManagers, setAccountManagers] = useState<Set<string>>(new Set());
+
+  // Pending organizations (organizations tab)
+  const [pendingOrgs, setPendingOrgs] = useState<GroupResponse[]>([]);
+  const [selectedOrg, setSelectedOrg] = useState<GroupResponse | null>(null);
+  const [orgsLoading, setOrgsLoading] = useState(false);
+  const [orgsError, setOrgsError] = useState<string | null>(null);
+
   const backendUrl = import.meta.env.VITE_BACKEND_URL || '/api';
 
-  // Check if user is admin
+  // Which tabs the current user can see (order matters: first visible = default)
+  const visibleTabs: AdminTab[] = [];
+  if (isAdmin) visibleTabs.push('dashboard', 'mappings');
+  if (isAdmin || isAccountManager) visibleTabs.push('users', 'organizations');
+
+  // Once roles resolve, land on the first visible tab (honoring ?tab=).
+  // An account-manager-only user starts on 'users', not 'dashboard'.
   useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/admin/check`, {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
-      } catch {
-        setIsAdmin(false);
-      }
-    };
-    checkAdmin();
-  }, [backendUrl]);
+    if (rolesLoading || tabInitialized) return;
+    const requested = new URLSearchParams(window.location.search).get(
+      'tab'
+    ) as AdminTab | null;
+    if (requested && visibleTabs.includes(requested)) {
+      setActiveTab(requested);
+    } else if (!visibleTabs.includes(activeTab) && visibleTabs.length > 0) {
+      setActiveTab(visibleTabs[0]);
+    }
+    setTabInitialized(true);
+  }, [rolesLoading, tabInitialized, activeTab, visibleTabs]);
 
   // Build query params for period filter
   const buildPeriodParams = () => {
@@ -408,9 +433,9 @@ function AdminPage() {
     fetchMappings();
   }, [isAdmin, activeTab, selectedApp, page, backendUrl]);
 
-  // Search users function
+  // Search users function (available to admins and account managers)
   const handleSearch = async (newPage = 1) => {
-    if (!isAdmin) return;
+    if (!isAdmin && !isAccountManager) return;
 
     setSearchLoading(true);
     setSearchPage(newPage);
@@ -445,12 +470,57 @@ function AdminPage() {
     }
   };
 
-  // Initial search on mount
+  // Run the user search when the Users tab opens (admins and account managers)
   useEffect(() => {
-    if (isAdmin && activeTab === 'dashboard') {
+    if ((isAdmin || isAccountManager) && activeTab === 'users') {
       handleSearch(1);
     }
-  }, [isAdmin, activeTab]);
+  }, [isAdmin, isAccountManager, activeTab]);
+
+  // Load current account managers to flag them in the users table.
+  // Admin-only endpoint — skip for account-manager-only users to avoid 403.
+  useEffect(() => {
+    if (!isAdmin || activeTab !== 'users') return;
+    const fetchAccountManagers = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/admin/account-managers`, {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data: AccountManager[] = await response.json();
+          setAccountManagers(new Set(data.map((am) => am.hanko_user_id)));
+        }
+      } catch {
+        // Non-critical: role column just falls back to '—'
+      }
+    };
+    fetchAccountManagers();
+  }, [isAdmin, activeTab, backendUrl]);
+
+  // Load pending organizations for the Organizations tab
+  const fetchPendingOrgs = async () => {
+    setOrgsLoading(true);
+    setOrgsError(null);
+    try {
+      const response = await fetch(
+        `${backendUrl}/admin/organizations?status=pending&page=1&page_size=50`,
+        { credentials: 'include' }
+      );
+      if (!response.ok) throw new Error(await readError(response));
+      const data = await response.json();
+      setPendingOrgs(data.items || []);
+    } catch (err) {
+      setOrgsError(err instanceof Error ? err.message : 'Failed to load organizations');
+    } finally {
+      setOrgsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if ((isAdmin || isAccountManager) && activeTab === 'organizations') {
+      fetchPendingOrgs();
+    }
+  }, [isAdmin, isAccountManager, activeTab]);
 
   const handleDeleteMapping = async (hankoUserId: string) => {
     if (!confirm('Are you sure you want to delete this mapping?')) return;
@@ -510,6 +580,71 @@ function AdminPage() {
     }
   };
 
+  // Grant/revoke the account manager role (admin only)
+  const handleToggleAccountManager = async (userId: string, makeAm: boolean) => {
+    try {
+      const response = await fetch(
+        `${backendUrl}/admin/account-managers/${userId}`,
+        { method: makeAm ? 'PUT' : 'DELETE', credentials: 'include' }
+      );
+      if (!response.ok) throw new Error(await readError(response));
+      setAccountManagers((prev) => {
+        const next = new Set(prev);
+        if (makeAm) next.add(userId);
+        else next.delete(userId);
+        return next;
+      });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update role');
+    }
+  };
+
+  // Organization moderation actions (admin / account manager)
+  const handleApproveOrg = async (orgId: string) => {
+    try {
+      const response = await fetch(
+        `${backendUrl}/admin/organizations/${orgId}/approve`,
+        { method: 'POST', credentials: 'include' }
+      );
+      if (!response.ok) throw new Error(await readError(response));
+      setPendingOrgs((prev) => prev.filter((o) => o.id !== orgId));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to approve');
+    }
+  };
+
+  const handleRejectOrg = async (orgId: string) => {
+    const reason = window.prompt('Reason for rejection (optional):') ?? undefined;
+    try {
+      const response = await fetch(
+        `${backendUrl}/admin/organizations/${orgId}/reject`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        }
+      );
+      if (!response.ok) throw new Error(await readError(response));
+      setPendingOrgs((prev) => prev.filter((o) => o.id !== orgId));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to reject');
+    }
+  };
+
+  const handleApproveName = async (orgId: string) => {
+    try {
+      const response = await fetch(
+        `${backendUrl}/admin/organizations/${orgId}/approve-name`,
+        { method: 'POST', credentials: 'include' }
+      );
+      if (!response.ok) throw new Error(await readError(response));
+      await fetchPendingOrgs();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to approve name');
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString();
   };
@@ -521,8 +656,8 @@ function AdminPage() {
 
   const totalPages = Math.ceil(total / 20);
 
-  // Loading admin check
-  if (isAdmin === null) {
+  // Loading roles
+  if (rolesLoading) {
     return (
       <div className="admin-page">
         <div className="admin-loading">
@@ -533,8 +668,8 @@ function AdminPage() {
     );
   }
 
-  // Not admin
-  if (!isAdmin) {
+  // Neither admin nor account manager — no access to the panel at all
+  if (!isAdmin && !isAccountManager) {
     return (
       <div className="admin-page">
         <div className="admin-card admin-error-card">
@@ -574,20 +709,41 @@ function AdminPage() {
         </button>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs — dashboard/mappings are admin-only; users/organizations
+          are also available to account managers */}
       <div className="admin-tabs">
-        <button
-          className={`admin-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          Dashboard
-        </button>
-        <button
-          className={`admin-tab ${activeTab === 'mappings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('mappings')}
-        >
-          User Mappings
-        </button>
+        {isAdmin && (
+          <button
+            className={`admin-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+        )}
+        {isAdmin && (
+          <button
+            className={`admin-tab ${activeTab === 'mappings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('mappings')}
+          >
+            User Mappings
+          </button>
+        )}
+        {(isAdmin || isAccountManager) && (
+          <button
+            className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            Users
+          </button>
+        )}
+        {(isAdmin || isAccountManager) && (
+          <button
+            className={`admin-tab ${activeTab === 'organizations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('organizations')}
+          >
+            Orgs to approve
+          </button>
+        )}
       </div>
 
       {/* Dashboard Tab */}
@@ -831,8 +987,13 @@ function AdminPage() {
             </div>
           </div>
 
-          {/* User Search Section */}
-          <div className="glass-card p-6 mt-6">
+        </div>
+      )}
+
+      {/* Users Tab — user search + account manager management */}
+      {(isAdmin || isAccountManager) && activeTab === 'users' && (
+        <div className="dashboard-content">
+          <div className="glass-card p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-1 flex items-center gap-2">
               <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -913,6 +1074,8 @@ function AdminPage() {
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Onboarded</th>
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Registered</th>
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Last Login</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Role</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -926,11 +1089,13 @@ function AdminPage() {
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                        <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                        <td className="py-3 px-2"><div className="h-7 bg-gray-200 rounded w-28"></div></td>
                       </tr>
                     ))
                   ) : searchResults.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-gray-500">No users found</td>
+                      <td colSpan={9} className="py-8 text-center text-gray-500">No users found</td>
                     </tr>
                   ) : (
                     searchResults.map((user) => (
@@ -1003,6 +1168,33 @@ function AdminPage() {
                         <td className="py-3 px-2 text-gray-600">
                           {user.last_login ? new Date(user.last_login).toLocaleDateString() : <span className="text-gray-400">-</span>}
                         </td>
+                        <td className="py-3 px-2">
+                          {accountManagers.has(user.id) || user.role === 'account_manager' ? (
+                            <span className="text-xs px-2 py-0.5 rounded bg-hot-red-100 text-hot-red-700">account_manager</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-2">
+                          {!isAdmin ? (
+                            // Account Managers see the user list read-only.
+                            <span className="text-gray-400">—</span>
+                          ) : accountManagers.has(user.id) || user.role === 'account_manager' ? (
+                            <button
+                              onClick={() => handleToggleAccountManager(user.id, false)}
+                              className="text-xs px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 whitespace-nowrap"
+                            >
+                              Remove account manager
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleAccountManager(user.id, true)}
+                              className="text-xs px-2 py-1 border border-hot-red-200 text-hot-red-600 rounded-lg hover:bg-hot-red-50 whitespace-nowrap"
+                            >
+                              Make account manager
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -1032,6 +1224,242 @@ function AdminPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Organizations Tab — pending organization approvals */}
+      {(isAdmin || isAccountManager) && activeTab === 'organizations' && (
+        <div className="dashboard-content">
+          <div className="glass-card p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-1 flex items-center gap-2">
+              <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              Pending Organizations
+            </h3>
+            <p className="text-xs text-gray-400 mb-4">Review and approve organization requests</p>
+
+            {orgsError && (
+              <div className="admin-alert admin-alert-error">{orgsError}</div>
+            )}
+
+            {orgsLoading ? (
+              <div className="admin-loading">
+                <div className="spinner"></div>
+                <p>Loading organizations...</p>
+              </div>
+            ) : pendingOrgs.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                No pending organizations
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-2 font-semibold text-gray-600">Name</th>
+                      <th className="text-left py-3 px-2 font-semibold text-gray-600">Contact</th>
+                      <th className="text-left py-3 px-2 font-semibold text-gray-600">Requested</th>
+                      <th className="text-left py-3 px-2 font-semibold text-gray-600">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingOrgs.map((org) => (
+                      <tr key={org.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedOrg(org)}
+                            className="font-medium text-hot-red-600 hover:underline text-left"
+                          >
+                            {org.name}
+                          </button>
+                          {org.pending_name && (
+                            <div className="text-xs text-gray-500">
+                              Pending name: {org.pending_name}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-2 text-gray-600">
+                          {org.contact_email || '—'}
+                        </td>
+                        <td className="py-3 px-2 text-gray-600">
+                          {new Date(org.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className="flex gap-2 flex-wrap">
+                            <button
+                              onClick={() => setSelectedOrg(org)}
+                              className="text-xs px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 whitespace-nowrap"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleApproveOrg(org.id)}
+                              className="btn-success-small"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleRejectOrg(org.id)}
+                              className="btn-danger-small"
+                            >
+                              Reject
+                            </button>
+                            {org.pending_name && (
+                              <button
+                                onClick={() => handleApproveName(org.id)}
+                                className="btn-primary-small"
+                              >
+                                Approve name
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Organization detail — review everything before approving */}
+      {selectedOrg && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedOrg(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {selectedOrg.banner_url && (
+              <img
+                src={selectedOrg.banner_url}
+                alt=""
+                className="w-full h-32 object-cover rounded-t-xl"
+              />
+            )}
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                {selectedOrg.avatar_url ? (
+                  <img
+                    src={selectedOrg.avatar_url}
+                    alt=""
+                    className="w-14 h-14 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xl font-semibold">
+                    {selectedOrg.name[0]?.toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {selectedOrg.name}
+                  </h3>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+                    {selectedOrg.status}
+                  </span>
+                </div>
+              </div>
+
+              {selectedOrg.pending_name && (
+                <div className="mb-3 text-sm">
+                  <span className="text-gray-500">Pending name change: </span>
+                  <span className="font-medium">{selectedOrg.pending_name}</span>
+                </div>
+              )}
+
+              <dl className="space-y-3 text-sm mb-6">
+                <div>
+                  <dt className="text-gray-500">Description</dt>
+                  <dd className="text-gray-800 whitespace-pre-wrap">
+                    {selectedOrg.description || '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-gray-500">Website</dt>
+                  <dd>
+                    {selectedOrg.website ? (
+                      <a
+                        href={selectedOrg.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-hot-red-600 hover:underline break-all"
+                      >
+                        {selectedOrg.website}
+                      </a>
+                    ) : (
+                      '—'
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-gray-500">Contact email</dt>
+                  <dd className="text-gray-800">
+                    {selectedOrg.contact_email || '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-gray-500">Members</dt>
+                  <dd className="text-gray-800">{selectedOrg.members_count}</dd>
+                </div>
+                <div>
+                  <dt className="text-gray-500">Requested</dt>
+                  <dd className="text-gray-800">
+                    {new Date(selectedOrg.created_at).toLocaleString()}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-gray-500">Requested by (user ID)</dt>
+                  <dd className="font-mono text-xs text-gray-600 break-all">
+                    {selectedOrg.created_by}
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="flex gap-2 justify-end flex-wrap">
+                <button
+                  onClick={() => setSelectedOrg(null)}
+                  className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  Close
+                </button>
+                {selectedOrg.pending_name && (
+                  <button
+                    onClick={async () => {
+                      await handleApproveName(selectedOrg.id);
+                      setSelectedOrg(null);
+                    }}
+                    className="btn-primary-small"
+                  >
+                    Approve name
+                  </button>
+                )}
+                <button
+                  onClick={async () => {
+                    await handleRejectOrg(selectedOrg.id);
+                    setSelectedOrg(null);
+                  }}
+                  className="btn-danger-small"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={async () => {
+                    await handleApproveOrg(selectedOrg.id);
+                    setSelectedOrg(null);
+                  }}
+                  className="btn-success-small"
+                >
+                  Approve
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

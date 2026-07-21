@@ -13,7 +13,12 @@ from app.__version__ import __version__
 from app.api.routes import admin as admin_routes
 from app.api.routes import api_token as api_token_routes
 from app.api.routes import data_deletion as data_deletion_routes
+from app.api.routes import groups as groups_routes
+from app.api.routes import invitations as invitations_routes
+from app.api.routes import organizations_admin as organizations_admin_routes
 from app.api.routes import profile as profile_routes
+from app.api.routes import public as public_routes
+from app.api.routes import users as users_routes
 from app.schemas.auth import UserInfoResponse
 
 
@@ -107,13 +112,11 @@ auth_config = AuthConfig.from_env()
 
 async def _local_pat_resolver(token_hash: str, app_name: str):
     """Resolve a PAT directly from the login DB (no HTTP call to self)."""
-    from datetime import datetime, timezone
-
+    from hotosm_auth.models import HankoUser
     from sqlalchemy import select
 
     from app.db.database import async_session_maker
     from app.db.models import UserApiToken, UserProfile
-    from hotosm_auth.models import HankoUser
 
     async with async_session_maker() as session:
         result = await session.execute(
@@ -164,6 +167,13 @@ app.include_router(profile_routes.router)
 app.include_router(api_token_routes.router)
 app.include_router(api_token_routes.internal_router)
 app.include_router(data_deletion_routes.router)
+app.include_router(groups_routes.router)
+app.include_router(invitations_routes.router)
+app.include_router(invitations_routes.me_router)
+app.include_router(organizations_admin_routes.router)
+app.include_router(organizations_admin_routes.me_router)
+app.include_router(public_routes.router)
+app.include_router(users_routes.router)
 
 
 @app.get("/me", response_model=UserInfoResponse)

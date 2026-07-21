@@ -78,6 +78,103 @@ export interface Translations {
   // Common
   login: string;
   no_existing_osm_account: string;
+
+  // Teams & Organizations — navigation / layout
+  // (optional: missing keys fall back to English via the t() helper)
+  hotAccount?: string;
+  navProfile?: string;
+  navOrganizations?: string;
+  navTeams?: string;
+  navUsers?: string;
+  navAdmin?: string;
+
+  // Organizations
+  organizations?: string;
+  organizationsSubtitle?: string;
+  requestOrganization?: string;
+  requestOrgTitle?: string;
+  name?: string;
+  contactEmail?: string;
+  website?: string;
+  description?: string;
+  submitRequest?: string;
+  orgRequestSubmitted?: string;
+  noOrganizations?: string;
+
+  // Invitations
+  pendingInvitations?: string;
+  invitedToJoin?: string;
+  accept?: string;
+  decline?: string;
+
+  // Teams
+  teams?: string;
+  teamsSubtitle?: string;
+  createTeam?: string;
+  createTeamTitle?: string;
+  teamCreated?: string;
+  memberIdsLabel?: string;
+  memberIdsHint?: string;
+  noTeams?: string;
+  create?: string;
+
+  // Group detail (shared)
+  detailsTab?: string;
+  membersTab?: string;
+  changeName?: string;
+  nameChangePending?: string;
+  avatarLabel?: string;
+  bannerLabel?: string;
+  detailsSaved?: string;
+  publicGroup?: string;
+  deleteGroupBtn?: string;
+  deleteGroupConfirm?: string;
+
+  // Members
+  addMemberByEmail?: string;
+  addMemberById?: string;
+  hankoUserIdLabel?: string;
+  inviteBtn?: string;
+  addBtn?: string;
+  removeMember?: string;
+  leaveGroup?: string;
+  removeMemberConfirm?: string;
+  leaveGroupConfirm?: string;
+  transferOwnershipConfirm?: string;
+  memberSince?: string;
+  noMembers?: string;
+  sentInvitations?: string;
+  cancelInvite?: string;
+  cancelInviteConfirm?: string;
+  previous?: string;
+  next?: string;
+
+  // Member roles
+  roleOwner?: string;
+  roleManager?: string;
+  roleMember?: string;
+
+  // Group statuses
+  statusPending?: string;
+  statusApproved?: string;
+  statusActive?: string;
+  statusRejected?: string;
+
+  // Accept invite page
+  acceptingInvite?: string;
+  inviteAccepted?: string;
+  inviteFailed?: string;
+  goToGroup?: string;
+  noInviteToken?: string;
+
+  // Admin tabs (users / organizations management)
+  adminUsersTab?: string;
+  adminOrganizationsTab?: string;
+  makeAccountManager?: string;
+  removeAccountManager?: string;
+  approveBtn?: string;
+  rejectBtn?: string;
+  approveNameBtn?: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -150,6 +247,82 @@ export const translations: Record<string, Translations> = {
     cancel: "Cancel",
     login: "Login",
     no_existing_osm_account: "No existing account found for your OSM user. Please select 'Continue' to create a new account.",
+    hotAccount: "HOT Account",
+    navProfile: "Profile",
+    navOrganizations: "Organizations",
+    navTeams: "Teams",
+    navUsers: "Users",
+    navAdmin: "Admin",
+    organizations: "Organizations",
+    organizationsSubtitle: "Official organizations you belong to",
+    requestOrganization: "Request organization",
+    requestOrgTitle: "Request a new organization",
+    name: "Name",
+    contactEmail: "Contact email",
+    website: "Website",
+    description: "Description",
+    submitRequest: "Submit request",
+    orgRequestSubmitted: "Your organization request was submitted and is pending approval.",
+    noOrganizations: "You don't belong to any organizations yet.",
+    pendingInvitations: "Pending invitations",
+    invitedToJoin: "You've been invited to join",
+    accept: "Accept",
+    decline: "Decline",
+    teams: "Teams",
+    teamsSubtitle: "Informal teams you belong to",
+    createTeam: "Create team",
+    createTeamTitle: "Create a new team",
+    teamCreated: "Team created.",
+    memberIdsLabel: "Member IDs (optional)",
+    memberIdsHint: "Comma-separated Hanko user IDs",
+    noTeams: "You don't belong to any teams yet.",
+    create: "Create",
+    detailsTab: "Details",
+    membersTab: "Members",
+    changeName: "Change name",
+    nameChangePending: "Name change pending approval",
+    avatarLabel: "Avatar",
+    bannerLabel: "Banner",
+    detailsSaved: "Changes saved.",
+    publicGroup: "Public",
+    deleteGroupBtn: "Delete",
+    deleteGroupConfirm: "Are you sure? This cannot be undone.",
+    addMemberByEmail: "Invite by email",
+    addMemberById: "Add member by ID",
+    hankoUserIdLabel: "Hanko user ID",
+    inviteBtn: "Invite",
+    addBtn: "Add",
+    removeMember: "Remove",
+    leaveGroup: "Leave",
+    removeMemberConfirm: "Remove this member?",
+    leaveGroupConfirm: "Leave this group?",
+    transferOwnershipConfirm: "Transfer ownership to this member?",
+    memberSince: "Member since",
+    noMembers: "No members yet.",
+    sentInvitations: "Pending invitations",
+    cancelInvite: "Cancel",
+    cancelInviteConfirm: "Cancel this invitation?",
+    previous: "Previous",
+    next: "Next",
+    roleOwner: "Owner",
+    roleManager: "Manager",
+    roleMember: "Member",
+    statusPending: "Pending",
+    statusApproved: "Approved",
+    statusActive: "Active",
+    statusRejected: "Rejected",
+    acceptingInvite: "Accepting invitation...",
+    inviteAccepted: "Invitation accepted!",
+    inviteFailed: "Could not accept the invitation.",
+    goToGroup: "Go to organizations",
+    noInviteToken: "No invitation token provided.",
+    adminUsersTab: "Users",
+    adminOrganizationsTab: "Organizations",
+    makeAccountManager: "Make account manager",
+    removeAccountManager: "Remove account manager",
+    approveBtn: "Approve",
+    rejectBtn: "Reject",
+    approveNameBtn: "Approve name",
   },
   es: {
     welcomeTo: "Bienvenido a HOT's",
@@ -221,6 +394,82 @@ export const translations: Record<string, Translations> = {
     cancel: "Cancelar",
     login: "Inicio de sesión",
     no_existing_osm_account: "No se encontró una cuenta existente para tu usuario de OSM. Por favor selecciona 'Continuar' para crear una nueva cuenta.",
+    hotAccount: "Cuenta HOT",
+    navProfile: "Perfil",
+    navOrganizations: "Organizaciones",
+    navTeams: "Equipos",
+    navUsers: "Usuarios",
+    navAdmin: "Admin",
+    organizations: "Organizaciones",
+    organizationsSubtitle: "Organizaciones oficiales a las que perteneces",
+    requestOrganization: "Solicitar organización",
+    requestOrgTitle: "Solicitar una nueva organización",
+    name: "Nombre",
+    contactEmail: "Correo de contacto",
+    website: "Sitio web",
+    description: "Descripción",
+    submitRequest: "Enviar solicitud",
+    orgRequestSubmitted: "Tu solicitud de organización fue enviada y está pendiente de aprobación.",
+    noOrganizations: "Todavía no perteneces a ninguna organización.",
+    pendingInvitations: "Invitaciones pendientes",
+    invitedToJoin: "Te invitaron a unirte",
+    accept: "Aceptar",
+    decline: "Rechazar",
+    teams: "Equipos",
+    teamsSubtitle: "Equipos informales a los que perteneces",
+    createTeam: "Crear equipo",
+    createTeamTitle: "Crear un nuevo equipo",
+    teamCreated: "Equipo creado.",
+    memberIdsLabel: "IDs de miembros (opcional)",
+    memberIdsHint: "IDs de usuario de Hanko separados por comas",
+    noTeams: "Todavía no perteneces a ningún equipo.",
+    create: "Crear",
+    detailsTab: "Detalles",
+    membersTab: "Miembros",
+    changeName: "Cambiar nombre",
+    nameChangePending: "Cambio de nombre pendiente de aprobación",
+    avatarLabel: "Avatar",
+    bannerLabel: "Banner",
+    detailsSaved: "Cambios guardados.",
+    publicGroup: "Público",
+    deleteGroupBtn: "Eliminar",
+    deleteGroupConfirm: "¿Estás seguro? Esto no se puede deshacer.",
+    addMemberByEmail: "Invitar por email",
+    addMemberById: "Agregar miembro por ID",
+    hankoUserIdLabel: "ID de usuario Hanko",
+    inviteBtn: "Invitar",
+    addBtn: "Agregar",
+    removeMember: "Quitar",
+    leaveGroup: "Salir",
+    removeMemberConfirm: "¿Quitar a este miembro?",
+    leaveGroupConfirm: "¿Salir de este grupo?",
+    transferOwnershipConfirm: "¿Transferir la propiedad a este miembro?",
+    memberSince: "Miembro desde",
+    noMembers: "Todavía no hay miembros.",
+    sentInvitations: "Invitaciones enviadas",
+    cancelInvite: "Cancelar",
+    cancelInviteConfirm: "¿Cancelar esta invitación?",
+    previous: "Anterior",
+    next: "Siguiente",
+    roleOwner: "Propietario",
+    roleManager: "Gestor",
+    roleMember: "Miembro",
+    statusPending: "Pendiente",
+    statusApproved: "Aprobada",
+    statusActive: "Activa",
+    statusRejected: "Rechazada",
+    acceptingInvite: "Aceptando invitación...",
+    inviteAccepted: "¡Invitación aceptada!",
+    inviteFailed: "No se pudo aceptar la invitación.",
+    goToGroup: "Ir a organizaciones",
+    noInviteToken: "No se proporcionó un token de invitación.",
+    adminUsersTab: "Usuarios",
+    adminOrganizationsTab: "Organizaciones",
+    makeAccountManager: "Hacer gestor de cuentas",
+    removeAccountManager: "Quitar gestor de cuentas",
+    approveBtn: "Aprobar",
+    rejectBtn: "Rechazar",
+    approveNameBtn: "Aprobar nombre",
   },
   fr: {
     welcomeTo: "Bienvenue sur HOT's",
@@ -291,6 +540,82 @@ export const translations: Record<string, Translations> = {
     cancel: "Annuler",
     login: "Connexion",
     no_existing_osm_account: "Aucun compte existant trouvé pour votre utilisateur OSM. Veuillez sélectionner 'Continuer' pour créer un nouveau compte.",
+    hotAccount: "Compte HOT",
+    navProfile: "Profil",
+    navOrganizations: "Organisations",
+    navTeams: "Équipes",
+    navUsers: "Utilisateurs",
+    navAdmin: "Admin",
+    organizations: "Organisations",
+    organizationsSubtitle: "Organisations officielles dont vous faites partie",
+    requestOrganization: "Demander une organisation",
+    requestOrgTitle: "Demander une nouvelle organisation",
+    name: "Nom",
+    contactEmail: "Email de contact",
+    website: "Site web",
+    description: "Description",
+    submitRequest: "Envoyer la demande",
+    orgRequestSubmitted: "Votre demande d'organisation a été envoyée et est en attente d'approbation.",
+    noOrganizations: "Vous ne faites partie d'aucune organisation pour l'instant.",
+    pendingInvitations: "Invitations en attente",
+    invitedToJoin: "Vous avez été invité à rejoindre",
+    accept: "Accepter",
+    decline: "Refuser",
+    teams: "Équipes",
+    teamsSubtitle: "Équipes informelles dont vous faites partie",
+    createTeam: "Créer une équipe",
+    createTeamTitle: "Créer une nouvelle équipe",
+    teamCreated: "Équipe créée.",
+    memberIdsLabel: "IDs des membres (facultatif)",
+    memberIdsHint: "IDs d'utilisateur Hanko séparés par des virgules",
+    noTeams: "Vous ne faites partie d'aucune équipe pour l'instant.",
+    create: "Créer",
+    detailsTab: "Détails",
+    membersTab: "Membres",
+    changeName: "Changer le nom",
+    nameChangePending: "Changement de nom en attente d'approbation",
+    avatarLabel: "Avatar",
+    bannerLabel: "Bannière",
+    detailsSaved: "Modifications enregistrées.",
+    publicGroup: "Public",
+    deleteGroupBtn: "Supprimer",
+    deleteGroupConfirm: "Êtes-vous sûr ? Cette action est irréversible.",
+    addMemberByEmail: "Inviter par email",
+    addMemberById: "Ajouter un membre par ID",
+    hankoUserIdLabel: "ID d'utilisateur Hanko",
+    inviteBtn: "Inviter",
+    addBtn: "Ajouter",
+    removeMember: "Retirer",
+    leaveGroup: "Quitter",
+    removeMemberConfirm: "Retirer ce membre ?",
+    leaveGroupConfirm: "Quitter ce groupe ?",
+    transferOwnershipConfirm: "Transférer la propriété à ce membre ?",
+    memberSince: "Membre depuis",
+    noMembers: "Aucun membre pour l'instant.",
+    sentInvitations: "Invitations envoyées",
+    cancelInvite: "Annuler",
+    cancelInviteConfirm: "Annuler cette invitation ?",
+    previous: "Précédent",
+    next: "Suivant",
+    roleOwner: "Propriétaire",
+    roleManager: "Gestionnaire",
+    roleMember: "Membre",
+    statusPending: "En attente",
+    statusApproved: "Approuvée",
+    statusActive: "Active",
+    statusRejected: "Rejetée",
+    acceptingInvite: "Acceptation de l'invitation...",
+    inviteAccepted: "Invitation acceptée !",
+    inviteFailed: "Impossible d'accepter l'invitation.",
+    goToGroup: "Aller aux organisations",
+    noInviteToken: "Aucun jeton d'invitation fourni.",
+    adminUsersTab: "Utilisateurs",
+    adminOrganizationsTab: "Organisations",
+    makeAccountManager: "Nommer gestionnaire de comptes",
+    removeAccountManager: "Retirer gestionnaire de comptes",
+    approveBtn: "Approuver",
+    rejectBtn: "Rejeter",
+    approveNameBtn: "Approuver le nom",
   },
   pt: {
     welcomeTo: "Bem-vindo ao HOT's",
@@ -360,6 +685,82 @@ export const translations: Record<string, Translations> = {
     cancel: "Cancelar",
     login: "Login",
     no_existing_osm_account: "Nenhuma conta existente encontrada para o seu usuário OSM. Por favor selecione 'Continuar' para criar uma nova conta.",
+    hotAccount: "Conta HOT",
+    navProfile: "Perfil",
+    navOrganizations: "Organizações",
+    navTeams: "Equipes",
+    navUsers: "Usuários",
+    navAdmin: "Admin",
+    organizations: "Organizações",
+    organizationsSubtitle: "Organizações oficiais às quais você pertence",
+    requestOrganization: "Solicitar organização",
+    requestOrgTitle: "Solicitar uma nova organização",
+    name: "Nome",
+    contactEmail: "E-mail de contato",
+    website: "Site",
+    description: "Descrição",
+    submitRequest: "Enviar solicitação",
+    orgRequestSubmitted: "Sua solicitação de organização foi enviada e está pendente de aprovação.",
+    noOrganizations: "Você ainda não pertence a nenhuma organização.",
+    pendingInvitations: "Convites pendentes",
+    invitedToJoin: "Você foi convidado para entrar",
+    accept: "Aceitar",
+    decline: "Recusar",
+    teams: "Equipes",
+    teamsSubtitle: "Equipes informais às quais você pertence",
+    createTeam: "Criar equipe",
+    createTeamTitle: "Criar uma nova equipe",
+    teamCreated: "Equipe criada.",
+    memberIdsLabel: "IDs de membros (opcional)",
+    memberIdsHint: "IDs de usuário Hanko separados por vírgulas",
+    noTeams: "Você ainda não pertence a nenhuma equipe.",
+    create: "Criar",
+    detailsTab: "Detalhes",
+    membersTab: "Membros",
+    changeName: "Alterar nome",
+    nameChangePending: "Alteração de nome pendente de aprovação",
+    avatarLabel: "Avatar",
+    bannerLabel: "Banner",
+    detailsSaved: "Alterações salvas.",
+    publicGroup: "Público",
+    deleteGroupBtn: "Excluir",
+    deleteGroupConfirm: "Tem certeza? Isso não pode ser desfeito.",
+    addMemberByEmail: "Convidar por e-mail",
+    addMemberById: "Adicionar membro por ID",
+    hankoUserIdLabel: "ID de usuário Hanko",
+    inviteBtn: "Convidar",
+    addBtn: "Adicionar",
+    removeMember: "Remover",
+    leaveGroup: "Sair",
+    removeMemberConfirm: "Remover este membro?",
+    leaveGroupConfirm: "Sair deste grupo?",
+    transferOwnershipConfirm: "Transferir a propriedade para este membro?",
+    memberSince: "Membro desde",
+    noMembers: "Ainda não há membros.",
+    sentInvitations: "Convites enviados",
+    cancelInvite: "Cancelar",
+    cancelInviteConfirm: "Cancelar este convite?",
+    previous: "Anterior",
+    next: "Próximo",
+    roleOwner: "Proprietário",
+    roleManager: "Gerente",
+    roleMember: "Membro",
+    statusPending: "Pendente",
+    statusApproved: "Aprovada",
+    statusActive: "Ativa",
+    statusRejected: "Rejeitada",
+    acceptingInvite: "Aceitando convite...",
+    inviteAccepted: "Convite aceito!",
+    inviteFailed: "Não foi possível aceitar o convite.",
+    goToGroup: "Ir para organizações",
+    noInviteToken: "Nenhum token de convite fornecido.",
+    adminUsersTab: "Usuários",
+    adminOrganizationsTab: "Organizações",
+    makeAccountManager: "Tornar gerente de contas",
+    removeAccountManager: "Remover gerente de contas",
+    approveBtn: "Aprovar",
+    rejectBtn: "Rejeitar",
+    approveNameBtn: "Aprovar nome",
   },
 };
 

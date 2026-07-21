@@ -8,7 +8,13 @@ from alembic import context
 
 # Import our models and Base
 from app.db.database import Base
-from app.db.models import UserProfile  # noqa: F401 - needed for autogenerate
+from app.db.models import (  # noqa: F401 - needed for autogenerate
+    AccountManager,
+    Group,
+    GroupInvitation,
+    GroupMembership,
+    UserProfile,
+)
 from app.core.config import settings
 
 # this is the Alembic Config object
