@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from hotosm_auth.models import HankoUser
 from hotosm_auth_fastapi import get_current_user
 
+from app.core.authz import AccountManagerUser
 from app.core.config import settings
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -992,7 +993,7 @@ async def get_recent_users(
 
 @router.get("/stats/users/search")
 async def search_users(  # noqa: PLR0913
-    admin: AdminUser,
+    admin: AccountManagerUser,
     request: Request,
     email: str | None = Query(None, description="Search by email (partial match)"),
     date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),

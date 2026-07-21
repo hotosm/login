@@ -56,6 +56,19 @@ class Settings(BaseSettings):
     smtp_from_address: str = ""
     smtp_starttls: bool = True
 
+    # Public base URLs of this login deployment (already provided as env vars in
+    # docker-compose). backend_url serves /api/* (image endpoints); frontend_url
+    # serves /app/* (the invitation accept page). Empty => relative URLs.
+    backend_url: str = ""
+    frontend_url: str = ""
+
+    # S3/MinIO storage for group avatar/banner images. When unset, images fall
+    # back to the local filesystem (fine for dev without object storage).
+    s3_endpoint_url: str | None = None
+    s3_bucket_name: str | None = None
+    s3_access_key: str | None = None
+    s3_secret_key: str | None = None
+
     @property
     def app_urls(self) -> dict[str, str]:
         """Get app URLs as a dictionary."""

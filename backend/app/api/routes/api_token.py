@@ -162,9 +162,7 @@ async def resolve_token(
 
     # Load user profile
     profile_result = await db.execute(
-        select(UserProfile).where(
-            UserProfile.hanko_user_id == token_row.hanko_user_id
-        )
+        select(UserProfile).where(UserProfile.hanko_user_id == token_row.hanko_user_id)
     )
     profile = profile_result.scalar_one_or_none()
     if not profile:
