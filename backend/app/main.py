@@ -64,6 +64,7 @@ app.add_middleware(
         "https://chatmap-dev.hotosm.org",
         "https://fair.hotosm.org",
         "https://fair-dev.hotosm.org",
+        "https://stage.ai.hotosm.org",
         "https://umap.hotosm.org",
         "https://umap-dev.hotosm.org",
         "https://field.hotosm.org",
