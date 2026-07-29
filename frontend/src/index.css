@@ -1,5 +1,13 @@
-/* HOT Design Tokens */
-@import "./styles/hot.css";
+/* HOT Design Tokens - shared package, same source portal uses */
+@import "hotosm-ui-design/dist/hot.css";
+
+/* Tokens login uses that the shared package doesn't define yet.
+   Drop these once hotosm-ui-design ships them. */
+:root,
+:host,
+.hot-theme-light {
+  --hot-color-gray-1000: #000000;
+}
 
 /* Tailwind CSS */
 @tailwind base;
