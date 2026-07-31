@@ -4,6 +4,9 @@ import GroupCard from '../components/GroupCard';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { GroupSummary, MyInvitation } from '../types/groups';
 import { backendUrl, readError } from '../utils/api';
+import PanelHeader from '@/components/PanelHeader';
+import OrgRequestForm from '@/components/OrgRequestForm';
+import type { OrgRequestPayload } from '@/components/OrgRequestForm';
 
 function OrganizationsPage() {
   const navigate = useNavigate();
@@ -14,14 +17,8 @@ function OrganizationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Create/request form
+  // Create/request form — field state lives in OrgRequestForm
   const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [website, setWebsite] = useState('');
-  const [description, setDescription] = useState('');
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -81,8 +78,7 @@ function OrganizationsPage() {
     if (!res.ok) throw new Error(await readError(res));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (payload: OrgRequestPayload) => {
     setSubmitting(true);
     setError(null);
     setSuccess(null);
@@ -93,33 +89,28 @@ function OrganizationsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'organization',
-          name,
-          contact_email: contactEmail || undefined,
-          website: website || undefined,
-          description: description || undefined,
+          name: payload.name,
+          contact_email: payload.contactEmail || undefined,
+          website: payload.website || undefined,
+          description: payload.description || undefined,
         }),
       });
       if (response.status === 401) return goLogin();
       if (!response.ok) throw new Error(await readError(response));
       const created = await response.json();
 
-      // Org exists now — reset the form regardless of the image outcome so a
-      // failed upload can't lead to a duplicate org on retry.
+      // Org exists now — close the form regardless of the image outcome so a
+      // failed upload can't lead to a duplicate org on retry. Unmounting the
+      // form is what clears the fields.
       setShowForm(false);
-      setName('');
-      setContactEmail('');
-      setWebsite('');
-      setDescription('');
-      const avatar = avatarFile;
-      const banner = bannerFile;
-      setAvatarFile(null);
-      setBannerFile(null);
 
       // Upload images best-effort: if one fails the org is still created and it
       // can be added later from the org's Details page.
       try {
-        if (avatar) await uploadImage(created.id, 'avatar', avatar);
-        if (banner) await uploadImage(created.id, 'banner', banner);
+        if (payload.avatarFile)
+          await uploadImage(created.id, 'avatar', payload.avatarFile);
+        if (payload.bannerFile)
+          await uploadImage(created.id, 'banner', payload.bannerFile);
       } catch {
         setError(
           'Organization created, but the image upload failed — you can add it later from the org page.',
@@ -163,7 +154,7 @@ function OrganizationsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div>
       {error && (
         <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
           {error}
@@ -218,27 +209,30 @@ function OrganizationsPage() {
       )}
 
       {/* Organizations list */}
-      <div className="bg-white rounded-xl shadow-xl p-6">
-        <div className="flex items-center justify-between mb-1">
-          <h1 className="text-lg font-semibold text-hot-gray-900">
-            {t('organizations')}
-          </h1>
-          <button
-            type="button"
-            onClick={() => setShowForm((v) => !v)}
-            className="btn-primary-hot w-auto px-4 py-2 text-sm"
-          >
-            {t('requestOrganization')}
-          </button>
-        </div>
-        <p className="text-sm text-hot-gray-500 mb-4">
-          {t('organizationsSubtitle')}
-        </p>
+      <div className="bg-white rounded-xl shadow-xl p-6 flex flex-col gap-lg">
+        
+      <PanelHeader sectionName={t('organizations')}  buttonText={t('requestOrganization')} buttonOnPress={() => setShowForm((v) => !v)} />
+    
 
-        {groups.length === 0 ? (
-          <p className="text-sm text-hot-gray-500 py-6 text-center">
-            {t('noOrganizations')}
-          </p>
+      {/* Request organization form */}
+      {showForm && (
+        <div className='mb-xl'>
+          <h2 className='text-lg mb-sx'>{t('requestOrgTitle')}</h2>
+          {/* TODO needs translation once approved */}
+          <p className='text-sm mb-lg'>New organizations require manager approval before activation. Once approved, you can invite team members and share projects. Please choose your Organization Name carefully—it cannot be changed later, though all other information can be edited anytime.</p>
+          <OrgRequestForm
+            onSubmit={handleSubmit}
+            onCancel={() => setShowForm(false)}
+            submitting={submitting}
+          />
+        </div>
+      )}
+      
+      {/* panel content */}
+      {groups.length === 0 ? (
+        <p className="text-sm text-hot-gray-500 py-6 text-center">
+          {t('noOrganizations')}
+        </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {groups.map((group) => (
@@ -252,108 +246,9 @@ function OrganizationsPage() {
           </div>
         )}
       </div>
-
-      {/* Request organization form */}
-      {showForm && (
-        <div className="bg-white rounded-xl shadow-xl p-6">
-          <h2 className="text-lg font-semibold text-hot-gray-900 mb-4">
-            {t('requestOrgTitle')}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                {t('name')}
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="input-field"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                {t('contactEmail')}
-              </label>
-              <input
-                type="email"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                className="input-field"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                {t('website')}
-              </label>
-              <input
-                type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.org"
-                className="input-field"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                {t('description')}
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="input-field"
-              />
-            </div>
-            <p className="text-xs text-hot-gray-400">
-              You can invite members from the org page once it's approved.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  {t('avatarLabel')}
-                </label>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
-                  className="text-sm text-hot-gray-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  {t('bannerLabel')}
-                </label>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setBannerFile(e.target.files?.[0] ?? null)}
-                  className="text-sm text-hot-gray-600"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="btn-primary-hot w-auto px-4 py-2 text-sm disabled:opacity-50"
-              >
-                {submitting ? t('saving') : t('submitRequest')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="btn-secondary-hot w-auto px-4 py-2 text-sm"
-              >
-                {t('cancel')}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   );
+  
 }
 
 export default OrganizationsPage;

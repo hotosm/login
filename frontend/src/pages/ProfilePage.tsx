@@ -4,6 +4,9 @@ import { Hanko } from "@teamhanko/hanko-elements";
 import { validateReturnTo } from "../utils/validateReturnTo";
 import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
+import PanelHeader from "@/components/PanelHeader";
+import Input from "@/components/forms/Input";
+import Button from "@/components/Button";
 
 const ALLOWED_APPS = [
   { id: "fair", label: "fAIr" },
@@ -315,7 +318,7 @@ function ProfilePage() {
 
   return (
     <div>
-      <div className="max-w-2xl mx-auto">
+      <div>
         {/* Messages */}
         {error && (
           <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg mb-6">
@@ -330,9 +333,7 @@ function ProfilePage() {
 
         {/* Profile Form */}
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-hot-gray-900 mb-4">
-            {t("profileInformation")}
-          </h2>
+          <PanelHeader sectionName={t("profileInformation")} />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Profile Picture */}
@@ -350,12 +351,11 @@ function ProfilePage() {
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                   {t("pictureUrl")}
                 </label>
-                <input
+                <Input
                   type="url"
                   value={pictureUrl}
                   onChange={(e) => setPictureUrl(e.target.value)}
                   placeholder="https://example.com/avatar.jpg"
-                  className="input-field"
                 />
               </div>
             </div>
@@ -366,22 +366,20 @@ function ProfilePage() {
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                   {t("firstName")}
                 </label>
-                <input
+                <Input
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="input-field"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                   {t("lastName")}
                 </label>
-                <input
+                <Input
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="input-field"
                 />
               </div>
             </div>
@@ -391,11 +389,10 @@ function ProfilePage() {
               <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                 {t("email")}
               </label>
-              <input
+              <Input
                 type="email"
                 value={profile?.email || ""}
                 disabled
-                className="input-field-disabled"
               />
               <p className="text-xs text-hot-gray-400 mt-1">
                 {t("emailManagedBy")}
@@ -443,24 +440,22 @@ function ProfilePage() {
 
             {/* Submit button */}
             <div className="pt-4 flex flex-col gap-2">
-              <button
+              <Button
                 type="submit"
                 disabled={saving}
-                className="w-full btn-primary-hot disabled:opacity-50"
               >
                 {saving ? t("saving") : t("saveChanges")}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                appearance="outlined"
                 onClick={async () => {
                   const hanko = new Hanko(hankoUrl);
                   await hanko.logout();
                   window.location.href = returnTo || "/app";
                 }}
-                className="w-full btn-secondary-hot"
               >
                 {t("logOut")}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
