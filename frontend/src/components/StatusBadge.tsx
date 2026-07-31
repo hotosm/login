@@ -19,7 +19,7 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   const cls = styles[status] || 'bg-hot-gray-100 text-hot-gray-600';
-  return <span className={`badge ${cls}`}>{labels[status] || status}</span>;
+  return <span className={`text-white text-xs font-medium px-2 py-0.5 rounded ${cls}`}>{labels[status] || status}</span>;
 }
 
 export default StatusBadge;
