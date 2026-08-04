@@ -304,7 +304,7 @@ VITE_BASE_API_URL=https://fair.hotosm.org/api/v1/
 
 ## API Endpoints
 
-```
+```text
 # Hanko auth
 GET  /api/v1/auth/status/       # Auth status check (web component)
 GET  /api/v1/auth/onboarding/   # Onboarding callback (creates mapping)

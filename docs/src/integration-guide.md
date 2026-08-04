@@ -15,7 +15,7 @@ Step by step guide to integrate `hotosm-auth` in your project.
 
 ## Step 0: Determine your case
 
-```
+```text
 Does your app have an existing auth system (legacy)?
 │
 ├─ NO → Simple Integration (Portal, ChatMap)

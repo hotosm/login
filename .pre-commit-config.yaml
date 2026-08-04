@@ -93,17 +93,10 @@ repos:
     rev: v0.48.0
     hooks:
       - id: markdownlint
+        # Rule config lives in .markdownlint.json
         args:
           [
             --fix,
-            --disable,
-            MD033,
-            --disable,
-            MD059,
-            --disable,
-            MD013,
-            --disable,
-            MD060,
             --ignore,
             LICENSE.md,
             --ignore,

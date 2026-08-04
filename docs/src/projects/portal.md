@@ -147,7 +147,7 @@ VITE_HANKO_URL=https://login.hotosm.org
 
 ## API Endpoints
 
-```
+```text
 GET /api/docs                    # Swagger UI
 GET /api/auth/osm/login          # Start OSM OAuth
 GET /api/auth/osm/callback       # OSM OAuth callback

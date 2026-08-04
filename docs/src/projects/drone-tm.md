@@ -311,7 +311,7 @@ VITE_FRONTEND_URL=https://drone.hotosm.org
 
 ## API Endpoints
 
-```
+```text
 # Hanko (mounted conditionally)
 GET  /api/auth/osm/login          # Start OSM OAuth (from osm_router)
 GET  /api/auth/osm/callback       # OSM OAuth callback (from osm_router)
