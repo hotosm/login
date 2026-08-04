@@ -58,7 +58,7 @@ function GroupCard({ group, to, showStatus }: Props) {
       )}
         <div>
           <h3 className="font-bold text-xl leading-tight mb-1">{group.name}</h3>
-          <span>{group.role}</span>
+          <span className="capitalize">{group.role}</span>
         </div>
       </div>
       </div>
