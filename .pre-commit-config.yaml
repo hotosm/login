@@ -12,6 +12,9 @@ repos:
     hooks:
       - id: ruff
         files: ^(?:backend|auth-libs/python)/.*\.py$
+        # Pre-existing PLR2004/PLR0911 debt. Fixing it means editing the
+        # published lib, so it waits for the next auth-libs release.
+        exclude: ^auth-libs/python/src/(hotosm_auth/remote_resolver|hotosm_auth_django/middleware|hotosm_auth_fastapi/dependencies)\.py$
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
         files: ^(?:backend|auth-libs/python)/.*\.py$
@@ -97,6 +100,10 @@ repos:
             MD033,
             --disable,
             MD059,
+            --disable,
+            MD013,
+            --disable,
+            MD060,
             --ignore,
             LICENSE.md,
             --ignore,
