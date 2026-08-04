@@ -354,7 +354,7 @@ function ProfilePage() {
                 <Input
                   type="url"
                   value={pictureUrl}
-                  onChange={(e) => setPictureUrl(e.target.value)}
+                  onValueChange={setPictureUrl}
                   placeholder="https://example.com/avatar.jpg"
                 />
               </div>
@@ -369,7 +369,7 @@ function ProfilePage() {
                 <Input
                   type="text"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onValueChange={setFirstName}
                 />
               </div>
               <div>
@@ -379,7 +379,7 @@ function ProfilePage() {
                 <Input
                   type="text"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onValueChange={setLastName}
                 />
               </div>
             </div>

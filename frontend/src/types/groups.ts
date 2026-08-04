@@ -29,6 +29,10 @@ export interface GroupResponse {
   pending_name: string | null;
   is_public: boolean;
   created_by: string;
+  // Resolved by the moderation endpoints only; may be null when unknown
+  created_by_name?: string | null;
+  created_by_username?: string | null;
+  created_by_email?: string | null;
   created_at: string;
   updated_at: string | null;
   role: MemberRole | null;

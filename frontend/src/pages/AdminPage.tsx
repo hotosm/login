@@ -13,8 +13,10 @@ import {
   Cell,
 } from 'recharts';
 import hotLogo from '../assets/images/hot-logo.svg';
+import { usePendingOrgs } from '../hooks/usePendingOrgs';
 import { useRoles } from '../hooks/useRoles';
 import { readError } from '../utils/api';
+import { creatorLabel } from '../utils/creatorLabel';
 import type { GroupResponse } from '../types/groups';
 
 interface Mapping {
@@ -278,11 +280,18 @@ function AdminPage() {
   // Account managers (users tab) — set of hanko_user_ids that are AMs
   const [accountManagers, setAccountManagers] = useState<Set<string>>(new Set());
 
-  // Pending organizations (organizations tab)
-  const [pendingOrgs, setPendingOrgs] = useState<GroupResponse[]>([]);
+  // Pending organizations (organizations tab) — shared with /app/orgs-to-approve
+  const {
+    pendingOrgs,
+    loading: orgsLoading,
+    error: orgsError,
+    approve: approveOrg,
+    reject: rejectOrg,
+    approveName: approveOrgName,
+  } = usePendingOrgs(
+    (isAdmin || isAccountManager) && activeTab === 'organizations',
+  );
   const [selectedOrg, setSelectedOrg] = useState<GroupResponse | null>(null);
-  const [orgsLoading, setOrgsLoading] = useState(false);
-  const [orgsError, setOrgsError] = useState<string | null>(null);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || '/api';
 
@@ -497,31 +506,6 @@ function AdminPage() {
     fetchAccountManagers();
   }, [isAdmin, activeTab, backendUrl]);
 
-  // Load pending organizations for the Organizations tab
-  const fetchPendingOrgs = async () => {
-    setOrgsLoading(true);
-    setOrgsError(null);
-    try {
-      const response = await fetch(
-        `${backendUrl}/admin/organizations?status=pending&page=1&page_size=50`,
-        { credentials: 'include' }
-      );
-      if (!response.ok) throw new Error(await readError(response));
-      const data = await response.json();
-      setPendingOrgs(data.items || []);
-    } catch (err) {
-      setOrgsError(err instanceof Error ? err.message : 'Failed to load organizations');
-    } finally {
-      setOrgsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if ((isAdmin || isAccountManager) && activeTab === 'organizations') {
-      fetchPendingOrgs();
-    }
-  }, [isAdmin, isAccountManager, activeTab]);
-
   const handleDeleteMapping = async (hankoUserId: string) => {
     if (!confirm('Are you sure you want to delete this mapping?')) return;
 
@@ -599,15 +583,11 @@ function AdminPage() {
     }
   };
 
-  // Organization moderation actions (admin / account manager)
+  // Organization moderation actions (admin / account manager). The requests live
+  // in usePendingOrgs; these wrappers keep the admin console's prompt/alert UX.
   const handleApproveOrg = async (orgId: string) => {
     try {
-      const response = await fetch(
-        `${backendUrl}/admin/organizations/${orgId}/approve`,
-        { method: 'POST', credentials: 'include' }
-      );
-      if (!response.ok) throw new Error(await readError(response));
-      setPendingOrgs((prev) => prev.filter((o) => o.id !== orgId));
+      await approveOrg(orgId);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to approve');
     }
@@ -616,17 +596,7 @@ function AdminPage() {
   const handleRejectOrg = async (orgId: string) => {
     const reason = window.prompt('Reason for rejection (optional):') ?? undefined;
     try {
-      const response = await fetch(
-        `${backendUrl}/admin/organizations/${orgId}/reject`,
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reason }),
-        }
-      );
-      if (!response.ok) throw new Error(await readError(response));
-      setPendingOrgs((prev) => prev.filter((o) => o.id !== orgId));
+      await rejectOrg(orgId, reason);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to reject');
     }
@@ -634,12 +604,7 @@ function AdminPage() {
 
   const handleApproveName = async (orgId: string) => {
     try {
-      const response = await fetch(
-        `${backendUrl}/admin/organizations/${orgId}/approve-name`,
-        { method: 'POST', credentials: 'include' }
-      );
-      if (!response.ok) throw new Error(await readError(response));
-      await fetchPendingOrgs();
+      await approveOrgName(orgId);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to approve name');
     }
@@ -1405,21 +1370,19 @@ function AdminPage() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-gray-500">Members</dt>
-                  <dd className="text-gray-800">{selectedOrg.members_count}</dd>
-                </div>
-                <div>
                   <dt className="text-gray-500">Requested</dt>
                   <dd className="text-gray-800">
                     {new Date(selectedOrg.created_at).toLocaleString()}
                   </dd>
                 </div>
-                <div>
-                  <dt className="text-gray-500">Requested by (user ID)</dt>
-                  <dd className="font-mono text-xs text-gray-600 break-all">
-                    {selectedOrg.created_by}
-                  </dd>
-                </div>
+                {creatorLabel(selectedOrg) && (
+                  <div>
+                    <dt className="text-gray-500">Requested by</dt>
+                    <dd className="text-gray-800 break-all">
+                      {creatorLabel(selectedOrg)}
+                    </dd>
+                  </div>
+                )}
               </dl>
 
               <div className="flex gap-2 justify-end flex-wrap">

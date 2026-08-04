@@ -7,6 +7,7 @@ route handlers so they can be reused (and unit-tested) independently.
 import hashlib
 import re
 import secrets
+from typing import NamedTuple
 
 from fastapi import HTTPException, status
 from hotosm_auth.models import HankoUser
@@ -187,13 +188,52 @@ def image_url(group_id: str, kind: str, key: str | None = None) -> str:
     return url
 
 
+class CreatorLabel(NamedTuple):
+    """Ways to identify a group's creator, best first. Any field may be None."""
+
+    name: str | None = None
+    username: str | None = None
+    email: str | None = None
+
+
+async def creator_labels(
+    db: AsyncSession, user_ids: list[str]
+) -> dict[str, CreatorLabel]:
+    """Resolve hanko user ids to display labels for moderation views.
+
+    Names come from local profiles, usernames and emails from Hanko. Each source
+    is optional, so the UI falls back down the tuple. Batched: one query each.
+    """
+    ids = list({uid for uid in user_ids if uid})
+    if not ids:
+        return {}
+    result = await db.execute(
+        select(UserProfile).where(UserProfile.hanko_user_id.in_(ids))
+    )
+    names: dict[str, str] = {}
+    for profile in result.scalars().all():
+        full = " ".join(
+            part for part in (profile.first_name, profile.last_name) if part
+        ).strip()
+        if full:
+            names[profile.hanko_user_id] = full
+    usernames = await hanko_lookup.user_ids_to_usernames(ids)
+    emails = await hanko_lookup.user_ids_to_emails(ids)
+    return {
+        uid: CreatorLabel(names.get(uid), usernames.get(uid), emails.get(uid))
+        for uid in ids
+    }
+
+
 def serialize_group(
     group: Group,
     *,
     role: str | None = None,
     members_count: int | None = None,
+    creator: CreatorLabel | None = None,
 ) -> GroupResponse:
     """Build a GroupResponse, deriving image URLs from stored keys."""
+    creator = creator or CreatorLabel()
     return GroupResponse(
         id=group.id,
         type=group.type,
@@ -216,6 +256,9 @@ def serialize_group(
         pending_name=group.pending_name,
         is_public=group.is_public,
         created_by=group.created_by,
+        created_by_name=creator.name,
+        created_by_username=creator.username,
+        created_by_email=creator.email,
         created_at=group.created_at,
         updated_at=group.updated_at,
         role=role,

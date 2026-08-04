@@ -139,7 +139,13 @@ async def list_organizations(
         .limit(page_size)
         .offset((page - 1) * page_size)
     )
-    items = [groups_service.serialize_group(g) for g in result.scalars().all()]
+    groups = list(result.scalars().all())
+    # Moderators need to know who asked, so resolve identities for the page.
+    creators = await groups_service.creator_labels(db, [g.created_by for g in groups])
+    items = [
+        groups_service.serialize_group(g, creator=creators.get(g.created_by))
+        for g in groups
+    ]
     return GroupListResponse(items=items, total=total, page=page, page_size=page_size)
 
 
