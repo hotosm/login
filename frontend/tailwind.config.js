@@ -116,9 +116,8 @@ export default {
 
       // HOT Official Typography
       fontFamily: {
-        sans: ["var(--hot-font-sans)"],
-        serif: ["var(--hot-font-sefif)"],
-        mono: ["var(--hot-font-mono)"],
+        sans: ["var(--hot-font-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--hot-font-mono)", "ui-monospace", "monospace"],
       },
 
       fontSize: {
