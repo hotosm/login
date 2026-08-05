@@ -58,6 +58,29 @@ async def user_ids_to_emails(user_ids: list[str]) -> dict[str, str]:
         return {}
 
 
+async def user_ids_to_usernames(user_ids: list[str]) -> dict[str, str]:
+    """Map Hanko user ids to usernames in one query. Missing ids are absent.
+
+    Usernames are optional in Hanko (and only collected when enabled in
+    hanko-config.yaml), so most ids have no row here.
+    """
+    if not user_ids:
+        return {}
+    try:
+        conn = await asyncpg.connect(settings.hanko_db_url)
+        try:
+            rows = await conn.fetch(
+                "SELECT user_id::text AS uid, username FROM usernames "
+                "WHERE user_id = ANY($1::uuid[])",
+                user_ids,
+            )
+            return {r["uid"]: r["username"] for r in rows if r["username"]}
+        finally:
+            await conn.close()
+    except Exception:
+        return {}
+
+
 async def email_has_account(email: str) -> bool | None:
     """Whether an email is registered in Hanko.
 

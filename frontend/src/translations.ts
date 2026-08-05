@@ -87,6 +87,7 @@ export interface Translations {
   navTeams?: string;
   navUsers?: string;
   navAdmin?: string;
+  navOrgsToApprove?: string;
 
   // Organizations
   organizations?: string;
@@ -175,6 +176,20 @@ export interface Translations {
   approveBtn?: string;
   rejectBtn?: string;
   approveNameBtn?: string;
+
+  // Organizations to approve (account area)
+  orgsToApprove?: string;
+  orgsToApproveNoAccess?: string;
+  noPendingOrgs?: string;
+  review?: string;
+  close?: string;
+  rejectReason?: string;
+  rejectReasonHint?: string;
+  requestedOn?: string;
+  requestedBy?: string;
+  orgApproved?: string;
+  orgRejected?: string;
+  orgNameApproved?: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -253,6 +268,7 @@ export const translations: Record<string, Translations> = {
     navTeams: "Teams",
     navUsers: "Users",
     navAdmin: "Admin",
+    navOrgsToApprove: "Organizations to approve",
     organizations: "Organizations",
     organizationsSubtitle: "Official organizations you belong to",
     requestOrganization: "Request organization",
@@ -323,6 +339,19 @@ export const translations: Record<string, Translations> = {
     approveBtn: "Approve",
     rejectBtn: "Reject",
     approveNameBtn: "Approve name",
+    orgsToApprove: "Organizations to approve",
+    orgsToApproveNoAccess:
+      "You don't have permission to review organization requests.",
+    noPendingOrgs: "No organizations awaiting approval.",
+    review: "Review",
+    close: "Close",
+    rejectReason: "Reason for rejection",
+    rejectReasonHint: "Optional — shared with the requester",
+    requestedOn: "Requested",
+    requestedBy: "Requested by",
+    orgApproved: "Organization approved.",
+    orgRejected: "Organization rejected.",
+    orgNameApproved: "Name change approved.",
   },
   es: {
     welcomeTo: "Bienvenido a HOT's",
@@ -400,6 +429,7 @@ export const translations: Record<string, Translations> = {
     navTeams: "Equipos",
     navUsers: "Usuarios",
     navAdmin: "Admin",
+    navOrgsToApprove: "Organizaciones por aprobar",
     organizations: "Organizaciones",
     organizationsSubtitle: "Organizaciones oficiales a las que perteneces",
     requestOrganization: "Solicitar organización",
@@ -467,6 +497,19 @@ export const translations: Record<string, Translations> = {
     adminOrganizationsTab: "Organizaciones",
     makeAccountManager: "Hacer gestor de cuentas",
     removeAccountManager: "Quitar gestor de cuentas",
+    orgsToApprove: "Organizaciones por aprobar",
+    orgsToApproveNoAccess:
+      "No tienes permiso para revisar solicitudes de organizaciones.",
+    noPendingOrgs: "No hay organizaciones pendientes de aprobación.",
+    review: "Revisar",
+    close: "Cerrar",
+    rejectReason: "Motivo del rechazo",
+    rejectReasonHint: "Opcional — se comparte con quien lo solicitó",
+    requestedOn: "Solicitada",
+    requestedBy: "Solicitada por",
+    orgApproved: "Organización aprobada.",
+    orgRejected: "Organización rechazada.",
+    orgNameApproved: "Cambio de nombre aprobado.",
     approveBtn: "Aprobar",
     rejectBtn: "Rechazar",
     approveNameBtn: "Aprobar nombre",
@@ -546,6 +589,7 @@ export const translations: Record<string, Translations> = {
     navTeams: "Équipes",
     navUsers: "Utilisateurs",
     navAdmin: "Admin",
+    navOrgsToApprove: "Organisations à approuver",
     organizations: "Organisations",
     organizationsSubtitle: "Organisations officielles dont vous faites partie",
     requestOrganization: "Demander une organisation",
@@ -616,6 +660,19 @@ export const translations: Record<string, Translations> = {
     approveBtn: "Approuver",
     rejectBtn: "Rejeter",
     approveNameBtn: "Approuver le nom",
+    orgsToApprove: "Organisations à approuver",
+    orgsToApproveNoAccess:
+      "Vous n'avez pas la permission d'examiner les demandes d'organisation.",
+    noPendingOrgs: "Aucune organisation en attente d'approbation.",
+    review: "Examiner",
+    close: "Fermer",
+    rejectReason: "Motif du rejet",
+    rejectReasonHint: "Facultatif — partagé avec le demandeur",
+    requestedOn: "Demandée le",
+    requestedBy: "Demandée par",
+    orgApproved: "Organisation approuvée.",
+    orgRejected: "Organisation rejetée.",
+    orgNameApproved: "Changement de nom approuvé.",
   },
   pt: {
     welcomeTo: "Bem-vindo ao HOT's",
@@ -691,6 +748,7 @@ export const translations: Record<string, Translations> = {
     navTeams: "Equipes",
     navUsers: "Usuários",
     navAdmin: "Admin",
+    navOrgsToApprove: "Organizações para aprovar",
     organizations: "Organizações",
     organizationsSubtitle: "Organizações oficiais às quais você pertence",
     requestOrganization: "Solicitar organização",
@@ -761,6 +819,19 @@ export const translations: Record<string, Translations> = {
     approveBtn: "Aprovar",
     rejectBtn: "Rejeitar",
     approveNameBtn: "Aprovar nome",
+    orgsToApprove: "Organizações para aprovar",
+    orgsToApproveNoAccess:
+      "Você não tem permissão para revisar solicitações de organizações.",
+    noPendingOrgs: "Nenhuma organização aguardando aprovação.",
+    review: "Revisar",
+    close: "Fechar",
+    rejectReason: "Motivo da rejeição",
+    rejectReasonHint: "Opcional — compartilhado com quem solicitou",
+    requestedOn: "Solicitada em",
+    requestedBy: "Solicitada por",
+    orgApproved: "Organização aprovada.",
+    orgRejected: "Organização rejeitada.",
+    orgNameApproved: "Alteração de nome aprovada.",
   },
 };
 

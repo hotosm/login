@@ -1,6 +1,8 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import '@hotosm/tool-menu';
+import externalLinkIcon from '../assets/icons/box-arrow-up-right.svg';
 import hotLogo from '../assets/images/hot-logo.svg';
+import SidebarNav, { type SidebarNavItem } from '../components/SidebarNav';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useRoles } from '../hooks/useRoles';
 
@@ -10,21 +12,24 @@ function AccountLayout() {
   const { t, currentLanguage } = useLanguage();
   const { isAdmin, isAccountManager } = useRoles();
 
-  const navClass = ({ isActive }: { isActive: boolean }) =>
-    `block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-      isActive
-        ? 'bg-hot-red-50 text-hot-red-600'
-        : 'text-hot-gray-700 hover:bg-hot-gray-50'
-    }`;
+  const navItems: SidebarNavItem[] = [
+    { to: '/profile', label: t('navProfile') },
+    { to: '/organizations', label: t('navOrganizations') },
+    { to: '/teams', label: t('navTeams') },
+  ];
 
-  // Admin is a superuser area: styled distinctly (amber + shield) so it clearly
-  // reads as elevated access, separate from the regular account nav.
-  const adminNavClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
-      isActive
-        ? 'bg-amber-100 text-amber-800'
-        : 'text-amber-700 hover:bg-amber-50'
-    }`;
+  if (isAdmin || isAccountManager) {
+    navItems.push(
+      { to: '/orgs-to-approve', label: t('navOrgsToApprove'), elevated: true },
+      {
+        to: '/admin',
+        label: t('navAdmin'),
+        elevated: true,
+        icon: externalLinkIcon,
+        newTab: true,
+      },
+    );
+  }
 
   return (
     <div className="min-h-screen bg-hot-gray-50">
@@ -39,43 +44,7 @@ function AccountLayout() {
       <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
         {/* Sidebar */}
         <aside className="md:w-56 flex-shrink-0">
-          <div className="bg-white rounded-xl shadow-xl p-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-hot-gray-500 px-3 mb-3">
-              {t('hotAccount')}
-            </h2>
-            <nav className="space-y-1">
-              <NavLink to="/profile" className={navClass}>
-                {t('navProfile')}
-              </NavLink>
-              <NavLink to="/organizations" className={navClass}>
-                {t('navOrganizations')}
-              </NavLink>
-              <NavLink to="/teams" className={navClass}>
-                {t('navTeams')}
-              </NavLink>
-              {(isAdmin || isAccountManager) && (
-                <>
-                  <div className="my-2 border-t border-hot-gray-200" />
-                  <NavLink to="/admin" className={adminNavClass}>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                      />
-                    </svg>
-                    {t('navAdmin')}
-                  </NavLink>
-                </>
-              )}
-            </nav>
-          </div>
+          <SidebarNav title={t('hotAccount')} items={navItems} />
         </aside>
 
         {/* Page content */}

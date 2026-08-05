@@ -65,6 +65,11 @@ class GroupResponse(BaseModel):
     pending_name: str | None = None
     is_public: bool
     created_by: str
+    # Resolved requester identity, when the endpoint looks it up (moderation
+    # views). Best-first: profile name, then Hanko username, then Hanko email.
+    created_by_name: str | None = None
+    created_by_username: str | None = None
+    created_by_email: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
     # The requesting user's role in this group, when known.

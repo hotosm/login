@@ -1,16 +1,21 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { GroupSummary } from '../types/groups';
+import Button from './Button';
 import StatusBadge from './StatusBadge';
-
+import Icon from './Icon';
+import searchIcon from "../assets/icons/search.svg";
 // Deterministic accent color for the initial-avatar when there's no logo.
+// Soft tint + same-hue text, drawn from the hot.css palette. Every pair clears
+// 5:1 against its background. The yellow scale has no dark step of its own, so
+// it borrows hot-gray-950 for the letter.
 const AVATAR_COLORS = [
-  'bg-hot-red-500',
-  'bg-emerald-500',
-  'bg-blue-500',
-  'bg-amber-500',
-  'bg-violet-500',
-  'bg-pink-500',
-  'bg-teal-500',
+  'bg-hot-red-100 text-hot-red-950',
+  'bg-hot-blue-100 text-hot-blue-800',
+  'bg-hot-success-100 text-hot-success-800',
+  'bg-hot-yellow-100 text-hot-gray-950',
+  'bg-hot-cyan-100 text-hot-cyan-950',
+  'bg-hot-rose-100 text-hot-rose-800',
+  'bg-hot-gray-100 text-hot-gray-900',
 ];
 
 function colorFor(name: string): string {
@@ -27,13 +32,16 @@ interface Props {
   showStatus?: boolean;
 }
 
+
 function GroupCard({ group, to, showStatus }: Props) {
+  const navigate = useNavigate();
+
   return (
-    <Link
-      to={to}
-      className="group flex items-center gap-4 bg-white rounded-xl border border-hot-gray-200 p-4 hover:shadow-lg hover:border-hot-red-300 hover:-translate-y-0.5 transition-all"
-    >
-      {group.avatar_url ? (
+    <div className="w-full h-full bg-white rounded-xl shadow-[0_0_14px_rgba(0,0,0,0.2)] p-md flex flex-col justify-between gap-xl">
+      <div className='flex flex-col gap-sm'>
+      <div>{showStatus && <StatusBadge status={group.status} />}</div>
+      <div className='flex flex-row gap-md'>
+        {group.avatar_url ? (
         <img
           src={group.avatar_url}
           alt=""
@@ -41,24 +49,28 @@ function GroupCard({ group, to, showStatus }: Props) {
         />
       ) : (
         <div
-          className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-semibold flex-shrink-0 ${colorFor(
+          className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold flex-shrink-0 ${colorFor(
             group.name,
           )}`}
         >
           {group.name.charAt(0).toUpperCase()}
         </div>
       )}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-hot-gray-900 truncate group-hover:text-hot-red-600 transition-colors">
-          {group.name}
-        </h3>
-        {group.role && (
-          <p className="text-xs text-hot-gray-500 capitalize">{group.role}</p>
-        )}
+        <div>
+          <h3 className="font-bold text-xl leading-tight mb-1">{group.name}</h3>
+          <span className="capitalize">{group.role}</span>
+        </div>
       </div>
-      {showStatus && <StatusBadge status={group.status} />}
-    </Link>
-  );
+      </div>
+      <Button
+        className="self-start"
+        onClick={() => navigate(to)}
+      >
+        <Icon slot='start' src={searchIcon} />
+        View details
+      </Button>
+    </div>
+    );
 }
 
 export default GroupCard;

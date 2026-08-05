@@ -154,7 +154,7 @@ function TeamDetailPage() {
 
   if (!group) {
     return (
-      <div className="max-w-3xl mx-auto">
+      <div>
         <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
           {error || 'Not found'}
         </div>
@@ -163,7 +163,7 @@ function TeamDetailPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div>
       <button
         type="button"
         onClick={() => navigate('/teams')}

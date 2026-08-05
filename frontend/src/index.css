@@ -1,5 +1,21 @@
-/* HOT Design Tokens */
-@import "./styles/hot.css";
+/* WebAwesome base styles - defines the --wa-* tokens the wa-* components
+   render with. Portal loads this from the CDN; we use the local package so
+   the CSS and the component JS can't drift apart. Must come before
+   @tailwind base so Preflight wins where the two resets overlap.
+   Relative path is deliberate: webawesome@3.0.0-beta.1 doesn't list
+   ./dist/styles/* in its package exports, so the bare specifier fails. */
+@import "../node_modules/@awesome.me/webawesome/dist/styles/webawesome.css";
+
+/* HOT Design Tokens - shared package, same source portal uses */
+@import "hotosm-ui-design/dist/hot.css";
+
+/* Tokens login uses that the shared package doesn't define yet.
+   Drop these once hotosm-ui-design ships them. */
+:root,
+:host,
+.hot-theme-light {
+  --hot-color-gray-1000: #000000;
+}
 
 /* Tailwind CSS */
 @tailwind base;
@@ -47,8 +63,25 @@ hanko-auth {
 @layer base {
   body {
     font-family: var(--hot-font-sans);
+    color: var(--hot-color-neutral-950);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Match portal's heading base (portal/frontend/src/styles/index.css).
+     font-family stays on --hot-font-sans (Archivo, what portal hardcodes) —
+     --wa-font-family-heading resolves to system sans, not Archivo. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--hot-font-sans);
+    font-weight: var(--wa-font-weight-heading); /* 600, not 700 */
+    line-height: var(--wa-line-height-condensed); /* 1.2 */
+    color: var(--hot-color-gray-800);
+    margin: 0;
   }
 
   code {
@@ -95,7 +128,7 @@ hanko-auth {
     @apply py-2 px-4 bg-white/80 backdrop-blur-sm text-hot-gray-700 text-sm font-medium border border-gray-200/50 rounded-full cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 hover:border-hot-red-200 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Form inputs */
+    /* Form inputs */
   .input-field {
     @apply w-full px-3 py-2 border border-hot-gray-300 rounded-lg focus:ring-2 focus:ring-hot-red-500 focus:border-transparent outline-none;
   }
@@ -103,7 +136,6 @@ hanko-auth {
   .input-field-disabled {
     @apply w-full px-3 py-2 border border-hot-gray-200 rounded-lg bg-hot-gray-50 text-hot-gray-500;
   }
-
   /* Card styles */
   .card {
     @apply bg-white rounded-xl shadow-xl;
