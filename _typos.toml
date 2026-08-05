@@ -1,0 +1,3 @@
+[default.extend-words]
+# Slug of "café" in backend/app/tests/test_slug.py, not a misspelt "calf"
+caf = "caf"

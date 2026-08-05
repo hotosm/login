@@ -20,7 +20,7 @@
 
 ## Package Structure
 
-```
+```text
 auth-libs/
 │
 ├── python/src/                       # Python packages
@@ -84,7 +84,7 @@ Apps with existing users need to map Hanko UUIDs to app user IDs.
 
 ### Problem
 
-```
+```text
 Hanko: id="550e8400-..."    ←→    App: id=42
        email=user@x.com            email=user@x.com
 ```
@@ -156,14 +156,14 @@ VITE_AUTH_PROVIDER=hanko             # "legacy" or "hanko"
 
 | Variable | Portal | ChatMap | Drone-TM | fAIr | uMap | Login |
 |----------|--------|---------|----------|------|------|-------|
-| **Backend** |
+| **Backend** | | | | | | |
 | `HANKO_API_URL` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `COOKIE_SECRET` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `OSM_CLIENT_ID` | ✅ | - | - | ✅ | - | ✅ |
 | `OSM_CLIENT_SECRET` | ✅ | - | - | ✅ | - | ✅ |
 | `ADMIN_EMAILS` | ✅ | - | ✅ | ✅ | - | - |
 | `AUTH_PROVIDER` | - | - | ✅ | ✅ | - | - |
-| **Frontend** |
+| **Frontend** | | | | | | |
 | `VITE_HANKO_URL` | ✅ | ✅ | ✅ | ✅ | - | ✅ |
 | `VITE_AUTH_PROVIDER` | - | - | ✅ | ✅ | - | - |
 

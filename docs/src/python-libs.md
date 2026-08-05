@@ -223,7 +223,7 @@ async def edit(osm: OSMConnectionRequired):
 
 ### OSM Routes
 
-```
+```text
 GET  /auth/osm/login      → Redirect to OSM authorization
 GET  /auth/osm/callback   → Handle OAuth callback, set cookie
 GET  /auth/osm/status     → {"connected": true, "osm_username": "..."}
@@ -249,7 +249,7 @@ app.include_router(admin_router, prefix="/api/admin")
 
 Endpoints:
 
-```
+```text
 GET    /mappings              → List all mappings (paginated)
 POST   /mappings              → Create mapping
 GET    /mappings/{hanko_id}   → Get single mapping
@@ -410,7 +410,7 @@ async def public(optional_auth: OptionalAuthContext) -> dict:
 
 ### OSM Routes
 
-```
+```text
 GET  /auth/osm/login      → Redirect to OSM authorization
 GET  /auth/osm/callback   → Handle OAuth callback, set cookie
 GET  /auth/osm/status     → {"connected": true, "osm_username": "..."}
@@ -429,7 +429,7 @@ app = Litestar(route_handlers=[*route_handlers, admin_router], dependencies=deps
 
 Endpoints:
 
-```
+```text
 GET    /mappings              → List all mappings (paginated)
 POST   /mappings              → Create mapping
 GET    /mappings/{hanko_id}   → Get single mapping

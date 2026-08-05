@@ -12,6 +12,9 @@ repos:
     hooks:
       - id: ruff
         files: ^(?:backend|auth-libs/python)/.*\.py$
+        # Pre-existing PLR2004/PLR0911 debt. Fixing it means editing the
+        # published lib, so it waits for the next auth-libs release.
+        exclude: ^auth-libs/python/src/(hotosm_auth/remote_resolver|hotosm_auth_django/middleware|hotosm_auth_fastapi/dependencies)\.py$
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
         files: ^(?:backend|auth-libs/python)/.*\.py$
@@ -51,6 +54,9 @@ repos:
         args:
           - --exclude
           - frontend/src/translations.ts
+          # Compiled MkDocs site (minified vendor JS, lunr stemmers): not ours to fix
+          - --exclude
+          - frontend/public/docs/**
           - --exclude
           - auth-libs/web-component/dist/*
           - --exclude
@@ -87,13 +93,10 @@ repos:
     rev: v0.48.0
     hooks:
       - id: markdownlint
+        # Rule config lives in .markdownlint.json
         args:
           [
             --fix,
-            --disable,
-            MD033,
-            --disable,
-            MD059,
             --ignore,
             LICENSE.md,
             --ignore,

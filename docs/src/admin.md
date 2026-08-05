@@ -29,7 +29,7 @@ The dashboard shows:
 
 The login service acts as a **proxy**: it validates admin access once, then forwards requests to each app's `/api/admin/mappings` endpoint with the JWT cookie.
 
-```
+```text
 Browser → login.hotosm.org/api/admin/{app}/mappings
         → {app_backend}/api/admin/mappings   (proxied with JWT)
         → App validates JWT + admin check → returns data

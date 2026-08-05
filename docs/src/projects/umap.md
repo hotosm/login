@@ -61,7 +61,7 @@ Note: uMap distinguishes `HANKO_API_URL` (internal, backend) from `HANKO_PUBLIC_
 
 Middleware order:
 
-```
+```text
 1. HankoAuthMiddleware       → sets request.hotosm.user (from JWT cookie)
 2. AuthenticationMiddleware   → Django's default (sets request.user from session)
 3. HankoUserMiddleware        → maps request.hotosm.user → request.user (Django user)
@@ -348,7 +348,7 @@ No frontend-specific env vars — everything comes from Django context processor
 
 ## API Endpoints
 
-```
+```text
 # Hanko auth
 GET  /api/v1/auth/status/          # Auth status check (web component)
 GET  /api/v1/auth/onboarding/      # Onboarding callback (creates mapping)

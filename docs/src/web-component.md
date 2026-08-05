@@ -4,7 +4,7 @@ Lit-based web component for authentication UI.
 
 ## Source
 
-```
+```text
 auth-libs/web-component/
 ├── src/
 │   └── hanko-auth.ts       # Main component (1500+ lines)
