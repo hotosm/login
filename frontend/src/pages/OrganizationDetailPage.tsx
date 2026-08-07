@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import MembersPanel from '../components/MembersPanel';
 import StatusBadge from '../components/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -17,8 +18,8 @@ function OrganizationDetailPage() {
 
   const [group, setGroup] = useState<GroupResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  // Only the initial load failure needs state — it replaces the whole page
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'members'>('details');
 
   // Editable details form
@@ -35,7 +36,6 @@ function OrganizationDetailPage() {
   // Invitations (sent) + invite form
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteMessage, setInviteMessage] = useState<string | null>(null);
   const [inviteRole, setInviteRole] = useState<MemberRole>('member');
 
   const goLogin = useCallback(() => {
@@ -44,7 +44,7 @@ function OrganizationDetailPage() {
 
   const fetchGroup = useCallback(async () => {
     try {
-      setError(null);
+      setLoadError(null);
       const response = await fetch(`${backendUrl}/groups/${id}`, {
         credentials: 'include',
       });
@@ -57,7 +57,7 @@ function OrganizationDetailPage() {
       setWebsite(data.website || '');
       setIsPublic(data.is_public);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setLoadError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -86,15 +86,9 @@ function OrganizationDetailPage() {
     if (activeTab === 'members') fetchInvitations();
   }, [activeTab, fetchInvitations]);
 
-  const flashSuccess = (msg: string) => {
-    setSuccess(msg);
-    setTimeout(() => setSuccess(null), 3000);
-  };
-
   const handleSaveDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError(null);
     try {
       const response = await fetch(`${backendUrl}/groups/${id}`, {
         method: 'PATCH',
@@ -110,9 +104,9 @@ function OrganizationDetailPage() {
       if (response.status === 401) return goLogin();
       if (!response.ok) throw new Error(await readError(response));
       setGroup(await response.json());
-      flashSuccess(t('detailsSaved'));
+      toast.success(t('detailsSaved'));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setSaving(false);
     }
@@ -120,7 +114,6 @@ function OrganizationDetailPage() {
 
   const handleChangeName = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     try {
       const response = await fetch(`${backendUrl}/groups/${id}/name-change`, {
         method: 'POST',
@@ -134,12 +127,11 @@ function OrganizationDetailPage() {
       setEditingName(false);
       setNewName('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
   const handleUpload = async (kind: 'avatar' | 'banner', file: File) => {
-    setError(null);
     try {
       const form = new FormData();
       form.append('file', file);
@@ -152,7 +144,7 @@ function OrganizationDetailPage() {
       if (!response.ok) throw new Error(await readError(response));
       await fetchGroup();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -167,14 +159,12 @@ function OrganizationDetailPage() {
       if (!response.ok) throw new Error(await readError(response));
       navigate('/organizations');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
   const handleInvite = async (e: React.FormEvent, onChanged: () => void) => {
     e.preventDefault();
-    setError(null);
-    setInviteMessage(null);
     const email = inviteEmail;
     try {
       const response = await fetch(`${backendUrl}/groups/${id}/invitations`, {
@@ -188,16 +178,17 @@ function OrganizationDetailPage() {
       const created = await response.json();
       setInviteEmail('');
       setInviteRole('member');
-      setInviteMessage(
+      toast.success(
         created.recipient_exists === false
           ? `Invitation sent to ${email}. They don't have a HOT account yet — they'll need to sign up to accept.`
           : `Invitation sent to ${email}.`,
+        // The no-account case is a long sentence worth reading
+        { duration: 8000 },
       );
       await fetchInvitations();
       onChanged();
-      setTimeout(() => setInviteMessage(null), 8000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -212,7 +203,7 @@ function OrganizationDetailPage() {
       if (!response.ok) throw new Error(await readError(response));
       setInvitations((prev) => prev.filter((inv) => inv.id !== invId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -228,7 +219,7 @@ function OrganizationDetailPage() {
     return (
       <div>
         <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
-          {error || 'Not found'}
+          {loadError || 'Not found'}
         </div>
       </div>
     );
@@ -243,17 +234,6 @@ function OrganizationDetailPage() {
       >
         ← {t('navOrganizations')}
       </button>
-
-      {error && (
-        <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-          {success}
-        </div>
-      )}
 
       {/* Header with banner + name */}
       <div className="bg-white rounded-xl shadow-xl overflow-hidden">
@@ -525,12 +505,6 @@ function OrganizationDetailPage() {
                     {t('inviteBtn')}
                   </button>
                 </form>
-
-                {inviteMessage && (
-                  <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                    {inviteMessage}
-                  </div>
-                )}
 
                 {invitations.length > 0 && (
                   <div>

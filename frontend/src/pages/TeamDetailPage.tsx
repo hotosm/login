@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import MembersPanel from '../components/MembersPanel';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { GroupResponse, MemberRole } from '../types/groups';
@@ -12,8 +13,8 @@ function TeamDetailPage() {
 
   const [group, setGroup] = useState<GroupResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  // Only the initial load failure needs state — it replaces the whole page
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'members'>('details');
 
   // Editable details form
@@ -35,7 +36,7 @@ function TeamDetailPage() {
 
   const fetchGroup = useCallback(async () => {
     try {
-      setError(null);
+      setLoadError(null);
       const response = await fetch(`${backendUrl}/groups/${id}`, {
         credentials: 'include',
       });
@@ -46,7 +47,7 @@ function TeamDetailPage() {
       setDescription(data.description || '');
       setIsPublic(data.is_public);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setLoadError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -59,15 +60,9 @@ function TeamDetailPage() {
   const canManage = group?.role === 'owner' || group?.role === 'manager';
   const canDelete = group?.role === 'owner';
 
-  const flashSuccess = (msg: string) => {
-    setSuccess(msg);
-    setTimeout(() => setSuccess(null), 3000);
-  };
-
   const handleSaveDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError(null);
     try {
       const response = await fetch(`${backendUrl}/groups/${id}`, {
         method: 'PATCH',
@@ -81,9 +76,9 @@ function TeamDetailPage() {
       if (response.status === 401) return goLogin();
       if (!response.ok) throw new Error(await readError(response));
       setGroup(await response.json());
-      flashSuccess(t('detailsSaved'));
+      toast.success(t('detailsSaved'));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setSaving(false);
     }
@@ -91,7 +86,6 @@ function TeamDetailPage() {
 
   const handleChangeName = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     try {
       const response = await fetch(`${backendUrl}/groups/${id}/name-change`, {
         method: 'POST',
@@ -105,7 +99,7 @@ function TeamDetailPage() {
       setEditingName(false);
       setNewName('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -120,13 +114,12 @@ function TeamDetailPage() {
       if (!response.ok) throw new Error(await readError(response));
       navigate('/teams');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
   const handleAddMember = async (e: React.FormEvent, onChanged: () => void) => {
     e.preventDefault();
-    setError(null);
     try {
       const response = await fetch(`${backendUrl}/groups/${id}/members`, {
         method: 'POST',
@@ -140,7 +133,7 @@ function TeamDetailPage() {
       setMemberRole('member');
       onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -156,7 +149,7 @@ function TeamDetailPage() {
     return (
       <div>
         <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
-          {error || 'Not found'}
+          {loadError || 'Not found'}
         </div>
       </div>
     );
@@ -171,17 +164,6 @@ function TeamDetailPage() {
       >
         ← {t('navTeams')}
       </button>
-
-      {error && (
-        <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-          {success}
-        </div>
-      )}
 
       {/* Header — teams have just a name (no logo/banner, no approval status) */}
       <div className="bg-white rounded-xl shadow-xl p-6">

@@ -94,7 +94,9 @@ export interface Translations {
   organizationsSubtitle?: string;
   requestOrganization?: string;
   requestOrgTitle?: string;
+  requestOrgIntro?: string;
   name?: string;
+  orgNameHint?: string;
   contactEmail?: string;
   website?: string;
   description?: string;
@@ -273,7 +275,11 @@ export const translations: Record<string, Translations> = {
     organizationsSubtitle: "Official organizations you belong to",
     requestOrganization: "Request organization",
     requestOrgTitle: "Request a new organization",
+    requestOrgIntro:
+      "New organizations require manager approval before activation. Once approved, you can invite team members and share projects.",
     name: "Name",
+    orgNameHint:
+      "This is your organization's public name. Changing it after approval requires a review.",
     contactEmail: "Contact email",
     website: "Website",
     description: "Description",
@@ -434,7 +440,11 @@ export const translations: Record<string, Translations> = {
     organizationsSubtitle: "Organizaciones oficiales a las que perteneces",
     requestOrganization: "Solicitar organización",
     requestOrgTitle: "Solicitar una nueva organización",
+    requestOrgIntro:
+      "Las nuevas organizaciones requieren la aprobación de un gestor antes de activarse. Una vez aprobada, podrás invitar a miembros del equipo y compartir proyectos.",
     name: "Nombre",
+    orgNameHint:
+      "Este es el nombre público de tu organización. Cambiarlo después de la aprobación requiere una revisión.",
     contactEmail: "Correo de contacto",
     website: "Sitio web",
     description: "Descripción",
@@ -594,7 +604,11 @@ export const translations: Record<string, Translations> = {
     organizationsSubtitle: "Organisations officielles dont vous faites partie",
     requestOrganization: "Demander une organisation",
     requestOrgTitle: "Demander une nouvelle organisation",
+    requestOrgIntro:
+      "Les nouvelles organisations doivent être approuvées par un gestionnaire avant d'être activées. Une fois approuvée, vous pourrez inviter des membres et partager des projets.",
     name: "Nom",
+    orgNameHint:
+      "Il s'agit du nom public de votre organisation. Le modifier après l'approbation nécessite un examen.",
     contactEmail: "Email de contact",
     website: "Site web",
     description: "Description",
@@ -753,7 +767,11 @@ export const translations: Record<string, Translations> = {
     organizationsSubtitle: "Organizações oficiais às quais você pertence",
     requestOrganization: "Solicitar organização",
     requestOrgTitle: "Solicitar uma nova organização",
+    requestOrgIntro:
+      "Novas organizações precisam da aprovação de um gestor antes de serem ativadas. Após a aprovação, você poderá convidar membros da equipe e compartilhar projetos.",
     name: "Nome",
+    orgNameHint:
+      "Este é o nome público da sua organização. Alterá-lo após a aprovação exige uma revisão.",
     contactEmail: "E-mail de contato",
     website: "Site",
     description: "Descrição",

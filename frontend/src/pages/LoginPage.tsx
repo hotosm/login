@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
 import { validateReturnTo } from "../utils/validateReturnTo";
@@ -53,8 +54,14 @@ function LoginPage() {
   const autoConnect = searchParams.get("auto_connect") === "true";
   const errorMessage = searchParams.get("error");
 
-  // Show error toast if there's an error param
-  const [showError, setShowError] = useState(!!errorMessage);
+  // Show error toast if there's an error param. The fixed id keeps StrictMode's
+  // double effect run from stacking two toasts.
+  useEffect(() => {
+    if (!errorMessage) return;
+    toast.error(t(errorMessage as keyof typeof t) || errorMessage, {
+      id: "login-error",
+    });
+  }, [errorMessage, t]);
 
   // Track if user is logged in and their profile
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -194,19 +201,6 @@ function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-hot-gray-50 p-4">
-      {/* Error Toast */}
-      {showError && errorMessage && (
-        <div className="toast-error">
-          <div className="toast-content">
-            <span className="toast-icon">⚠️</span>
-            <span className="toast-message">{t(errorMessage as keyof typeof t) || errorMessage}</span>
-            <button className="toast-close" onClick={() => setShowError(false)}>
-              ×
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="w-full max-w-md">
         <div className="bg-white rounded-xl shadow-xl px-2 xl:px-8 py-8">
           <LanguageSwitcher />

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import GroupCard from '../components/GroupCard';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { GroupSummary, MyInvitation } from '../types/groups';
@@ -15,12 +16,10 @@ function OrganizationsPage() {
   const [groups, setGroups] = useState<GroupSummary[]>([]);
   const [invitations, setInvitations] = useState<MyInvitation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Create/request form — field state lives in OrgRequestForm
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const goLogin = useCallback(() => {
     navigate('/?return_to=' + encodeURIComponent(window.location.href));
@@ -28,7 +27,6 @@ function OrganizationsPage() {
 
   const fetchGroups = useCallback(async () => {
     try {
-      setError(null);
       const response = await fetch(`${backendUrl}/groups?type=organization`, {
         credentials: 'include',
       });
@@ -37,7 +35,7 @@ function OrganizationsPage() {
       const data = await response.json();
       setGroups(data.groups || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -80,8 +78,6 @@ function OrganizationsPage() {
 
   const handleSubmit = async (payload: OrgRequestPayload) => {
     setSubmitting(true);
-    setError(null);
-    setSuccess(null);
     try {
       const response = await fetch(`${backendUrl}/groups`, {
         method: 'POST',
@@ -112,16 +108,15 @@ function OrganizationsPage() {
         if (payload.bannerFile)
           await uploadImage(created.id, 'banner', payload.bannerFile);
       } catch {
-        setError(
+        toast.error(
           'Organization created, but the image upload failed — you can add it later from the org page.',
         );
       }
 
-      setSuccess(t('orgRequestSubmitted'));
+      toast.success(t('orgRequestSubmitted'));
       await fetchGroups();
-      setTimeout(() => setSuccess(null), 4000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setSubmitting(false);
     }
@@ -141,7 +136,7 @@ function OrganizationsPage() {
       setInvitations((prev) => prev.filter((inv) => inv.id !== invitation.id));
       if (action === 'accept') await fetchGroups();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -155,17 +150,6 @@ function OrganizationsPage() {
 
   return (
     <div>
-      {error && (
-        <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-          {success}
-        </div>
-      )}
-
       {/* Pending invitations tray */}
       {invitations.length > 0 && (
         <div className="bg-white rounded-xl shadow-xl p-6">
@@ -211,15 +195,14 @@ function OrganizationsPage() {
       {/* Organizations list */}
       <div className="bg-white rounded-xl shadow-xl p-6 flex flex-col gap-lg">
         
-      <PanelHeader sectionName={t('organizations')}  buttonText={t('requestOrganization')} buttonOnPress={() => setShowForm((v) => !v)} />
+      <PanelHeader sectionName={t('organizations')}  buttonText={t('requestOrganization')} buttonOnPress={() => setShowForm((v) => !v)} hideButton={showForm} />
     
 
       {/* Request organization form */}
       {showForm && (
         <div className='mb-xl'>
           <h2 className='text-lg mb-sx'>{t('requestOrgTitle')}</h2>
-          {/* TODO needs translation once approved */}
-          <p className='text-sm mb-lg'>New organizations require manager approval before activation. Once approved, you can invite team members and share projects. Please choose your Organization Name carefully—it cannot be changed later, though all other information can be edited anytime.</p>
+          <p className='text-sm mb-lg'>{t('requestOrgIntro')}</p>
           <OrgRequestForm
             onSubmit={handleSubmit}
             onCancel={() => setShowForm(false)}

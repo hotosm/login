@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Hanko } from "@teamhanko/hanko-elements";
+import { toast } from "sonner";
 import { validateReturnTo } from "../utils/validateReturnTo";
 import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
@@ -41,8 +42,6 @@ function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -131,7 +130,6 @@ function ProfilePage() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      setError(null);
 
       const response = await fetch(`${backendUrl}/profile/me`, {
         credentials: "include",
@@ -159,7 +157,7 @@ function ProfilePage() {
       // Set the context language to match user's profile language
       setContextLanguage(data.language || "en");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      toast.error(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -203,7 +201,7 @@ function ProfilePage() {
         await fetchTokens();
       }
     } catch {
-      setError("Failed to generate token");
+      toast.error("Failed to generate token");
     }
   };
 
@@ -224,7 +222,7 @@ function ProfilePage() {
         }
       }
     } catch {
-      setError("Failed to revoke token");
+      toast.error("Failed to revoke token");
     }
   };
 
@@ -264,8 +262,6 @@ function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const response = await fetch(`${backendUrl}/profile/me`, {
@@ -288,7 +284,7 @@ function ProfilePage() {
 
       const data = await response.json();
       setProfile(data);
-      setSuccess(t("profileUpdated"));
+      toast.success(t("profileUpdated"));
 
       // Update context language when user changes it
       setContextLanguage(data.language || "en");
@@ -300,9 +296,8 @@ function ProfilePage() {
         }),
       );
 
-      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      toast.error(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setSaving(false);
     }
@@ -319,18 +314,6 @@ function ProfilePage() {
   return (
     <div>
       <div>
-        {/* Messages */}
-        {error && (
-          <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-            {success}
-          </div>
-        )}
-
         {/* Profile Form */}
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
           <PanelHeader sectionName={t("profileInformation")} />
