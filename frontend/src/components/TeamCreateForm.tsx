@@ -158,7 +158,7 @@ function TeamCreateForm({
               {values.members.map((m) => (
                 <span
                   key={m.email}
-                  className="inline-flex items-center gap-1 text-xs bg-hot-gray-100 text-hot-gray-700 rounded-full px-2 py-1"
+                  className="inline-flex items-center gap-1 text-xs bg-hot-gray-100 text-hot-gray-700 rounded-lg px-sm"
                 >
                   {m.name || m.email}
                   <button

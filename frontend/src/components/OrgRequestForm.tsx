@@ -50,42 +50,35 @@ function OrgRequestForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-xl border-b pb-xl">
       <div className='space-y-4'>
         <div>
-          <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-            {t('name')}
-          </label>
           <Input
             type="text"
+            label={t('name')}
+            hint={t('orgNameHint')}
             required
             value={values.name}
             onValueChange={(value) => set('name', value)}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-            {t('contactEmail')}
-          </label>
           <Input
             type="email"
+            required
+            label={t('contactEmail')}
             value={values.contactEmail}
             onValueChange={(value) => set('contactEmail', value)}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-            {t('website')}
-          </label>
           <Input
             type="url"
+            label={t('website')}
             value={values.website}
             onValueChange={(value) => set('website', value)}
-            placeholder="https://example.org"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-            {t('description')}
-          </label>
           <Textarea
+            label={t('description')}
             value={values.description}
             onValueChange={(value) => set('description', value)}
             rows={3}
