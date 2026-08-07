@@ -142,43 +142,6 @@ hanko-auth {
   }
 }
 
-/* Toast notifications */
-.toast-error {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.toast-content {
-  @apply flex items-center gap-3 bg-hot-red-50 border border-hot-red-100 border-l-4 border-l-hot-red-600 py-3.5 px-[18px] rounded-lg shadow-lg max-w-md;
-}
-
-.toast-icon {
-  @apply text-lg flex-shrink-0;
-}
-
-.toast-message {
-  @apply text-hot-red-900 text-sm leading-snug;
-}
-
-.toast-close {
-  @apply bg-transparent border-none text-hot-red-900 text-xl cursor-pointer p-0 px-1 ml-2 opacity-70 transition-opacity hover:opacity-100;
-}
-
 /* Admin Page Styles */
 .admin-page {
   @apply min-h-screen p-5;
@@ -458,7 +421,7 @@ hanko-auth {
 }
 
 .period-btn {
-  @apply py-2 px-4 bg-white/60 text-hot-gray-600 text-sm font-medium border border-gray-200/50 rounded-full cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 hover:border-hot-red-200;
+  @apply py-2 px-4 bg-white/60 text-hot-gray-600 text-sm font-medium border border-gray-200/50 rounded-xl cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 hover:border-hot-red-200;
 }
 
 .period-btn.active {
