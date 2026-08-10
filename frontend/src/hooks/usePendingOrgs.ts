@@ -81,7 +81,6 @@ export function usePendingOrgs(enabled: boolean) {
     pendingOrgs,
     loading,
     error,
-    setError,
     unauthorized,
     refresh,
     approve,

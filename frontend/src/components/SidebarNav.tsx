@@ -1,5 +1,5 @@
 import { NavLink, useHref } from 'react-router-dom';
-import Icon from './Icon';
+import Icon from './shared/Icon';
 
 export interface SidebarNavItem {
   to: string;

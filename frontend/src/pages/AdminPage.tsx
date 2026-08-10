@@ -13,11 +13,8 @@ import {
   Cell,
 } from 'recharts';
 import hotLogo from '../assets/images/hot-logo.svg';
-import { usePendingOrgs } from '../hooks/usePendingOrgs';
 import { useRoles } from '../hooks/useRoles';
 import { readError } from '../utils/api';
-import { creatorLabel } from '../utils/creatorLabel';
-import type { GroupResponse } from '../types/groups';
 
 interface Mapping {
   hanko_user_id: string;
@@ -230,7 +227,7 @@ const ProgressRing = ({
   );
 };
 
-type AdminTab = 'dashboard' | 'mappings' | 'users' | 'organizations';
+type AdminTab = 'dashboard' | 'mappings' | 'users';
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -280,25 +277,12 @@ function AdminPage() {
   // Account managers (users tab) — set of hanko_user_ids that are AMs
   const [accountManagers, setAccountManagers] = useState<Set<string>>(new Set());
 
-  // Pending organizations (organizations tab) — shared with /app/orgs-to-approve
-  const {
-    pendingOrgs,
-    loading: orgsLoading,
-    error: orgsError,
-    approve: approveOrg,
-    reject: rejectOrg,
-    approveName: approveOrgName,
-  } = usePendingOrgs(
-    (isAdmin || isAccountManager) && activeTab === 'organizations',
-  );
-  const [selectedOrg, setSelectedOrg] = useState<GroupResponse | null>(null);
-
   const backendUrl = import.meta.env.VITE_BACKEND_URL || '/api';
 
   // Which tabs the current user can see (order matters: first visible = default)
   const visibleTabs: AdminTab[] = [];
   if (isAdmin) visibleTabs.push('dashboard', 'mappings');
-  if (isAdmin || isAccountManager) visibleTabs.push('users', 'organizations');
+  if (isAdmin || isAccountManager) visibleTabs.push('users');
 
   // Once roles resolve, land on the first visible tab (honoring ?tab=).
   // An account-manager-only user starts on 'users', not 'dashboard'.
@@ -583,33 +567,6 @@ function AdminPage() {
     }
   };
 
-  // Organization moderation actions (admin / account manager). The requests live
-  // in usePendingOrgs; these wrappers keep the admin console's prompt/alert UX.
-  const handleApproveOrg = async (orgId: string) => {
-    try {
-      await approveOrg(orgId);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to approve');
-    }
-  };
-
-  const handleRejectOrg = async (orgId: string) => {
-    const reason = window.prompt('Reason for rejection (optional):') ?? undefined;
-    try {
-      await rejectOrg(orgId, reason);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to reject');
-    }
-  };
-
-  const handleApproveName = async (orgId: string) => {
-    try {
-      await approveOrgName(orgId);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to approve name');
-    }
-  };
-
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString();
   };
@@ -674,8 +631,8 @@ function AdminPage() {
         </button>
       </div>
 
-      {/* Tabs — dashboard/mappings are admin-only; users/organizations
-          are also available to account managers */}
+      {/* Tabs — dashboard/mappings are admin-only; users is also
+          available to account managers */}
       <div className="admin-tabs">
         {isAdmin && (
           <button
@@ -699,14 +656,6 @@ function AdminPage() {
             onClick={() => setActiveTab('users')}
           >
             Users
-          </button>
-        )}
-        {(isAdmin || isAccountManager) && (
-          <button
-            className={`admin-tab ${activeTab === 'organizations' ? 'active' : ''}`}
-            onClick={() => setActiveTab('organizations')}
-          >
-            Orgs to approve
           </button>
         )}
       </div>
@@ -1189,240 +1138,6 @@ function AdminPage() {
                 </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Organizations Tab — pending organization approvals */}
-      {(isAdmin || isAccountManager) && activeTab === 'organizations' && (
-        <div className="dashboard-content">
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-1 flex items-center gap-2">
-              <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              Pending Organizations
-            </h3>
-            <p className="text-xs text-gray-400 mb-4">Review and approve organization requests</p>
-
-            {orgsError && (
-              <div className="admin-alert admin-alert-error">{orgsError}</div>
-            )}
-
-            {orgsLoading ? (
-              <div className="admin-loading">
-                <div className="spinner"></div>
-                <p>Loading organizations...</p>
-              </div>
-            ) : pendingOrgs.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 text-sm">
-                No pending organizations
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-2 font-semibold text-gray-600">Name</th>
-                      <th className="text-left py-3 px-2 font-semibold text-gray-600">Contact</th>
-                      <th className="text-left py-3 px-2 font-semibold text-gray-600">Requested</th>
-                      <th className="text-left py-3 px-2 font-semibold text-gray-600">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingOrgs.map((org) => (
-                      <tr key={org.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedOrg(org)}
-                            className="font-medium text-hot-red-600 hover:underline text-left"
-                          >
-                            {org.name}
-                          </button>
-                          {org.pending_name && (
-                            <div className="text-xs text-gray-500">
-                              Pending name: {org.pending_name}
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-3 px-2 text-gray-600">
-                          {org.contact_email || '—'}
-                        </td>
-                        <td className="py-3 px-2 text-gray-600">
-                          {new Date(org.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex gap-2 flex-wrap">
-                            <button
-                              onClick={() => setSelectedOrg(org)}
-                              className="text-xs px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 whitespace-nowrap"
-                            >
-                              View
-                            </button>
-                            <button
-                              onClick={() => handleApproveOrg(org.id)}
-                              className="btn-success-small"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleRejectOrg(org.id)}
-                              className="btn-danger-small"
-                            >
-                              Reject
-                            </button>
-                            {org.pending_name && (
-                              <button
-                                onClick={() => handleApproveName(org.id)}
-                                className="btn-primary-small"
-                              >
-                                Approve name
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Organization detail — review everything before approving */}
-      {selectedOrg && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedOrg(null)}
-        >
-          <div
-            className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {selectedOrg.banner_url && (
-              <img
-                src={selectedOrg.banner_url}
-                alt=""
-                className="w-full h-32 object-cover rounded-t-xl"
-              />
-            )}
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                {selectedOrg.avatar_url ? (
-                  <img
-                    src={selectedOrg.avatar_url}
-                    alt=""
-                    className="w-14 h-14 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xl font-semibold">
-                    {selectedOrg.name[0]?.toUpperCase()}
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {selectedOrg.name}
-                  </h3>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
-                    {selectedOrg.status}
-                  </span>
-                </div>
-              </div>
-
-              {selectedOrg.pending_name && (
-                <div className="mb-3 text-sm">
-                  <span className="text-gray-500">Pending name change: </span>
-                  <span className="font-medium">{selectedOrg.pending_name}</span>
-                </div>
-              )}
-
-              <dl className="space-y-3 text-sm mb-6">
-                <div>
-                  <dt className="text-gray-500">Description</dt>
-                  <dd className="text-gray-800 whitespace-pre-wrap">
-                    {selectedOrg.description || '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Website</dt>
-                  <dd>
-                    {selectedOrg.website ? (
-                      <a
-                        href={selectedOrg.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-hot-red-600 hover:underline break-all"
-                      >
-                        {selectedOrg.website}
-                      </a>
-                    ) : (
-                      '—'
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Contact email</dt>
-                  <dd className="text-gray-800">
-                    {selectedOrg.contact_email || '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-gray-500">Requested</dt>
-                  <dd className="text-gray-800">
-                    {new Date(selectedOrg.created_at).toLocaleString()}
-                  </dd>
-                </div>
-                {creatorLabel(selectedOrg) && (
-                  <div>
-                    <dt className="text-gray-500">Requested by</dt>
-                    <dd className="text-gray-800 break-all">
-                      {creatorLabel(selectedOrg)}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-
-              <div className="flex gap-2 justify-end flex-wrap">
-                <button
-                  onClick={() => setSelectedOrg(null)}
-                  className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
-                >
-                  Close
-                </button>
-                {selectedOrg.pending_name && (
-                  <button
-                    onClick={async () => {
-                      await handleApproveName(selectedOrg.id);
-                      setSelectedOrg(null);
-                    }}
-                    className="btn-primary-small"
-                  >
-                    Approve name
-                  </button>
-                )}
-                <button
-                  onClick={async () => {
-                    await handleRejectOrg(selectedOrg.id);
-                    setSelectedOrg(null);
-                  }}
-                  className="btn-danger-small"
-                >
-                  Reject
-                </button>
-                <button
-                  onClick={async () => {
-                    await handleApproveOrg(selectedOrg.id);
-                    setSelectedOrg(null);
-                  }}
-                  className="btn-success-small"
-                >
-                  Approve
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}

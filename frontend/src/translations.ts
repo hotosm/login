@@ -88,13 +88,20 @@ export interface Translations {
   navUsers?: string;
   navAdmin?: string;
   navOrgsToApprove?: string;
+  navNotifications?: string;
+
+  // Notifications
+  notifications?: string;
+  noNotifications?: string;
 
   // Organizations
   organizations?: string;
   organizationsSubtitle?: string;
   requestOrganization?: string;
   requestOrgTitle?: string;
+  requestOrgIntro?: string;
   name?: string;
+  orgNameHint?: string;
   contactEmail?: string;
   website?: string;
   description?: string;
@@ -107,6 +114,10 @@ export interface Translations {
   invitedToJoin?: string;
   accept?: string;
   decline?: string;
+  // (the "accepted" toast reuses `inviteAccepted` from the accept-invite page)
+  inviteDeclined?: string;
+  declineInviteTitle?: string;
+  declineInviteConfirm?: string;
 
   // Teams
   teams?: string;
@@ -130,6 +141,10 @@ export interface Translations {
   publicGroup?: string;
   deleteGroupBtn?: string;
   deleteGroupConfirm?: string;
+  deleteTeamTitle?: string;
+  deleteOrgTitle?: string;
+  teamDeleted?: string;
+  orgDeleted?: string;
 
   // Members
   addMemberByEmail?: string;
@@ -269,11 +284,18 @@ export const translations: Record<string, Translations> = {
     navUsers: "Users",
     navAdmin: "Admin",
     navOrgsToApprove: "Organizations to approve",
+    navNotifications: "Notifications",
+    notifications: "Notifications",
+    noNotifications: "You have no notifications.",
     organizations: "Organizations",
     organizationsSubtitle: "Official organizations you belong to",
     requestOrganization: "Request organization",
     requestOrgTitle: "Request a new organization",
+    requestOrgIntro:
+      "New organizations require manager approval before activation. Once approved, you can invite team members and share projects.",
     name: "Name",
+    orgNameHint:
+      "This is your organization's public name. Changing it after approval requires a review.",
     contactEmail: "Contact email",
     website: "Website",
     description: "Description",
@@ -281,9 +303,13 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted: "Your organization request was submitted and is pending approval.",
     noOrganizations: "You don't belong to any organizations yet.",
     pendingInvitations: "Pending invitations",
-    invitedToJoin: "You've been invited to join",
+    invitedToJoin: "You've been invited to join as a",
     accept: "Accept",
     decline: "Decline",
+    inviteDeclined: "Invitation declined.",
+    declineInviteTitle: "Decline this invitation?",
+    declineInviteConfirm:
+      "You won't join this organization. A manager will have to invite you again.",
     teams: "Teams",
     teamsSubtitle: "Informal teams you belong to",
     createTeam: "Create team",
@@ -303,6 +329,10 @@ export const translations: Record<string, Translations> = {
     publicGroup: "Public",
     deleteGroupBtn: "Delete",
     deleteGroupConfirm: "Are you sure? This cannot be undone.",
+    deleteTeamTitle: "Delete team?",
+    deleteOrgTitle: "Delete organization?",
+    teamDeleted: "Team deleted.",
+    orgDeleted: "Organization deleted.",
     addMemberByEmail: "Invite by email",
     addMemberById: "Add member by ID",
     hankoUserIdLabel: "Hanko user ID",
@@ -430,11 +460,18 @@ export const translations: Record<string, Translations> = {
     navUsers: "Usuarios",
     navAdmin: "Admin",
     navOrgsToApprove: "Organizaciones por aprobar",
+    navNotifications: "Notificaciones",
+    notifications: "Notificaciones",
+    noNotifications: "No tienes notificaciones.",
     organizations: "Organizaciones",
     organizationsSubtitle: "Organizaciones oficiales a las que perteneces",
     requestOrganization: "Solicitar organización",
     requestOrgTitle: "Solicitar una nueva organización",
+    requestOrgIntro:
+      "Las nuevas organizaciones requieren la aprobación de un gestor antes de activarse. Una vez aprobada, podrás invitar a miembros del equipo y compartir proyectos.",
     name: "Nombre",
+    orgNameHint:
+      "Este es el nombre público de tu organización. Cambiarlo después de la aprobación requiere una revisión.",
     contactEmail: "Correo de contacto",
     website: "Sitio web",
     description: "Descripción",
@@ -442,9 +479,13 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted: "Tu solicitud de organización fue enviada y está pendiente de aprobación.",
     noOrganizations: "Todavía no perteneces a ninguna organización.",
     pendingInvitations: "Invitaciones pendientes",
-    invitedToJoin: "Te invitaron a unirte",
+    invitedToJoin: "Te invitaron a unirte como",
     accept: "Aceptar",
     decline: "Rechazar",
+    inviteDeclined: "Invitación rechazada.",
+    declineInviteTitle: "¿Rechazar esta invitación?",
+    declineInviteConfirm:
+      "No te unirás a esta organización. Un gestor tendrá que invitarte de nuevo.",
     teams: "Equipos",
     teamsSubtitle: "Equipos informales a los que perteneces",
     createTeam: "Crear equipo",
@@ -464,6 +505,10 @@ export const translations: Record<string, Translations> = {
     publicGroup: "Público",
     deleteGroupBtn: "Eliminar",
     deleteGroupConfirm: "¿Estás seguro? Esto no se puede deshacer.",
+    deleteTeamTitle: "¿Eliminar equipo?",
+    deleteOrgTitle: "¿Eliminar organización?",
+    teamDeleted: "Equipo eliminado.",
+    orgDeleted: "Organización eliminada.",
     addMemberByEmail: "Invitar por email",
     addMemberById: "Agregar miembro por ID",
     hankoUserIdLabel: "ID de usuario Hanko",
@@ -590,11 +635,18 @@ export const translations: Record<string, Translations> = {
     navUsers: "Utilisateurs",
     navAdmin: "Admin",
     navOrgsToApprove: "Organisations à approuver",
+    navNotifications: "Notifications",
+    notifications: "Notifications",
+    noNotifications: "Vous n'avez aucune notification.",
     organizations: "Organisations",
     organizationsSubtitle: "Organisations officielles dont vous faites partie",
     requestOrganization: "Demander une organisation",
     requestOrgTitle: "Demander une nouvelle organisation",
+    requestOrgIntro:
+      "Les nouvelles organisations doivent être approuvées par un gestionnaire avant d'être activées. Une fois approuvée, vous pourrez inviter des membres et partager des projets.",
     name: "Nom",
+    orgNameHint:
+      "Il s'agit du nom public de votre organisation. Le modifier après l'approbation nécessite un examen.",
     contactEmail: "Email de contact",
     website: "Site web",
     description: "Description",
@@ -602,9 +654,13 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted: "Votre demande d'organisation a été envoyée et est en attente d'approbation.",
     noOrganizations: "Vous ne faites partie d'aucune organisation pour l'instant.",
     pendingInvitations: "Invitations en attente",
-    invitedToJoin: "Vous avez été invité à rejoindre",
+    invitedToJoin: "Vous avez été invité à rejoindre en tant que",
     accept: "Accepter",
     decline: "Refuser",
+    inviteDeclined: "Invitation refusée.",
+    declineInviteTitle: "Refuser cette invitation ?",
+    declineInviteConfirm:
+      "Vous ne rejoindrez pas cette organisation. Un gestionnaire devra vous inviter à nouveau.",
     teams: "Équipes",
     teamsSubtitle: "Équipes informelles dont vous faites partie",
     createTeam: "Créer une équipe",
@@ -624,6 +680,10 @@ export const translations: Record<string, Translations> = {
     publicGroup: "Public",
     deleteGroupBtn: "Supprimer",
     deleteGroupConfirm: "Êtes-vous sûr ? Cette action est irréversible.",
+    deleteTeamTitle: "Supprimer l'équipe ?",
+    deleteOrgTitle: "Supprimer l'organisation ?",
+    teamDeleted: "Équipe supprimée.",
+    orgDeleted: "Organisation supprimée.",
     addMemberByEmail: "Inviter par email",
     addMemberById: "Ajouter un membre par ID",
     hankoUserIdLabel: "ID d'utilisateur Hanko",
@@ -749,11 +809,18 @@ export const translations: Record<string, Translations> = {
     navUsers: "Usuários",
     navAdmin: "Admin",
     navOrgsToApprove: "Organizações para aprovar",
+    navNotifications: "Notificações",
+    notifications: "Notificações",
+    noNotifications: "Você não tem notificações.",
     organizations: "Organizações",
     organizationsSubtitle: "Organizações oficiais às quais você pertence",
     requestOrganization: "Solicitar organização",
     requestOrgTitle: "Solicitar uma nova organização",
+    requestOrgIntro:
+      "Novas organizações precisam da aprovação de um gestor antes de serem ativadas. Após a aprovação, você poderá convidar membros da equipe e compartilhar projetos.",
     name: "Nome",
+    orgNameHint:
+      "Este é o nome público da sua organização. Alterá-lo após a aprovação exige uma revisão.",
     contactEmail: "E-mail de contato",
     website: "Site",
     description: "Descrição",
@@ -761,9 +828,13 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted: "Sua solicitação de organização foi enviada e está pendente de aprovação.",
     noOrganizations: "Você ainda não pertence a nenhuma organização.",
     pendingInvitations: "Convites pendentes",
-    invitedToJoin: "Você foi convidado para entrar",
+    invitedToJoin: "Você foi convidado para entrar como",
     accept: "Aceitar",
     decline: "Recusar",
+    inviteDeclined: "Convite recusado.",
+    declineInviteTitle: "Recusar este convite?",
+    declineInviteConfirm:
+      "Você não entrará nesta organização. Um gerente terá que convidá-lo novamente.",
     teams: "Equipes",
     teamsSubtitle: "Equipes informais às quais você pertence",
     createTeam: "Criar equipe",
@@ -783,6 +854,10 @@ export const translations: Record<string, Translations> = {
     publicGroup: "Público",
     deleteGroupBtn: "Excluir",
     deleteGroupConfirm: "Tem certeza? Isso não pode ser desfeito.",
+    deleteTeamTitle: "Excluir equipe?",
+    deleteOrgTitle: "Excluir organização?",
+    teamDeleted: "Equipe excluída.",
+    orgDeleted: "Organização excluída.",
     addMemberByEmail: "Convidar por e-mail",
     addMemberById: "Adicionar membro por ID",
     hankoUserIdLabel: "ID de usuário Hanko",

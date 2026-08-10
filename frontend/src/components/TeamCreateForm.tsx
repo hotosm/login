@@ -1,6 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
-import Button from './Button';
+import Button from './shared/Button';
 import Input from './forms/Input';
 import Textarea from './forms/Textarea';
 
@@ -103,32 +103,26 @@ function TeamCreateForm({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-            {t('name')}
-          </label>
           <Input
             type="text"
+            label={t('name')}
             required
             value={values.name}
             onValueChange={(value) => set('name', value)}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-            {t('description')}
-          </label>
           <Textarea
+            label={t('description')}
             value={values.description}
             onValueChange={(value) => set('description', value)}
             rows={3}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-            {t('membersTab')}
-          </label>
           <div className="flex gap-2">
             <Input
+              label={t('membersTab')}
               className="flex-1"
               type="email"
               value={memberInput}
@@ -146,6 +140,7 @@ function TeamCreateForm({
               type="button"
               onClick={handleAddMember}
               disabled={checkingMember}
+              className='pt-7'
             >
               {checkingMember ? '…' : 'Add'}
             </Button>
@@ -158,7 +153,7 @@ function TeamCreateForm({
               {values.members.map((m) => (
                 <span
                   key={m.email}
-                  className="inline-flex items-center gap-1 text-xs bg-hot-gray-100 text-hot-gray-700 rounded-full px-2 py-1"
+                  className="inline-flex items-center gap-1 text-xs bg-hot-gray-100 text-hot-gray-700 rounded-lg px-sm"
                 >
                   {m.name || m.email}
                   <button

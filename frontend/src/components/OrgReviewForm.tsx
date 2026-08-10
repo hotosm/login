@@ -2,7 +2,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
 import type { GroupResponse } from '../types/groups';
 import { creatorLabel } from '../utils/creatorLabel';
-import Button from './Button';
+import Button from './shared/Button';
 import Textarea from './forms/Textarea';
 
 interface OrgReviewFormProps {

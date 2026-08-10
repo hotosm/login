@@ -1,5 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { GroupMember, MemberRole, MembersResponse } from '../types/groups';
 import { backendUrl, readError } from '../utils/api';
@@ -31,7 +32,6 @@ function MembersPanel({
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const canChangeRoles = viewerRole === 'owner';
@@ -43,7 +43,6 @@ function MembersPanel({
 
   const fetchMembers = useCallback(async () => {
     try {
-      setError(null);
       const response = await fetch(
         `${backendUrl}/groups/${groupId}/members?page=${page}&page_size=${PAGE_SIZE}`,
         { credentials: 'include' },
@@ -54,7 +53,7 @@ function MembersPanel({
       setMembers(data.items || []);
       setTotal(data.total || 0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -100,7 +99,7 @@ function MembersPanel({
       if (!response.ok) throw new Error(await readError(response));
       await fetchMembers();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -120,7 +119,7 @@ function MembersPanel({
         await fetchMembers();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -133,12 +132,6 @@ function MembersPanel({
 
   return (
     <div className="space-y-4">
-      {error && (
-        <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
-
       {canManage && renderAdd && renderAdd(fetchMembers)}
 
       {loading ? (

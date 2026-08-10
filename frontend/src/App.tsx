@@ -5,6 +5,7 @@ import AccountLayout from './layouts/AccountLayout';
 import AcceptInvitePage from './pages/AcceptInvitePage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
+import NotificationsPage from './pages/NotificationsPage';
 import OrganizationDetailPage from './pages/OrganizationDetailPage';
 import OrganizationsPage from './pages/OrganizationsPage';
 import OrgsToApprovePage from './pages/OrgsToApprovePage';
@@ -31,6 +32,7 @@ function App() {
               />
               <Route path="/teams" element={<TeamsPage />} />
               <Route path="/teams/:id" element={<TeamDetailPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               {/* Organization approvals (admin / account manager only) */}
               <Route path="/orgs-to-approve" element={<OrgsToApprovePage />} />
               {/* Accepts an organization invitation from ?token= */}

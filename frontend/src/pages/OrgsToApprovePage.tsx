@@ -1,9 +1,10 @@
-import Button from '@/components/Button';
+import Button from '@/components/shared/Button';
 import OrgReviewForm from '@/components/OrgReviewForm';
 import PanelHeader from '@/components/PanelHeader';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import StatusBadge from '../components/StatusBadge';
+import { toast } from 'sonner';
+import StatusBadge from '../components/shared/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePendingOrgs } from '../hooks/usePendingOrgs';
 import { useRoles } from '../hooks/useRoles';
@@ -21,7 +22,6 @@ function OrgsToApprovePage() {
     pendingOrgs,
     loading,
     error,
-    setError,
     unauthorized,
     approve,
     reject,
@@ -30,7 +30,6 @@ function OrgsToApprovePage() {
 
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (unauthorized) {
@@ -38,18 +37,20 @@ function OrgsToApprovePage() {
     }
   }, [unauthorized, navigate]);
 
-  // Every action closes the review block and reports through the page banners
+  // The list load failure comes from the hook
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
+
+  // Every action closes the review block and reports through a toast
   const runAction = async (action: () => Promise<void>, message: string) => {
     setSubmitting(true);
-    setError(null);
-    setSuccess(null);
     try {
       await action();
       setReviewingId(null);
-      setSuccess(message);
-      setTimeout(() => setSuccess(null), 4000);
+      toast.success(message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setSubmitting(false);
     }
@@ -79,17 +80,6 @@ function OrgsToApprovePage() {
 
   return (
     <div>
-      {error && (
-        <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg mb-6">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-          {success}
-        </div>
-      )}
-
       <div className="bg-white rounded-xl shadow-xl p-6 flex flex-col gap-lg">
         <PanelHeader sectionName={t('orgsToApprove')} />
 
