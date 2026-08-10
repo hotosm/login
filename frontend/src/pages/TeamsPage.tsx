@@ -1,92 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import PanelHeader from '@/components/PanelHeader';
+import TeamCreateForm from '@/components/TeamCreateForm';
+import type { TeamCreatePayload } from '@/components/TeamCreateForm';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import GroupCard from '../components/GroupCard';
 import { useLanguage } from '../contexts/LanguageContext';
-import type { GroupSummary } from '../types/groups';
-import { backendUrl, readError } from '../utils/api';
-import PanelHeader from '@/components/PanelHeader';
-import TeamCreateForm from '@/components/TeamCreateForm';
-import type {
-  MemberLookupResult,
-  TeamCreatePayload,
-} from '@/components/TeamCreateForm';
+import { useErrorToast } from '../hooks/useGroups';
+import { useTeams } from '../hooks/useTeams';
 
 function TeamsPage() {
-  const navigate = useNavigate();
   const { t } = useLanguage();
-
-  const [groups, setGroups] = useState<GroupSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { teams, loading, loadError, submitting, createTeam, lookupMember } =
+    useTeams();
+  useErrorToast(loadError);
 
   // Create form — field state lives in TeamCreateForm
   const [showForm, setShowForm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const goLogin = useCallback(() => {
-    navigate('/?return_to=' + encodeURIComponent(window.location.href));
-  }, [navigate]);
-
-  const fetchGroups = useCallback(async () => {
-    try {
-      const response = await fetch(`${backendUrl}/groups?type=team`, {
-        credentials: 'include',
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      const data = await response.json();
-      setGroups(data.groups || []);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, [goLogin]);
-
-  useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
-
-  const lookupMember = async (
-    email: string,
-  ): Promise<MemberLookupResult | null> => {
-    const response = await fetch(
-      `${backendUrl}/users/lookup?email=${encodeURIComponent(email)}`,
-      { credentials: 'include' },
-    );
-    if (response.status === 401) {
-      goLogin();
-      return null;
-    }
-    if (!response.ok) throw new Error(await readError(response));
-    const data = await response.json();
-    return { exists: Boolean(data.exists), name: data.name ?? null };
-  };
 
   const handleSubmit = async (payload: TeamCreatePayload) => {
-    setSubmitting(true);
     try {
-      const response = await fetch(`${backendUrl}/groups`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'team',
-          name: payload.name,
-          description: payload.description || undefined,
-          member_emails: payload.members.map((m) => m.email),
-        }),
+      const created = await createTeam({
+        name: payload.name,
+        description: payload.description || undefined,
+        member_emails: payload.members.map((m) => m.email),
       });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
+      if (!created) return;
       // Unmounting the form is what clears the fields
       setShowForm(false);
-      await fetchGroups();
       toast.success(t('teamCreated'));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -103,7 +46,7 @@ function TeamsPage() {
       {/* Teams list */}
       <div className="bg-white rounded-xl shadow-xl p-6">
         <PanelHeader sectionName={t('teams')} buttonText={t('createTeam')} buttonOnPress={() => setShowForm((v) => !v)} hideButton={showForm} />
-          
+
         {/* Create team form */}
       {showForm && (
         <div className='mb-xl'>
@@ -119,13 +62,13 @@ function TeamsPage() {
         </div>
       )}
 
-        {groups.length === 0 ? (
+        {teams.length === 0 ? (
           <p className="text-sm text-hot-gray-500 py-6 text-center">
             {t('noTeams')}
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {groups.map((group) => (
+            {teams.map((group) => (
               <GroupCard
                 key={group.id}
                 group={group}

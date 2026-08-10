@@ -1,10 +1,10 @@
-import Button from '@/components/Button';
+import Button from '@/components/shared/Button';
 import OrgReviewForm from '@/components/OrgReviewForm';
 import PanelHeader from '@/components/PanelHeader';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import StatusBadge from '../components/StatusBadge';
+import StatusBadge from '../components/shared/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePendingOrgs } from '../hooks/usePendingOrgs';
 import { useRoles } from '../hooks/useRoles';

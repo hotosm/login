@@ -7,7 +7,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
 import PanelHeader from "@/components/PanelHeader";
 import Input from "@/components/forms/Input";
-import Button from "@/components/Button";
+import Button from "@/components/shared/Button";
 
 const ALLOWED_APPS = [
   { id: "fair", label: "fAIr" },

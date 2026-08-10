@@ -1,129 +1,85 @@
-import { useCallback, useEffect, useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import MembersPanel from '../components/MembersPanel';
-import StatusBadge from '../components/StatusBadge';
+import StatusBadge from '../components/shared/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
-import type {
-  GroupResponse,
-  Invitation,
-  MemberRole,
-} from '../types/groups';
-import { backendUrl, readError } from '../utils/api';
+import { useOrganization } from '../hooks/useOrgs';
+import type { MemberRole } from '../types/groups';
 
 function OrganizationDetailPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const [group, setGroup] = useState<GroupResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  // Only the initial load failure needs state — it replaces the whole page
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'details' | 'members'>('details');
+  const {
+    organization: org,
+    loading,
+    loadError,
+    saving,
+    deleting,
+    canManage,
+    canDelete,
+    listPath,
+    invitations,
+    refreshInvitations,
+    updateDetails,
+    changeName,
+    uploadImage,
+    invite,
+    cancelInvitation,
+    deleteOrganization,
+  } = useOrganization(id);
 
-  // Editable details form
+  const [activeTab, setActiveTab] = useState<'details' | 'members'>('details');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Editable details form, seeded from the loaded organization
   const [description, setDescription] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [isPublic, setIsPublic] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   // Name change
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
 
-  // Invitations (sent) + invite form
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  // Invite form
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<MemberRole>('member');
 
-  const goLogin = useCallback(() => {
-    navigate('/?return_to=' + encodeURIComponent(window.location.href));
-  }, [navigate]);
-
-  const fetchGroup = useCallback(async () => {
-    try {
-      setLoadError(null);
-      const response = await fetch(`${backendUrl}/groups/${id}`, {
-        credentials: 'include',
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      const data: GroupResponse = await response.json();
-      setGroup(data);
-      setDescription(data.description || '');
-      setContactEmail(data.contact_email || '');
-      setWebsite(data.website || '');
-      setIsPublic(data.is_public);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, goLogin]);
+  useEffect(() => {
+    if (!org) return;
+    setDescription(org.description || '');
+    setContactEmail(org.contact_email || '');
+    setWebsite(org.website || '');
+    setIsPublic(org.is_public);
+  }, [org]);
 
   useEffect(() => {
-    fetchGroup();
-  }, [fetchGroup]);
-
-  const canManage = group?.role === 'owner' || group?.role === 'manager';
-  const canDelete = group?.role === 'owner';
-
-  const fetchInvitations = useCallback(async () => {
-    if (!canManage) return;
-    try {
-      const response = await fetch(`${backendUrl}/groups/${id}/invitations`, {
-        credentials: 'include',
-      });
-      if (response.ok) setInvitations(await response.json());
-    } catch {
-      // Non-critical
-    }
-  }, [id, canManage]);
-
-  useEffect(() => {
-    if (activeTab === 'members') fetchInvitations();
-  }, [activeTab, fetchInvitations]);
+    if (activeTab === 'members') refreshInvitations();
+  }, [activeTab, refreshInvitations]);
 
   const handleSaveDetails = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     try {
-      const response = await fetch(`${backendUrl}/groups/${id}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          description: description || null,
-          contact_email: contactEmail || null,
-          website: website || null,
-          is_public: isPublic,
-        }),
+      const updated = await updateDetails({
+        description: description || null,
+        contact_email: contactEmail || null,
+        website: website || null,
+        is_public: isPublic,
       });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      setGroup(await response.json());
-      toast.success(t('detailsSaved'));
+      if (updated) toast.success(t('detailsSaved'));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setSaving(false);
     }
   };
 
   const handleChangeName = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${backendUrl}/groups/${id}/name-change`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      setGroup(await response.json());
+      if (!(await changeName(newName))) return;
       setEditingName(false);
       setNewName('');
     } catch (err) {
@@ -133,32 +89,22 @@ function OrganizationDetailPage() {
 
   const handleUpload = async (kind: 'avatar' | 'banner', file: File) => {
     try {
-      const form = new FormData();
-      form.append('file', file);
-      const response = await fetch(`${backendUrl}/groups/${id}/${kind}`, {
-        method: 'PUT',
-        credentials: 'include',
-        body: form,
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      await fetchGroup();
+      await uploadImage(kind, file);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(t('deleteGroupConfirm'))) return;
     try {
-      const response = await fetch(`${backendUrl}/groups/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      navigate('/organizations');
+      if (await deleteOrganization()) {
+        // The Toaster is mounted above the router, so this survives the redirect
+        toast.success(t('orgDeleted'));
+        return;
+      }
+      setConfirmDelete(false);
     } catch (err) {
+      setConfirmDelete(false);
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
@@ -167,15 +113,8 @@ function OrganizationDetailPage() {
     e.preventDefault();
     const email = inviteEmail;
     try {
-      const response = await fetch(`${backendUrl}/groups/${id}/invitations`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      const created = await response.json();
+      const created = await invite(inviteEmail, inviteRole);
+      if (!created) return;
       setInviteEmail('');
       setInviteRole('member');
       toast.success(
@@ -185,7 +124,6 @@ function OrganizationDetailPage() {
         // The no-account case is a long sentence worth reading
         { duration: 8000 },
       );
-      await fetchInvitations();
       onChanged();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
@@ -195,13 +133,7 @@ function OrganizationDetailPage() {
   const handleCancelInvite = async (invId: string) => {
     if (!window.confirm(t('cancelInviteConfirm'))) return;
     try {
-      const response = await fetch(
-        `${backendUrl}/groups/${id}/invitations/${invId}`,
-        { method: 'DELETE', credentials: 'include' },
-      );
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      setInvitations((prev) => prev.filter((inv) => inv.id !== invId));
+      await cancelInvitation(invId);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -215,7 +147,7 @@ function OrganizationDetailPage() {
     );
   }
 
-  if (!group) {
+  if (!org) {
     return (
       <div>
         <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
@@ -229,7 +161,7 @@ function OrganizationDetailPage() {
     <div>
       <button
         type="button"
-        onClick={() => navigate('/organizations')}
+        onClick={() => navigate(listPath)}
         className="text-sm text-hot-gray-500 hover:text-hot-red-600 transition-colors"
       >
         ← {t('navOrganizations')}
@@ -240,8 +172,8 @@ function OrganizationDetailPage() {
         <div
           className="h-28 bg-hot-gray-100 bg-cover bg-center"
           style={
-            group.banner_url
-              ? { backgroundImage: `url(${group.banner_url})` }
+            org.banner_url
+              ? { backgroundImage: `url(${org.banner_url})` }
               : undefined
           }
         />
@@ -249,7 +181,7 @@ function OrganizationDetailPage() {
           <div className="flex items-center gap-4">
             <img
               src={
-                group.avatar_url ||
+                org.avatar_url ||
                 'https://www.gravatar.com/avatar/?d=identicon&s=96'
               }
               alt=""
@@ -258,13 +190,13 @@ function OrganizationDetailPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-semibold text-hot-gray-900">
-                  {group.name}
+                  {org.name}
                 </h1>
-                <StatusBadge status={group.status} />
+                <StatusBadge status={org.status} />
               </div>
-              {group.pending_name && (
+              {org.pending_name && (
                 <p className="text-xs text-hot-gray-500 mt-1">
-                  {t('nameChangePending')}: {group.pending_name}
+                  {t('nameChangePending')}: {org.pending_name}
                 </p>
               )}
             </div>
@@ -286,7 +218,7 @@ function OrganizationDetailPage() {
           onClick={() => setActiveTab('members')}
           className={`admin-tab ${activeTab === 'members' ? 'active' : ''}`}
         >
-          {t('membersTab')} ({group.members_count})
+          {t('membersTab')} ({org.members_count})
         </button>
       </div>
 
@@ -322,12 +254,12 @@ function OrganizationDetailPage() {
               </form>
             ) : (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-hot-gray-900">{group.name}</span>
+                <span className="text-sm text-hot-gray-900">{org.name}</span>
                 {canManage && (
                   <button
                     type="button"
                     onClick={() => {
-                      setNewName(group.name);
+                      setNewName(org.name);
                       setEditingName(true);
                     }}
                     className="text-sm text-hot-red-600 hover:underline"
@@ -337,9 +269,9 @@ function OrganizationDetailPage() {
                 )}
               </div>
             )}
-            {group.pending_name && (
+            {org.pending_name && (
               <p className="text-xs text-hot-gray-500 mt-1">
-                {t('nameChangePending')}: {group.pending_name}
+                {t('nameChangePending')}: {org.pending_name}
               </p>
             )}
           </div>
@@ -425,7 +357,7 @@ function OrganizationDetailPage() {
                 {canDelete && (
                   <button
                     type="button"
-                    onClick={handleDelete}
+                    onClick={() => setConfirmDelete(true)}
                     className="btn-danger-small"
                   >
                     {t('deleteGroupBtn')}
@@ -439,20 +371,20 @@ function OrganizationDetailPage() {
                 <dt className="font-medium text-hot-gray-700">
                   {t('contactEmail')}
                 </dt>
-                <dd className="text-hot-gray-600">{group.contact_email || '—'}</dd>
+                <dd className="text-hot-gray-600">{org.contact_email || '—'}</dd>
               </div>
               <div>
                 <dt className="font-medium text-hot-gray-700">
                   {t('website')}
                 </dt>
-                <dd className="text-hot-gray-600">{group.website || '—'}</dd>
+                <dd className="text-hot-gray-600">{org.website || '—'}</dd>
               </div>
               <div>
                 <dt className="font-medium text-hot-gray-700">
                   {t('description')}
                 </dt>
                 <dd className="text-hot-gray-600 whitespace-pre-line">
-                  {group.description || '—'}
+                  {org.description || '—'}
                 </dd>
               </div>
             </dl>
@@ -464,10 +396,10 @@ function OrganizationDetailPage() {
         <div className="bg-white rounded-xl shadow-xl p-6">
           <MembersPanel
             groupId={id}
-            viewerRole={group.role}
-            onLeft={() => navigate('/organizations')}
+            viewerRole={org.role}
+            onLeft={() => navigate(listPath)}
             renderAdd={(onChanged) =>
-              group.status !== 'approved' ? (
+              org.status !== 'approved' ? (
                 <div className="text-sm text-hot-gray-500 bg-hot-gray-50 border border-hot-gray-200 rounded-lg px-3 py-2 mb-2">
                   You can invite members once this organization is approved.
                 </div>
@@ -540,6 +472,17 @@ function OrganizationDetailPage() {
           />
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        label={t('deleteOrgTitle')}
+        message={t('deleteGroupConfirm')}
+        confirmText={t('deleteGroupBtn')}
+        danger
+        busy={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }

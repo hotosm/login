@@ -1,6 +1,6 @@
 import WaBadge from '@awesome.me/webawesome/dist/react/badge/index.js';
 import type { CSSProperties } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 type Variant = 'success' | 'warning' | 'danger' | 'neutral';
 

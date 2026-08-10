@@ -1,6 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
-import Button from './Button';
+import Button from './shared/Button';
 import Input from './forms/Input';
 import Textarea from './forms/Textarea';
 

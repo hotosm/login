@@ -1,101 +1,70 @@
-import { useCallback, useEffect, useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import MembersPanel from '../components/MembersPanel';
 import { useLanguage } from '../contexts/LanguageContext';
-import type { GroupResponse, MemberRole } from '../types/groups';
-import { backendUrl, readError } from '../utils/api';
+import { useTeam } from '../hooks/useTeams';
+import type { MemberRole } from '../types/groups';
 
 function TeamDetailPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const [group, setGroup] = useState<GroupResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  // Only the initial load failure needs state — it replaces the whole page
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'details' | 'members'>('details');
+  const {
+    team,
+    loading,
+    loadError,
+    saving,
+    deleting,
+    canManage,
+    canDelete,
+    listPath,
+    updateDetails,
+    changeName,
+    deleteTeam,
+    addMember,
+  } = useTeam(id);
 
-  // Editable details form
+  const [activeTab, setActiveTab] = useState<'details' | 'members'>('details');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Editable details form, seeded from the loaded team
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   // Name change (applied directly for teams)
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
 
-  // Add member form (teams add members directly by Hanko user ID)
+  // Add member form (teams add members directly by email)
   const [memberEmail, setMemberEmail] = useState('');
   const [memberRole, setMemberRole] = useState<MemberRole>('member');
 
-  const goLogin = useCallback(() => {
-    navigate('/?return_to=' + encodeURIComponent(window.location.href));
-  }, [navigate]);
-
-  const fetchGroup = useCallback(async () => {
-    try {
-      setLoadError(null);
-      const response = await fetch(`${backendUrl}/groups/${id}`, {
-        credentials: 'include',
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      const data: GroupResponse = await response.json();
-      setGroup(data);
-      setDescription(data.description || '');
-      setIsPublic(data.is_public);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, goLogin]);
-
   useEffect(() => {
-    fetchGroup();
-  }, [fetchGroup]);
-
-  const canManage = group?.role === 'owner' || group?.role === 'manager';
-  const canDelete = group?.role === 'owner';
+    if (!team) return;
+    setDescription(team.description || '');
+    setIsPublic(team.is_public);
+  }, [team]);
 
   const handleSaveDetails = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     try {
-      const response = await fetch(`${backendUrl}/groups/${id}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          description: description || null,
-          is_public: isPublic,
-        }),
+      const updated = await updateDetails({
+        description: description || null,
+        is_public: isPublic,
       });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      setGroup(await response.json());
-      toast.success(t('detailsSaved'));
+      if (updated) toast.success(t('detailsSaved'));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setSaving(false);
     }
   };
 
   const handleChangeName = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${backendUrl}/groups/${id}/name-change`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      setGroup(await response.json());
+      if (!(await changeName(newName))) return;
       setEditingName(false);
       setNewName('');
     } catch (err) {
@@ -104,16 +73,15 @@ function TeamDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(t('deleteGroupConfirm'))) return;
     try {
-      const response = await fetch(`${backendUrl}/groups/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      navigate('/teams');
+      if (await deleteTeam()) {
+        // The Toaster is mounted above the router, so this survives the redirect
+        toast.success(t('teamDeleted'));
+        return;
+      }
+      setConfirmDelete(false);
     } catch (err) {
+      setConfirmDelete(false);
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
@@ -121,14 +89,7 @@ function TeamDetailPage() {
   const handleAddMember = async (e: React.FormEvent, onChanged: () => void) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${backendUrl}/groups/${id}/members`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: memberEmail, role: memberRole }),
-      });
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
+      if (!(await addMember(memberEmail, memberRole))) return;
       setMemberEmail('');
       setMemberRole('member');
       onChanged();
@@ -145,7 +106,7 @@ function TeamDetailPage() {
     );
   }
 
-  if (!group) {
+  if (!team) {
     return (
       <div>
         <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
@@ -159,7 +120,7 @@ function TeamDetailPage() {
     <div>
       <button
         type="button"
-        onClick={() => navigate('/teams')}
+        onClick={() => navigate(listPath)}
         className="text-sm text-hot-gray-500 hover:text-hot-red-600 transition-colors"
       >
         ← {t('navTeams')}
@@ -167,9 +128,7 @@ function TeamDetailPage() {
 
       {/* Header — teams have just a name (no logo/banner, no approval status) */}
       <div className="bg-white rounded-xl shadow-xl p-6">
-        <h1 className="text-xl font-semibold text-hot-gray-900">
-          {group.name}
-        </h1>
+        <h1 className="text-xl font-semibold text-hot-gray-900">{team.name}</h1>
       </div>
 
       {/* Tabs */}
@@ -186,7 +145,7 @@ function TeamDetailPage() {
           onClick={() => setActiveTab('members')}
           className={`admin-tab ${activeTab === 'members' ? 'active' : ''}`}
         >
-          {t('membersTab')} ({group.members_count})
+          {t('membersTab')} ({team.members_count})
         </button>
       </div>
 
@@ -222,12 +181,12 @@ function TeamDetailPage() {
               </form>
             ) : (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-hot-gray-900">{group.name}</span>
+                <span className="text-sm text-hot-gray-900">{team.name}</span>
                 {canManage && (
                   <button
                     type="button"
                     onClick={() => {
-                      setNewName(group.name);
+                      setNewName(team.name);
                       setEditingName(true);
                     }}
                     className="text-sm text-hot-red-600 hover:underline"
@@ -266,7 +225,7 @@ function TeamDetailPage() {
                 {canDelete && (
                   <button
                     type="button"
-                    onClick={handleDelete}
+                    onClick={() => setConfirmDelete(true)}
                     className="btn-danger-small"
                   >
                     {t('deleteGroupBtn')}
@@ -281,7 +240,7 @@ function TeamDetailPage() {
                   {t('description')}
                 </dt>
                 <dd className="text-hot-gray-600 whitespace-pre-line">
-                  {group.description || '—'}
+                  {team.description || '—'}
                 </dd>
               </div>
             </dl>
@@ -293,8 +252,8 @@ function TeamDetailPage() {
         <div className="bg-white rounded-xl shadow-xl p-6">
           <MembersPanel
             groupId={id}
-            viewerRole={group.role}
-            onLeft={() => navigate('/teams')}
+            viewerRole={team.role}
+            onLeft={() => navigate(listPath)}
             renderAdd={(onChanged) => (
               <div className="space-y-4 mb-2">
                 <form
@@ -335,6 +294,17 @@ function TeamDetailPage() {
           />
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        label={t('deleteTeamTitle')}
+        message={t('deleteGroupConfirm')}
+        confirmText={t('deleteGroupBtn')}
+        danger
+        busy={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }

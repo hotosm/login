@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import type { GroupSummary } from '../types/groups';
-import Button from './Button';
-import StatusBadge from './StatusBadge';
-import Icon from './Icon';
+import Button from './shared/Button';
+import StatusBadge from './shared/StatusBadge';
+import Icon from './shared/Icon';
 import searchIcon from "../assets/icons/search.svg";
 // Deterministic accent color for the initial-avatar when there's no logo.
 // Soft tint + same-hue text, drawn from the hot.css palette. Every pair clears
