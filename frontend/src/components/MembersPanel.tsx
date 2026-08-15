@@ -1,138 +1,83 @@
-import { type ReactNode, useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { type ReactNode, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import type { GroupMember, MemberRole, MembersResponse } from '../types/groups';
-import { backendUrl, readError } from '../utils/api';
-
-const PAGE_SIZE = 20;
+import {
+  type PendingMemberAction,
+  memberName,
+  useMembers,
+} from '../hooks/useMembers';
+import type { MemberRole } from '../types/groups';
+import { ROLE_OPTIONS, roleLabels } from '../utils/roles';
+import ConfirmDialog from './ConfirmDialog';
+import Button from './shared/Button';
+import Dropdown from './shared/Dropdown';
+import DropdownItem from './shared/DropdownItem';
 
 interface MembersPanelProps {
   groupId: string;
-  // The viewer's role in this group (from GroupResponse.role)
   viewerRole: MemberRole | null;
-  // Called after the current user leaves the group
   onLeft: () => void;
-  // Renders the add/invite UI (differs between teams and organizations).
-  // Receives a callback to refresh the member list after a change.
+  onViewerRoleChanged?: () => void;
   renderAdd?: (onChanged: () => void) => ReactNode;
 }
 
-// Member list with role management shared by team and organization detail pages.
 function MembersPanel({
   groupId,
   viewerRole,
   onLeft,
+  onViewerRoleChanged,
   renderAdd,
 }: MembersPanelProps) {
   const { t } = useLanguage();
-  const navigate = useNavigate();
 
-  const [members, setMembers] = useState<GroupMember[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const {
+    members,
+    loading,
+    page,
+    setPage,
+    totalPages,
+    isSelf,
+    canChangeRoles,
+    canManage,
+    refresh,
+    pending,
+    busy,
+    requestRoleChange,
+    requestRemove,
+    confirmPending,
+    cancelPending,
+  } = useMembers(groupId, viewerRole, onLeft, onViewerRoleChanged);
 
-  const canChangeRoles = viewerRole === 'owner';
-  const canManage = viewerRole === 'owner' || viewerRole === 'manager';
+  // Used for both the role dropdown and the read-only role badge
+  const labels = roleLabels(t);
 
-  const goLogin = useCallback(() => {
-    navigate('/?return_to=' + encodeURIComponent(window.location.href));
-  }, [navigate]);
-
-  const fetchMembers = useCallback(async () => {
-    try {
-      const response = await fetch(
-        `${backendUrl}/groups/${groupId}/members?page=${page}&page_size=${PAGE_SIZE}`,
-        { credentials: 'include' },
-      );
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      const data: MembersResponse = await response.json();
-      setMembers(data.items || []);
-      setTotal(data.total || 0);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, [groupId, page, goLogin]);
-
-  // Identify the current user to show "Leave" and hide self-targeted actions
-  useEffect(() => {
-    const fetchMe = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/profile/me`, {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setCurrentUserId(data.hanko_user_id || null);
-        }
-      } catch {
-        // Non-critical
-      }
-    };
-    fetchMe();
-  }, []);
-
-  useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
-
-  const handleChangeRole = async (member: GroupMember, role: MemberRole) => {
-    if (role === member.role) return;
-    if (role === 'owner' && !window.confirm(t('transferOwnershipConfirm')))
-      return;
-    try {
-      const response = await fetch(
-        `${backendUrl}/groups/${groupId}/members/${member.hanko_user_id}`,
-        {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role }),
-        },
-      );
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      await fetchMembers();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'An error occurred');
-    }
+  // confirmation dialogs texts
+  const confirmCopy: Record<
+    PendingMemberAction['kind'],
+    { label: string; message: string; confirmText: string }
+  > = {
+    transferOwnership: {
+      label: t('transferOwnershipConfirm'),
+      message: t('transferOwnershipDetail'),
+      confirmText: t('transferOwnershipBtn'),
+    },
+    leave: {
+      label: t('leaveGroupConfirm'),
+      message: t('leaveGroupDetail'),
+      confirmText: t('leaveGroup'),
+    },
+    remove: {
+      label: t('removeMemberConfirm'),
+      message: t('removeMemberDetail'),
+      confirmText: t('removeMember'),
+    },
   };
 
-  const handleRemove = async (member: GroupMember, isSelf: boolean) => {
-    const confirmMsg = isSelf ? t('leaveGroupConfirm') : t('removeMemberConfirm');
-    if (!window.confirm(confirmMsg)) return;
-    try {
-      const response = await fetch(
-        `${backendUrl}/groups/${groupId}/members/${member.hanko_user_id}`,
-        { method: 'DELETE', credentials: 'include' },
-      );
-      if (response.status === 401) return goLogin();
-      if (!response.ok) throw new Error(await readError(response));
-      if (isSelf) {
-        onLeft();
-      } else {
-        await fetchMembers();
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'An error occurred');
-    }
-  };
-
-  const memberName = (m: GroupMember) => {
-    const full = `${m.first_name || ''} ${m.last_name || ''}`.trim();
-    return full || m.email || m.hanko_user_id;
-  };
-
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const lastKind = useRef<PendingMemberAction['kind']>('remove');
+  if (pending) lastKind.current = pending.kind;
 
   return (
     <div className="space-y-4">
-      {canManage && renderAdd && renderAdd(fetchMembers)}
+      {canManage && renderAdd && renderAdd(refresh)}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -145,7 +90,7 @@ function MembersPanel({
       ) : (
         <div className="divide-y divide-hot-gray-200">
           {members.map((member) => {
-            const isSelf = member.hanko_user_id === currentUserId;
+            const self = isSelf(member);
             return (
               <div
                 key={member.hanko_user_id}
@@ -172,45 +117,61 @@ function MembersPanel({
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {canChangeRoles && !isSelf ? (
-                    <select
-                      value={member.role}
-                      onChange={(e) =>
-                        handleChangeRole(member, e.target.value as MemberRole)
-                      }
-                      className="text-xs border border-hot-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:border-hot-red-400"
+                  {canChangeRoles && !self ? (
+                    <Dropdown
+                      size="small"
+                      onSelect={(e) => {
+                        const { value } = e.detail.item as HTMLElement & {
+                          value?: string;
+                        };
+                        if (value)
+                          requestRoleChange(member, value as MemberRole);
+                      }}
                     >
-                      <option value="member">{t('roleMember')}</option>
-                      <option value="manager">{t('roleManager')}</option>
-                      <option value="owner">{t('roleOwner')}</option>
-                    </select>
+                      <Button
+                        slot="trigger"
+                        size="small"
+                        appearance="outlined"
+                        withCaret
+                      >
+                        {labels[member.role]}
+                      </Button>
+                      {ROLE_OPTIONS.map((role) => (
+                        <DropdownItem
+                          key={role}
+                          value={role}
+                          type="checkbox"
+                          checked={member.role === role}
+                        >
+                          {labels[role]}
+                        </DropdownItem>
+                      ))}
+                    </Dropdown>
                   ) : (
-                    <span className="text-xs px-2 py-1 rounded bg-hot-gray-100 text-hot-gray-600">
-                      {member.role === 'owner'
-                        ? t('roleOwner')
-                        : member.role === 'manager'
-                          ? t('roleManager')
-                          : t('roleMember')}
+                    <span className="text-white font-semibold bg-hot-neutral-800 rounded-xl px-xs py-2xs">
+                      {labels[member.role]}
                     </span>
                   )}
 
-                  {isSelf ? (
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(member, true)}
-                      className="btn-secondary-small"
+                  {self ? (
+                   <Button
+                      appearance="outlined"
+                      size='small'
+                      variant='danger'
+                      onClick={() => requestRemove(member)}
                     >
                       {t('leaveGroup')}
-                    </button>
+                    </Button>
                   ) : (
                     canManage && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemove(member, false)}
-                        className="btn-danger-small"
+                      <Button
+                        appearance="outlined"
+                        size='small'
+                        onClick={() => requestRemove(member)}
+                        variant='danger'
                       >
                         {t('removeMember')}
-                      </button>
+                      </Button>
                     )
                   )}
                 </div>
@@ -243,6 +204,15 @@ function MembersPanel({
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={pending !== null}
+        {...confirmCopy[lastKind.current]}
+        danger
+        busy={busy}
+        onConfirm={confirmPending}
+        onCancel={cancelPending}
+      />
     </div>
   );
 }

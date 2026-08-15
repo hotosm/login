@@ -29,19 +29,16 @@ function linkClass(elevated: boolean) {
     }
     return `${baseClass} font-medium ${
       isActive
-        ? 'bg-hot-red-50 text-hot-red-600'
+        ? 'bg-hot-gray-50'
         : 'text-hot-gray-700 hover:bg-hot-gray-50'
     }`;
   };
 }
 
-// One nav entry. Own component so `useHref` — which resolves the route path
-// against the router's /app basename — isn't called from inside a .map over a
-// list whose length changes with the user's roles.
+
 function SidebarLink({ item }: { item: SidebarNavItem }) {
   const href = useHref(item.to);
   const getClass = linkClass(!!item.elevated);
-  // wa-icon with an empty label is decorative: no role="img", nothing announced.
   const icon = item.icon && (
     <Icon src={item.icon} label="" className="w-3 h-3" />
   );

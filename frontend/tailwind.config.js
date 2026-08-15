@@ -13,13 +13,14 @@ export default {
       },
     },
     extend: {
+      // HOT Official Colors (CSS variables)
       colors: {
         // Primary colors (red scale)
         "hot-red-950": "var(--hot-color-red-950)",
         "hot-red-900": "var(--hot-color-red-900)",
         "hot-red-800": "var(--hot-color-red-800)",
         "hot-red-700": "var(--hot-color-red-700)",
-        "hot-red-600": "var(--hot-color-red-600)",
+        "hot-red-600": "var(--hot-color-red-600)", // Main red #D73F3F
         "hot-red-500": "var(--hot-color-red-500)",
         "hot-red-400": "var(--hot-color-red-400)",
         "hot-red-300": "var(--hot-color-red-300)",
@@ -45,7 +46,7 @@ export default {
         "hot-yellow-900": "var(--hot-color-yellow-900)",
         "hot-yellow-800": "var(--hot-color-yellow-800)",
         "hot-yellow-700": "var(--hot-color-yellow-700)",
-        "hot-yellow-600": "var(--hot-color-yellow-600)",
+        "hot-yellow-600": "var(--hot-color-yellow-600)", // #FAA71E
         "hot-yellow-500": "var(--hot-color-yellow-500)",
         "hot-yellow-400": "var(--hot-color-yellow-400)",
         "hot-yellow-300": "var(--hot-color-yellow-300)",
@@ -94,7 +95,7 @@ export default {
 
         // Grays
         "hot-gray-1000": "var(--hot-color-gray-1000)",
-        "hot-gray-950": "var(--hot-color-gray-950)",
+        "hot-gray-950": "var(--hot-color-gray-950)", // #2C3038
         "hot-gray-900": "var(--hot-color-gray-900)",
         "hot-gray-800": "var(--hot-color-gray-800)",
         "hot-gray-700": "var(--hot-color-gray-700)",
@@ -105,6 +106,21 @@ export default {
         "hot-gray-200": "var(--hot-color-gray-200)",
         "hot-gray-100": "var(--hot-color-gray-100)",
         "hot-gray-50": "var(--hot-color-gray-50)",
+
+        // Neutrals (blue scale)
+        "hot-neutral-1000": "var(--hot-color-neutral-1000)", // #000
+        "hot-neutral-950": "var(--hot-color-neutral-950)",
+        "hot-neutral-900": "var(--hot-color-neutral-900)",
+        "hot-neutral-800": "var(--hot-color-neutral-800)", // #20365B
+        "hot-neutral-700": "var(--hot-color-neutral-700)",
+        "hot-neutral-600": "var(--hot-color-neutral-600)",
+        "hot-neutral-500": "var(--hot-color-neutral-500)", // #344F7B
+        "hot-neutral-400": "var(--hot-color-neutral-400)",
+        "hot-neutral-300": "var(--hot-color-neutral-300)",
+        "hot-neutral-200": "var(--hot-color-neutral-200)",
+        "hot-neutral-100": "var(--hot-color-neutral-100)",
+        "hot-neutral-50": "var(--hot-color-neutral-50)",
+        "hot-neutral-0": "var(--hot-color-neutral-0)", // #fff
 
         // Semantic colors
         "hot-primary": "var(--hot-color-primary-600)",
@@ -117,6 +133,8 @@ export default {
       // HOT Official Typography
       fontFamily: {
         sans: ["var(--hot-font-sans)", "system-ui", "sans-serif"],
+        // Spelling matches the shared package's token, which is --hot-font-sefif
+        serif: ["var(--hot-font-sefif)"],
         mono: ["var(--hot-font-mono)", "ui-monospace", "monospace"],
       },
 

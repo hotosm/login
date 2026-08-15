@@ -155,8 +155,12 @@ export interface Translations {
   removeMember?: string;
   leaveGroup?: string;
   removeMemberConfirm?: string;
+  removeMemberDetail?: string;
   leaveGroupConfirm?: string;
+  leaveGroupDetail?: string;
   transferOwnershipConfirm?: string;
+  transferOwnershipDetail?: string;
+  transferOwnershipBtn?: string;
   memberSince?: string;
   noMembers?: string;
   sentInvitations?: string;
@@ -341,8 +345,15 @@ export const translations: Record<string, Translations> = {
     removeMember: "Remove",
     leaveGroup: "Leave",
     removeMemberConfirm: "Remove this member?",
+    removeMemberDetail:
+      "They lose access to this group. You can add them back later.",
     leaveGroupConfirm: "Leave this group?",
+    leaveGroupDetail:
+      "You lose access to this group. An owner or manager has to add you back.",
     transferOwnershipConfirm: "Transfer ownership to this member?",
+    transferOwnershipDetail:
+      "They become the owner of this group and you become a manager.",
+    transferOwnershipBtn: "Transfer ownership",
     memberSince: "Member since",
     noMembers: "No members yet.",
     sentInvitations: "Pending invitations",
@@ -517,8 +528,15 @@ export const translations: Record<string, Translations> = {
     removeMember: "Quitar",
     leaveGroup: "Salir",
     removeMemberConfirm: "¿Quitar a este miembro?",
+    removeMemberDetail:
+      "Perderá el acceso a este grupo. Puedes volver a agregarlo más tarde.",
     leaveGroupConfirm: "¿Salir de este grupo?",
+    leaveGroupDetail:
+      "Perderás el acceso a este grupo. Un propietario o gestor tendrá que volver a agregarte.",
     transferOwnershipConfirm: "¿Transferir la propiedad a este miembro?",
+    transferOwnershipDetail:
+      "Pasará a ser propietario de este grupo y tú pasarás a ser gestor.",
+    transferOwnershipBtn: "Transferir la propiedad",
     memberSince: "Miembro desde",
     noMembers: "Todavía no hay miembros.",
     sentInvitations: "Invitaciones enviadas",
@@ -692,8 +710,15 @@ export const translations: Record<string, Translations> = {
     removeMember: "Retirer",
     leaveGroup: "Quitter",
     removeMemberConfirm: "Retirer ce membre ?",
+    removeMemberDetail:
+      "Il perdra l'accès à ce groupe. Vous pourrez l'ajouter à nouveau plus tard.",
     leaveGroupConfirm: "Quitter ce groupe ?",
+    leaveGroupDetail:
+      "Vous perdrez l'accès à ce groupe. Un propriétaire ou un gestionnaire devra vous ajouter à nouveau.",
     transferOwnershipConfirm: "Transférer la propriété à ce membre ?",
+    transferOwnershipDetail:
+      "Il deviendra propriétaire de ce groupe et vous deviendrez gestionnaire.",
+    transferOwnershipBtn: "Transférer la propriété",
     memberSince: "Membre depuis",
     noMembers: "Aucun membre pour l'instant.",
     sentInvitations: "Invitations envoyées",
@@ -866,8 +891,15 @@ export const translations: Record<string, Translations> = {
     removeMember: "Remover",
     leaveGroup: "Sair",
     removeMemberConfirm: "Remover este membro?",
+    removeMemberDetail:
+      "Ele perderá o acesso a este grupo. Você pode adicioná-lo novamente mais tarde.",
     leaveGroupConfirm: "Sair deste grupo?",
+    leaveGroupDetail:
+      "Você perderá o acesso a este grupo. Um proprietário ou gerente terá que adicioná-lo novamente.",
     transferOwnershipConfirm: "Transferir a propriedade para este membro?",
+    transferOwnershipDetail:
+      "Ele se tornará o proprietário deste grupo e você se tornará gerente.",
+    transferOwnershipBtn: "Transferir a propriedade",
     memberSince: "Membro desde",
     noMembers: "Ainda não há membros.",
     sentInvitations: "Convites enviados",

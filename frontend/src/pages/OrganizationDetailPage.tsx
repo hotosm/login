@@ -23,6 +23,7 @@ function OrganizationDetailPage() {
     canDelete,
     listPath,
     invitations,
+    refresh,
     refreshInvitations,
     updateDetails,
     changeName,
@@ -398,6 +399,7 @@ function OrganizationDetailPage() {
             groupId={id}
             viewerRole={org.role}
             onLeft={() => navigate(listPath)}
+            onViewerRoleChanged={refresh}
             renderAdd={(onChanged) =>
               org.status !== 'approved' ? (
                 <div className="text-sm text-hot-gray-500 bg-hot-gray-50 border border-hot-gray-200 rounded-lg px-3 py-2 mb-2">

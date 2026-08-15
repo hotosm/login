@@ -1,11 +1,26 @@
 import ConfirmDialog from '@/components/ConfirmDialog';
+import PanelHeader from '@/components/PanelHeader';
+import Breadcrumb from '@/components/shared/Breadcrumb';
+import BreadcrumbItem from '@/components/shared/BreadcrumbItem';
+import Button from '@/components/shared/Button';
+import Dropdown from '@/components/shared/Dropdown';
+import DropdownItem from '@/components/shared/DropdownItem';
+import { Tab, TabGroup, TabPanel } from '@/components/shared/Tabs';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import MembersPanel from '../components/MembersPanel';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTeam } from '../hooks/useTeams';
-import type { MemberRole } from '../types/groups';
+import {
+  ASSIGNABLE_ROLES,
+  type AssignableRole,
+  roleLabels,
+} from '../utils/roles';
+
+type TabName = 'details' | 'members';
+
+const panelStyle = { '--padding': '0' } as React.CSSProperties;
 
 function TeamDetailPage() {
   const { id = '' } = useParams();
@@ -25,22 +40,22 @@ function TeamDetailPage() {
     changeName,
     deleteTeam,
     addMember,
+    refresh,
   } = useTeam(id);
 
-  const [activeTab, setActiveTab] = useState<'details' | 'members'>('details');
+  const labels = roleLabels(t);
+
+  const [activeTab, setActiveTab] = useState<TabName>('details');
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  // Editable details form, seeded from the loaded team
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(false);
 
-  // Name change (applied directly for teams)
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
 
-  // Add member form (teams add members directly by email)
   const [memberEmail, setMemberEmail] = useState('');
-  const [memberRole, setMemberRole] = useState<MemberRole>('member');
+  const [memberRole, setMemberRole] = useState<AssignableRole>('member');
 
   useEffect(() => {
     if (!team) return;
@@ -75,7 +90,6 @@ function TeamDetailPage() {
   const handleDelete = async () => {
     try {
       if (await deleteTeam()) {
-        // The Toaster is mounted above the router, so this survives the redirect
         toast.success(t('teamDeleted'));
         return;
       }
@@ -118,193 +132,197 @@ function TeamDetailPage() {
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => navigate(listPath)}
-        className="text-sm text-hot-gray-500 hover:text-hot-red-600 transition-colors"
-      >
-        ← {t('navTeams')}
-      </button>
-
-      {/* Header — teams have just a name (no logo/banner, no approval status) */}
       <div className="bg-white rounded-xl shadow-xl p-6">
-        <h1 className="text-xl font-semibold text-hot-gray-900">{team.name}</h1>
-      </div>
+        <Breadcrumb>
+          <BreadcrumbItem onClick={() => navigate(listPath)}>
+            {t('navTeams')}
+          </BreadcrumbItem>
+          <BreadcrumbItem>{team.name}</BreadcrumbItem>
+        </Breadcrumb>
 
-      {/* Tabs */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab('details')}
-          className={`admin-tab ${activeTab === 'details' ? 'active' : ''}`}
+        <PanelHeader sectionName={team.name} />
+
+        {/* Tabs */}
+        <TabGroup
+          active={activeTab}
+          onWaTabShow={(e) => setActiveTab(e.detail.name as TabName)}
         >
-          {t('detailsTab')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('members')}
-          className={`admin-tab ${activeTab === 'members' ? 'active' : ''}`}
-        >
-          {t('membersTab')} ({team.members_count})
-        </button>
-      </div>
+          <Tab panel="details">{t('detailsTab')}</Tab>
+          <Tab panel="members">
+            {t('membersTab')} ({team.members_count})
+          </Tab>
 
-      {activeTab === 'details' && (
-        <div className="bg-white rounded-xl shadow-xl p-6 space-y-6">
-          {/* Name change */}
-          <div>
-            <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-              {t('name')}
-            </label>
-            {editingName ? (
-              <form onSubmit={handleChangeName} className="flex gap-2">
-                <input
-                  type="text"
-                  required
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="input-field"
-                />
-                <button
-                  type="submit"
-                  className="btn-primary-hot w-auto px-4 py-2 text-sm"
-                >
-                  {t('saveChanges')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingName(false)}
-                  className="btn-secondary-hot w-auto px-4 py-2 text-sm"
-                >
-                  {t('cancel')}
-                </button>
-              </form>
-            ) : (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-hot-gray-900">{team.name}</span>
-                {canManage && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewName(team.name);
-                      setEditingName(true);
-                    }}
-                    className="text-sm text-hot-red-600 hover:underline"
-                  >
-                    {t('changeName')}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {canManage ? (
-            <form onSubmit={handleSaveDetails} className="space-y-4">
+          <TabPanel name="details" style={panelStyle}>
+            <div className="pt-xl space-y-6">
+              {/* Name change */}
               <div>
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  {t('description')}
+                  {t('name')}
                 </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="input-field"
-                />
-              </div>
-              {/* Public-profile toggle hidden until portal public profiles ship.
-                  Teams have no logo/banner. */}
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="btn-primary-hot w-auto px-4 py-2 text-sm disabled:opacity-50"
-                >
-                  {saving ? t('saving') : t('saveChanges')}
-                </button>
-                {canDelete && (
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDelete(true)}
-                    className="btn-danger-small"
-                  >
-                    {t('deleteGroupBtn')}
-                  </button>
+                {editingName ? (
+                  <form onSubmit={handleChangeName} className="flex gap-2">
+                    <input
+                      type="text"
+                      required
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="input-field"
+                    />
+                    <Button
+                      type="submit"
+                    >
+                      {t('saveChanges')}
+                    </Button>
+                     <Button
+                      appearance='plain'
+                      onClick={() => setEditingName(false)}
+                    >
+                      {t('cancel')}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-hot-gray-900">
+                      {team.name}
+                    </span>
+                    {canManage && (
+                      <Button
+                        appearance='plain'
+                        onClick={() => {
+                          setNewName(team.name);
+                          setEditingName(true);
+                        }}
+                      >
+                        {t('changeName')}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
-            </form>
-          ) : (
-            <dl className="space-y-3 text-sm">
-              <div>
-                <dt className="font-medium text-hot-gray-700">
-                  {t('description')}
-                </dt>
-                <dd className="text-hot-gray-600 whitespace-pre-line">
-                  {team.description || '—'}
-                </dd>
-              </div>
-            </dl>
-          )}
-        </div>
-      )}
 
-      {activeTab === 'members' && (
-        <div className="bg-white rounded-xl shadow-xl p-6">
-          <MembersPanel
-            groupId={id}
-            viewerRole={team.role}
-            onLeft={() => navigate(listPath)}
-            renderAdd={(onChanged) => (
-              <div className="space-y-4 mb-2">
-                <form
-                  onSubmit={(e) => handleAddMember(e, onChanged)}
-                  className="flex flex-wrap items-end gap-2"
-                >
-                  <div className="flex-1 min-w-[180px]">
+              {canManage ? (
+                <form onSubmit={handleSaveDetails} className="space-y-4">
+                  <div>
                     <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                      {t('addMemberByEmail')}
+                      {t('description')}
                     </label>
-                    <input
-                      type="email"
-                      required
-                      value={memberEmail}
-                      onChange={(e) => setMemberEmail(e.target.value)}
-                      placeholder="person@example.org"
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={3}
                       className="input-field"
                     />
                   </div>
-                  <select
-                    value={memberRole}
-                    onChange={(e) => setMemberRole(e.target.value as MemberRole)}
-                    className="input-field w-auto"
-                  >
-                    <option value="member">{t('roleMember')}</option>
-                    <option value="manager">{t('roleManager')}</option>
-                  </select>
-                  <button
-                    type="submit"
-                    className="btn-primary-hot w-auto px-4 py-2 text-sm"
-                  >
-                    {t('addBtn')}
-                  </button>
-                </form>
-                <hr className="border-hot-gray-200" />
-              </div>
-            )}
-          />
-        </div>
-      )}
 
-      <ConfirmDialog
-        open={confirmDelete}
-        label={t('deleteTeamTitle')}
-        message={t('deleteGroupConfirm')}
-        confirmText={t('deleteGroupBtn')}
-        danger
-        busy={deleting}
-        onConfirm={handleDelete}
-        onCancel={() => setConfirmDelete(false)}
-      />
+                  <div className="flex items-center justify-between pt-2">
+                    
+                    {canDelete && (
+                      <Button
+                        appearance='outlined'
+                        variant='danger'
+                        onClick={() => setConfirmDelete(true)}
+                      >
+                        {t('deleteGroupBtn')}
+                      </Button>
+                    )}
+                    <Button
+                      type="submit"
+                      disabled={saving}
+                    >
+                      {saving ? t('saving') : t('saveChanges')}
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <dl className="space-y-3 text-sm">
+                  <div>
+                    <dt className="font-medium text-hot-gray-700">
+                      {t('description')}
+                    </dt>
+                    <dd className="text-hot-gray-600 whitespace-pre-line">
+                      {team.description || '—'}
+                    </dd>
+                  </div>
+                </dl>
+              )}
+            </div>
+          </TabPanel>
+
+          <TabPanel name="members" style={panelStyle}>
+            <div className="pt-lg">
+              {activeTab === 'members' && (
+                <MembersPanel
+                  groupId={id}
+                  viewerRole={team.role}
+                  onLeft={() => navigate(listPath)}
+                  onViewerRoleChanged={refresh}
+                  renderAdd={(onChanged) => (
+                    <div className="space-y-4 mb-2">
+                      <form
+                        onSubmit={(e) => handleAddMember(e, onChanged)}
+                        className="flex flex-wrap items-end gap-2"
+                      >
+                        <div className="flex-1 min-w-[180px]">
+                          <label className="block text-sm font-medium text-hot-gray-700 mb-1">
+                            {t('addMemberByEmail')}
+                          </label>
+                          <input
+                            type="email"
+                            required
+                            value={memberEmail}
+                            onChange={(e) => setMemberEmail(e.target.value)}
+                            placeholder="person@example.org"
+                            className="input-field"
+                          />
+                        </div>
+                        <Dropdown
+                          onSelect={(e) => {
+                            const { value } = e.detail.item as HTMLElement & {
+                              value?: string;
+                            };
+                            if (value) setMemberRole(value as AssignableRole);
+                          }}
+                        >
+                          <Button
+                            slot="trigger"
+                            appearance="outlined"
+                            withCaret
+                          >
+                            {labels[memberRole]}
+                          </Button>
+                          {ASSIGNABLE_ROLES.map((role) => (
+                            <DropdownItem
+                              key={role}
+                              value={role}
+                              type="checkbox"
+                              checked={memberRole === role}
+                            >
+                              {labels[role]}
+                            </DropdownItem>
+                          ))}
+                        </Dropdown>
+                        <Button type="submit">{t('addBtn')}</Button>
+                      </form>
+                      <hr className="border-hot-gray-200" />
+                    </div>
+                  )}
+                />
+              )}
+            </div>
+          </TabPanel>
+        </TabGroup>
+
+        <ConfirmDialog
+          open={confirmDelete}
+          label={t('deleteTeamTitle')}
+          message={t('deleteGroupConfirm')}
+          confirmText={t('deleteGroupBtn')}
+          danger
+          busy={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      </div>
     </div>
   );
 }

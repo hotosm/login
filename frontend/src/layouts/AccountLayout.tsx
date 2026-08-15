@@ -6,22 +6,21 @@ import SidebarNav, { type SidebarNavItem } from '../components/SidebarNav';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useRoles } from '../hooks/useRoles';
 
-// Shared chrome for the account section: top bar with the HOT logo + tool menu
-// and a left sidebar with navigation. The page content renders in <Outlet/>.
+
 function AccountLayout() {
   const { t, currentLanguage } = useLanguage();
   const { isAdmin, isAccountManager } = useRoles();
 
   const navItems: SidebarNavItem[] = [
     { to: '/profile', label: t('navProfile') },
-    { to: '/organizations', label: t('navOrganizations') },
+    /* { to: '/organizations', label: t('navOrganizations') }, */
     { to: '/teams', label: t('navTeams') },
     { to: '/notifications', label: t('navNotifications') },
   ];
 
   if (isAdmin || isAccountManager) {
     navItems.push(
-      { to: '/orgs-to-approve', label: t('navOrgsToApprove'), elevated: true },
+      /* { to: '/orgs-to-approve', label: t('navOrgsToApprove'), elevated: true }, */
       {
         to: '/admin',
         label: t('navAdmin'),
@@ -34,7 +33,6 @@ function AccountLayout() {
 
   return (
     <div className="min-h-screen bg-hot-gray-50">
-      {/* Top chrome (logo + tool menu), replaces each page's own header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <img src={hotLogo} alt="HOT" className="h-10" />
@@ -43,12 +41,10 @@ function AccountLayout() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
-        {/* Sidebar */}
         <aside className="md:w-56 flex-shrink-0">
           <SidebarNav title={t('hotAccount')} items={navItems} />
         </aside>
 
-        {/* Page content */}
         <main className="flex-1 min-w-0">
           <Outlet />
         </main>

@@ -23,7 +23,6 @@ function ConfirmDialog({
   label,
   message,
   confirmText,
-  danger = false,
   busy = false,
   onConfirm,
   onCancel,
@@ -34,10 +33,6 @@ function ConfirmDialog({
     <Dialog
       open={open}
       label={label}
-      // Escape and the header's close button both mean "cancel". This also
-      // fires when `open` goes false, which is harmless — onCancel only resets
-      // state. Clicking the backdrop does nothing (no `lightDismiss`), so a
-      // stray click can't dismiss a destructive prompt.
       onWaHide={onCancel}
     >
       <p className="text-sm text-hot-gray-700">{message}</p>
@@ -47,8 +42,8 @@ function ConfirmDialog({
           {t('cancel')}
         </Button>
         <Button
-          appearance="filled"
-          variant={danger ? 'danger' : 'brand'}
+          appearance="outlined"
+          variant='danger'
           onClick={onConfirm}
           disabled={busy}
         >
