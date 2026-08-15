@@ -15,7 +15,7 @@ function AccountLayout() {
     { to: '/profile', label: t('navProfile') },
     /* { to: '/organizations', label: t('navOrganizations') }, */
     { to: '/teams', label: t('navTeams') },
-    { to: '/notifications', label: t('navNotifications') },
+    /* { to: '/notifications', label: t('navNotifications') }, */
   ];
 
   if (isAdmin || isAccountManager) {
