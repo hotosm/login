@@ -1,12 +1,12 @@
 """Tests for OSMConnection cookie encryption/decryption cycle."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
 from hotosm_auth.crypto import CookieCrypto
-from hotosm_auth.models import OSMConnection
 from hotosm_auth.exceptions import CookieDecryptionError
+from hotosm_auth.models import OSMConnection
 
 
 class TestOSMConnectionCookie:

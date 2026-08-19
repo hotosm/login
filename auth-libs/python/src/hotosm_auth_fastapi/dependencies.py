@@ -1,42 +1,66 @@
 """FastAPI authentication dependencies and helpers."""
 
-from typing import Optional, Annotated
+import hashlib
+from collections.abc import Awaitable, Callable
 from datetime import datetime
+from typing import Annotated, Optional
 
 from fastapi import Depends, HTTPException, Request, Response, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.models import HankoUser, OSMConnection
-from hotosm_auth.jwt_validator import JWTValidator
 from hotosm_auth.crypto import CookieCrypto
 from hotosm_auth.exceptions import (
     AuthenticationError,
+    CookieDecryptionError,
     TokenExpiredError,
     TokenInvalidError,
-    CookieDecryptionError,
 )
+from hotosm_auth.jwt_validator import JWTValidator
 from hotosm_auth.logger import get_logger, log_auth_event
+from hotosm_auth.models import HankoUser, OSMConnection
 
 logger = get_logger(__name__)
 
+PatResolver = Callable[[str, str], Awaitable[Optional[HankoUser]]]
 
 # Global instances (set by init_auth)
 _config: Optional[AuthConfig] = None
 _jwt_validator: Optional[JWTValidator] = None
 _cookie_crypto: Optional[CookieCrypto] = None
+_pat_resolver: Optional[PatResolver] = None
+_app_name: Optional[str] = None
 
 # Security scheme for Swagger UI
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def init_auth(config: AuthConfig) -> None:
-    """Initialize module-level auth dependencies for the app."""
-    global _config, _jwt_validator, _cookie_crypto
+def init_auth(
+    config: AuthConfig,
+    *,
+    app_name: Optional[str] = None,
+    pat_resolver: Optional[PatResolver] = None,
+) -> None:
+    """Initialize module-level auth dependencies for the app.
+
+    Args:
+        config: Auth configuration (Hanko URL, cookie secret, etc.).
+        app_name: Identifier for this project (e.g. "fair", "drone-tm").
+            Required when pat_resolver is provided.
+        pat_resolver: Async callable(token_hash, app_name) -> HankoUser | None.
+            If provided, opaque bearer tokens are resolved via this function
+            instead of being rejected as invalid JWTs.
+    """
+    global _config, _jwt_validator, _cookie_crypto, _pat_resolver, _app_name
+
+    if pat_resolver and not app_name:
+        raise ValueError("app_name is required when pat_resolver is provided")
 
     _config = config
     _jwt_validator = JWTValidator(config)
     _cookie_crypto = CookieCrypto(config.cookie_secret)
+    _pat_resolver = pat_resolver
+    _app_name = app_name
 
 
 def get_config() -> AuthConfig:
@@ -62,7 +86,9 @@ def get_cookie_crypto() -> CookieCrypto:
 
 async def get_token_from_request(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    credentials: Annotated[
+        Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)
+    ],
 ) -> Optional[str]:
     """Extract JWT token from Authorization header or cookie."""
     # Try Authorization header first
@@ -74,12 +100,20 @@ async def get_token_from_request(
     return token
 
 
+def _looks_like_jwt(token: str) -> bool:
+    """Heuristic: JWTs have three base64 segments separated by dots."""
+    parts = token.split(".")
+    return len(parts) == 3 and all(parts)
+
+
 async def get_current_user(
     request: Request,
-    validator: JWTValidator = Depends(get_jwt_validator),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    validator: Annotated[JWTValidator, Depends(get_jwt_validator)],
+    credentials: Annotated[
+        Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)
+    ],
 ) -> HankoUser:
-    """Validate JWT and return the authenticated user."""
+    """Validate JWT or opaque PAT and return the authenticated user."""
     token = await get_token_from_request(request, credentials)
 
     if not token:
@@ -89,27 +123,50 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    try:
-        user = await validator.validate_token(token)
-        return user
-    except TokenExpiredError:
+    # If the token looks like a JWT, validate it the existing way.
+    # Otherwise try resolving it as an opaque PAT via the injected resolver.
+    if _looks_like_jwt(token):
+        try:
+            user = await validator.validate_token(token)
+            return user
+        except TokenExpiredError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from exc
+        except (TokenInvalidError, AuthenticationError) as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e),
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from e
+
+    # Opaque token — try PAT resolution
+    if not _pat_resolver or not _app_name:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
+            detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except (TokenInvalidError, AuthenticationError) as e:
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    user = await _pat_resolver(token_hash, _app_name)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
+            detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    return user
 
 
 async def get_current_user_optional(
     request: Request,
-    validator: JWTValidator = Depends(get_jwt_validator),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    validator: Annotated[JWTValidator, Depends(get_jwt_validator)],
+    credentials: Annotated[
+        Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)
+    ],
 ) -> Optional[HankoUser]:
     """Return the current user, or ``None`` when unauthenticated."""
     token = await get_token_from_request(request, credentials)
@@ -126,7 +183,7 @@ async def get_current_user_optional(
 
 async def get_osm_connection(
     request: Request,
-    crypto: CookieCrypto = Depends(get_cookie_crypto),
+    crypto: Annotated[CookieCrypto, Depends(get_cookie_crypto)],
 ) -> Optional[OSMConnection]:
     """Read and decrypt the OSM connection cookie."""
     encrypted = request.cookies.get("osm_connection")
@@ -148,7 +205,7 @@ async def get_osm_connection(
 
 
 async def require_osm_connection(
-    osm: Optional[OSMConnection] = Depends(get_osm_connection),
+    osm: Annotated[Optional[OSMConnection], Depends(get_osm_connection)],
 ) -> OSMConnection:
     """Return OSM connection or raise 403."""
     if not osm:
@@ -235,6 +292,37 @@ OSMConnectionRequired = Annotated[OSMConnection, Depends(require_osm_connection)
 # ===================================================================
 
 
+async def _resolve_new_user_id(
+    hanko_user: HankoUser,
+    db_conn,
+    email_lookup_fn,
+    user_creator_fn,
+    user_id_generator,
+) -> str:
+    """Resolve app user ID via email lookup, user creation, or fallback."""
+    new_user_id = None
+
+    if email_lookup_fn:
+        logger.debug(f"Searching for existing user with email: {hanko_user.email}")
+        existing_user_id = await email_lookup_fn(db_conn, hanko_user.email)
+        if existing_user_id:
+            logger.info(
+                "Found existing user by email: %s -> %s",
+                hanko_user.email,
+                existing_user_id,
+            )
+            new_user_id = existing_user_id
+
+    if not new_user_id and user_creator_fn:
+        logger.debug(f"Creating new user for Hanko user: {hanko_user.id}")
+        new_user_id = await user_creator_fn(db_conn, hanko_user)
+        logger.info(f"Created new user: {new_user_id}")
+
+    if new_user_id:
+        return new_user_id
+    return user_id_generator() if user_id_generator else hanko_user.id
+
+
 async def get_mapped_user_id(
     hanko_user: HankoUser,
     db_conn,  # psycopg Connection or AsyncConnection
@@ -277,33 +365,20 @@ async def get_mapped_user_id(
                 detail=f"User not authorized for {app_name}",
             )
 
-        # Try to link with existing user by email
-        new_user_id = None
-        if email_lookup_fn:
-            logger.debug(f"Searching for existing user with email: {hanko_user.email}")
-            existing_user_id = await email_lookup_fn(db_conn, hanko_user.email)
-            if existing_user_id:
-                logger.info(f"Found existing user by email: {hanko_user.email} -> {existing_user_id}")
-                new_user_id = existing_user_id
-
-        # If no existing user, try to create new user
-        if not new_user_id and user_creator_fn:
-            logger.debug(f"Creating new user for Hanko user: {hanko_user.id}")
-            new_user_id = await user_creator_fn(db_conn, hanko_user)
-            logger.info(f"Created new user: {new_user_id}")
-
-        # Fallback: use user_id_generator or hanko_user.id
-        if not new_user_id:
-            if user_id_generator:
-                new_user_id = user_id_generator()
-            else:
-                # Default: use Hanko ID as app user ID
-                new_user_id = hanko_user.id
+        new_user_id = await _resolve_new_user_id(
+            hanko_user,
+            db_conn,
+            email_lookup_fn,
+            user_creator_fn,
+            user_id_generator,
+        )
 
         # Create mapping
         await cur.execute(
             """
-            INSERT INTO hanko_user_mappings (hanko_user_id, app_user_id, app_name, created_at)
+            INSERT INTO hanko_user_mappings (
+                hanko_user_id, app_user_id, app_name, created_at
+            )
             VALUES (%s, %s, %s, NOW())
             """,
             (hanko_user.id, new_user_id, app_name),
@@ -330,13 +405,17 @@ async def create_user_mapping(
     async with db_conn.cursor() as cur:
         await cur.execute(
             """
-            INSERT INTO hanko_user_mappings (hanko_user_id, app_user_id, app_name, created_at)
+            INSERT INTO hanko_user_mappings (
+                hanko_user_id, app_user_id, app_name, created_at
+            )
             VALUES (%s, %s, %s, NOW())
             """,
             (hanko_user_id, app_user_id, app_name),
         )
 
-    logger.info(f"Manually created mapping: {hanko_user_id} -> {app_user_id} ({app_name})")
+    logger.info(
+        f"Manually created mapping: {hanko_user_id} -> {app_user_id} ({app_name})"
+    )
     log_auth_event(
         "MAPPING_CREATED",
         app_name,

@@ -13,13 +13,17 @@ class MappingResponse(BaseModel):
     app_user_id: str = Field(..., description="Application-specific user ID")
     app_name: str = Field(..., description="Application name")
     created_at: datetime = Field(..., description="When the mapping was created")
-    updated_at: Optional[datetime] = Field(None, description="When the mapping was last updated")
+    updated_at: Optional[datetime] = Field(
+        None, description="When the mapping was last updated"
+    )
     # Enriched fields (optional)
     hanko_email: Optional[str] = Field(None, description="Email from Hanko")
     app_username: Optional[str] = Field(None, description="Username from app")
     app_email: Optional[str] = Field(None, description="Email from app")
 
     class Config:
+        """Pydantic config for ORM attribute support."""
+
         from_attributes = True
 
 

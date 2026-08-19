@@ -1,5 +1,13 @@
-/* HOT Design Tokens */
-@import "./styles/hot.css";
+@import "../node_modules/@awesome.me/webawesome/dist/styles/webawesome.css";
+
+/* HOT Design Tokens - shared package, same source portal uses */
+@import "hotosm-ui-design/dist/hot.css";
+
+:root,
+:host,
+.hot-theme-light {
+  --hot-color-gray-1000: #000000;
+}
 
 /* Tailwind CSS */
 @tailwind base;
@@ -47,8 +55,22 @@ hanko-auth {
 @layer base {
   body {
     font-family: var(--hot-font-sans);
+    color: var(--hot-color-neutral-950);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--hot-font-sans);
+    font-weight: var(--wa-font-weight-heading); /* 600, not 700 */
+    line-height: var(--wa-line-height-condensed); /* 1.2 */
+    color: var(--hot-color-gray-800);
+    margin: 0;
   }
 
   code {
@@ -95,7 +117,7 @@ hanko-auth {
     @apply py-2 px-4 bg-white/80 backdrop-blur-sm text-hot-gray-700 text-sm font-medium border border-gray-200/50 rounded-full cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 hover:border-hot-red-200 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Form inputs */
+    /* Form inputs */
   .input-field {
     @apply w-full px-3 py-2 border border-hot-gray-300 rounded-lg focus:ring-2 focus:ring-hot-red-500 focus:border-transparent outline-none;
   }
@@ -103,48 +125,10 @@ hanko-auth {
   .input-field-disabled {
     @apply w-full px-3 py-2 border border-hot-gray-200 rounded-lg bg-hot-gray-50 text-hot-gray-500;
   }
-
   /* Card styles */
   .card {
     @apply bg-white rounded-xl shadow-xl;
   }
-}
-
-/* Toast notifications */
-.toast-error {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.toast-content {
-  @apply flex items-center gap-3 bg-hot-red-50 border border-hot-red-100 border-l-4 border-l-hot-red-600 py-3.5 px-[18px] rounded-lg shadow-lg max-w-md;
-}
-
-.toast-icon {
-  @apply text-lg flex-shrink-0;
-}
-
-.toast-message {
-  @apply text-hot-red-900 text-sm leading-snug;
-}
-
-.toast-close {
-  @apply bg-transparent border-none text-hot-red-900 text-xl cursor-pointer p-0 px-1 ml-2 opacity-70 transition-opacity hover:opacity-100;
 }
 
 /* Admin Page Styles */
@@ -299,6 +283,37 @@ hanko-auth {
   @apply bg-gradient-to-r from-hot-red-600 to-hot-red-500 text-white border-hot-red-600 shadow-md;
 }
 
+/* Web Awesome tabs (wa-tab-group)
+
+   The active tab's underline comes from a `::slotted(wa-tab[active])` rule in
+   the tab group's shadow tree. Normal declarations from the outer tree beat an
+   inner tree's ::slotted rules, so Tailwind Preflight's `* { border-width: 0 }`
+   wins and the underline never renders. Restore it here, in the light DOM.
+
+   `--track-width` and `--indicator-color` are set on the tab group's :host and
+   inherit down to the slotted tabs, so the values stay in sync with the
+   component's own layout. */
+wa-tab-group {
+  --indicator-color: var(--hot-color-red-600);
+  /* The tab group's shadow CSS colors the active tab with the Web Awesome
+     brand (blue); point that token at HOT red instead. */
+  --wa-color-brand-on-quiet: var(--hot-color-red-600);
+}
+
+wa-tab[active] {
+  border-block-end: solid var(--track-width, 0.125rem) var(--indicator-color);
+  margin-block-end: calc(-1 * var(--track-width, 0.125rem));
+}
+
+/* Web Awesome breadcrumbs (wa-breadcrumb)
+
+   Items are colored with --wa-color-text-link, which the Web Awesome theme
+   points at its own brand blue. The last item stays quiet/grey on purpose —
+   it's the current page, not a link. */
+wa-breadcrumb {
+  --wa-color-text-link: var(--hot-color-red-600);
+}
+
 /* Dashboard Content */
 .dashboard-content {
   @apply space-y-5;
@@ -426,7 +441,7 @@ hanko-auth {
 }
 
 .period-btn {
-  @apply py-2 px-4 bg-white/60 text-hot-gray-600 text-sm font-medium border border-gray-200/50 rounded-full cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 hover:border-hot-red-200;
+  @apply py-2 px-4 bg-white/60 text-hot-gray-600 text-sm font-medium border border-gray-200/50 rounded-xl cursor-pointer transition-all hover:bg-hot-red-50 hover:text-hot-red-600 hover:border-hot-red-200;
 }
 
 .period-btn.active {

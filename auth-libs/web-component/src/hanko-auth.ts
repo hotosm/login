@@ -195,6 +195,8 @@ export class HankoAuth extends LitElement {
   private _lastSessionId: string | null = null;
   private _hanko: any = null;
   private _isPrimary = false; // Is this the primary instance?
+  private _sessionCheckFailures = 0;
+  private _sessionCheckBackoffTimer: ReturnType<typeof setTimeout> | null = null;
   private _hankoObserver: MutationObserver | null = null;
 
   // Hanko signup headline text across all supported languages (used for subtitle injection)
@@ -368,6 +370,8 @@ export class HankoAuth extends LitElement {
   private _handleVisibilityChange = () => {
     // Only primary instance should handle visibility changes to prevent race conditions
     if (!this._isPrimary) return;
+    // Don't re-check if a backoff retry is already scheduled
+    if (this._sessionCheckBackoffTimer) return;
 
     if (!document.hidden && !this.showProfile && !this.user) {
       // Page became visible, we're in header mode, and no user is logged in
@@ -380,6 +384,8 @@ export class HankoAuth extends LitElement {
   private _handleWindowFocus = () => {
     // Only primary instance should handle window focus to prevent race conditions
     if (!this._isPrimary) return;
+    // Don't re-check if a backoff retry is already scheduled
+    if (this._sessionCheckBackoffTimer) return;
 
     if (!this.showProfile && !this.user) {
       // Window focused, we're in header mode, and no user is logged in
@@ -549,6 +555,16 @@ export class HankoAuth extends LitElement {
     }
   }
 
+  private _scheduleSessionRetry() {
+    if (this._sessionCheckBackoffTimer) return; // already scheduled
+    const delay = Math.min(1000 * 2 ** this._sessionCheckFailures, 60000);
+    this.log(`Session check failed, retrying in ${delay / 1000}s (attempt ${this._sessionCheckFailures})`);
+    this._sessionCheckBackoffTimer = setTimeout(() => {
+      this._sessionCheckBackoffTimer = null;
+      this.checkSession();
+    }, delay);
+  }
+
   private async checkSession() {
     this.log("Checking for existing Hanko session...");
 
@@ -592,6 +608,7 @@ export class HankoAuth extends LitElement {
             return;
           }
 
+          this._sessionCheckFailures = 0; // reset backoff on success
           this.log("Valid Hanko session found via cookie");
           this.log("Session data:", sessionData);
 
@@ -710,12 +727,16 @@ export class HankoAuth extends LitElement {
           this.log("No valid session cookie found - user needs to login");
         }
       } catch (validateError) {
+        this._sessionCheckFailures++;
         this.log("Session validation failed:", validateError);
-        this.log("No valid session - user needs to login");
+        this._scheduleSessionRetry();
+        return;
       }
     } catch (error) {
+      this._sessionCheckFailures++;
       this.log("Session check error:", error);
-      this.log("No existing session - user needs to login");
+      this._scheduleSessionRetry();
+      return;
     } finally {
       // Broadcast state changes to other instances
       if (this._isPrimary) {

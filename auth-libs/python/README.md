@@ -1,6 +1,7 @@
 # HOTOSM Auth Library - Python
 
-FastAPI/Django integration for Hanko SSO authentication with OSM OAuth support.
+FastAPI, Litestar, and Django integration for Hanko SSO authentication with OSM
+OAuth support.
 
 ## Installation
 
@@ -13,6 +14,9 @@ pip install hotosm-auth[fastapi]
 
 # With Django support
 pip install hotosm-auth[django]
+
+# With Litestar support
+pip install hotosm-auth[litestar]
 ```
 
 ## Usage
@@ -46,6 +50,22 @@ def my_view(request):
     return JsonResponse({"user_id": request.hotosm.user.id})
 ```
 
+### Litestar
+
+```python
+from litestar import Litestar, get
+from hotosm_auth_litestar import setup_auth, Auth
+
+
+@get("/me")
+async def me(auth: Auth):
+    return {"id": auth.user.id, "email": auth.user.email}
+
+
+deps, route_handlers = setup_auth()
+app = Litestar(route_handlers=[me, *route_handlers], dependencies=deps)
+```
+
 ## Configuration
 
 Set these environment variables:
@@ -77,16 +97,21 @@ uv run --extra fastapi pytest
 # Run with Django tests
 uv run --extra django pytest
 
-# Run all tests (FastAPI + Django)
-uv run --extra fastapi --extra django pytest
+# Run with Litestar tests
+uv run --extra litestar pytest
+
+# Run all tests (FastAPI + Litestar + Django)
+uv run --extra fastapi --extra litestar --extra django pytest
 
 # Run with coverage
-uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
+uv run --extra fastapi --extra litestar --extra django pytest --cov=src \
+  --cov-report=term-missing
 ```
 
 ### Test Structure
 
 **Core tests** (no framework dependencies):
+
 - `tests/test_config.py` - Configuration loading and validation
 - `tests/test_crypto.py` - Cookie encryption/decryption
 - `tests/test_exceptions.py` - Exception hierarchy
@@ -97,12 +122,23 @@ uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
 - `tests/test_osm_oauth.py` - OSM OAuth client with mocked HTTP
 
 **FastAPI tests** (require `[fastapi]` extra):
+
 - `tests/test_fastapi_setup.py` - Auth dependency setup
 - `tests/test_fastapi_dependencies.py` - Dependency injection with mocked requests
-- `tests/test_fastapi_osm_routes.py` - OSM OAuth routes (login, callback, status, disconnect)
+- `tests/test_fastapi_osm_routes.py` - OSM OAuth routes (login, callback,
+  status, disconnect)
 - `tests/test_admin_routes.py` - Admin CRUD routes with mocked database
 
+**Litestar tests** (require `[litestar]` extra):
+
+- `tests/test_litestar_setup.py` - Auth context and setup API
+- `tests/test_litestar_dependencies.py` - Dependency helpers with mocked requests
+- `tests/test_litestar_osm_routes.py` - OSM OAuth routes (login, callback,
+  status, disconnect)
+- `tests/test_litestar_admin_routes.py` - Admin CRUD routes with mocked database
+
 **Django tests** (require `[django]` extra):
+
 - `tests/test_django_middleware.py` - Middleware and decorators
 - `tests/test_django_osm_views.py` - OSM OAuth views
 - `tests/test_django_admin_routes.py` - Admin CRUD routes with mocked database
@@ -110,8 +146,9 @@ uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
 ### Test Coverage
 
 Run with coverage report:
+
 ```bash
-uv run --extra fastapi --extra django pytest --cov=src --cov-report=term-missing
+uv run --extra fastapi --extra litestar --extra django pytest --cov=src --cov-report=term-missing
 ```
 
 Current coverage: **72%** (127 tests)
@@ -122,7 +159,7 @@ Current coverage: **72%** (127 tests)
 - OSM OAuth 2.0 integration
 - Encrypted httpOnly cookies for OSM connection
 - User mapping between Hanko and application users
-- FastAPI and Django integrations
+- FastAPI, Litestar, and Django integrations
 
 ## License
 

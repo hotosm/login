@@ -1,25 +1,23 @@
-"""
-JWT validation with JWKS (JSON Web Key Set).
+"""JWT validation with JWKS (JSON Web Key Set).
 
 Validates Hanko JWT tokens using public keys from the JWKS endpoint.
 Implements caching to avoid fetching keys on every request.
 """
 
-import time
+from datetime import datetime
 from typing import Optional
-from datetime import datetime, timedelta
 
-import jwt
 import httpx
+import jwt
 from jwt import PyJWKClient
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.models import HankoUser
 from hotosm_auth.exceptions import (
     AuthenticationError,
     TokenExpiredError,
     TokenInvalidError,
 )
+from hotosm_auth.models import HankoUser
 
 
 class JWTValidator:
@@ -44,14 +42,14 @@ class JWTValidator:
         """
         self.config = config
         # Strip trailing slash from HttpUrl (Pydantic adds it automatically)
-        base_url = str(config.hanko_api_url).rstrip('/')
+        base_url = str(config.hanko_api_url).rstrip("/")
         self.jwks_url = f"{base_url}/.well-known/jwks.json"
 
         # For localhost with self-signed certs, disable SSL verification
         import ssl
         import urllib.request
 
-        if 'localhost' in self.jwks_url or '127.0.0.1' in self.jwks_url:
+        if "localhost" in self.jwks_url or "127.0.0.1" in self.jwks_url:
             # Create an SSL context that doesn't verify certificates
             ssl_context = ssl.create_default_context()
             ssl_context.check_hostname = False
@@ -100,8 +98,8 @@ class JWTValidator:
                     "verify_signature": True,
                     "verify_exp": True,
                     "verify_iat": True,
-                    "verify_aud": True if self.config.jwt_audience else False,
-                    "verify_iss": True if self.config.jwt_issuer else False,
+                    "verify_aud": bool(self.config.jwt_audience),
+                    "verify_iss": bool(self.config.jwt_issuer),
                 },
             )
 
@@ -134,7 +132,8 @@ class JWTValidator:
             email_claim = payload.get("email")
 
             # Handle email as object or string
-            # Hanko can send email as {"address": "...", "is_verified": bool} or just "email@example.com"
+            # Hanko can send email as {"address": "...", "is_verified": bool}
+            # or just "email@example.com".
             if isinstance(email_claim, dict):
                 email = email_claim.get("address")
                 email_verified = email_claim.get("is_verified", False)
@@ -147,7 +146,9 @@ class JWTValidator:
 
             # Parse timestamps
             created_at = self._parse_timestamp(payload.get("iat"))
-            updated_at = self._parse_timestamp(payload.get("updated_at", payload.get("iat")))
+            updated_at = self._parse_timestamp(
+                payload.get("updated_at", payload.get("iat"))
+            )
 
             return HankoUser(
                 id=user_id,
@@ -185,7 +186,7 @@ async def get_jwks_info(config: AuthConfig) -> dict:
         dict: JWKS data with public keys
     """
     # Strip trailing slash from HttpUrl (Pydantic adds it automatically)
-    base_url = str(config.hanko_api_url).rstrip('/')
+    base_url = str(config.hanko_api_url).rstrip("/")
     jwks_url = f"{base_url}/.well-known/jwks.json"
     async with httpx.AsyncClient() as client:
         response = await client.get(jwks_url)

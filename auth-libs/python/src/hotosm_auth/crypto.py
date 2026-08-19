@@ -1,19 +1,19 @@
-"""
-Encryption/decryption for httpOnly cookies.
+"""Encryption/decryption for httpOnly cookies.
 
 Uses Fernet (symmetric encryption) to encrypt OSM OAuth tokens before
 storing them in httpOnly cookies. This prevents XSS attacks from stealing tokens.
 """
 
-import json
 import base64
-from typing import Optional
+import json
 from datetime import datetime
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from hotosm_auth.models import OSMConnection
 from hotosm_auth.exceptions import CookieDecryptionError
+from hotosm_auth.models import OSMConnection
+
+MIN_SECRET_LENGTH = 32
 
 
 class CookieCrypto:
@@ -38,7 +38,7 @@ class CookieCrypto:
         Raises:
             ValueError: If secret is too short
         """
-        if len(secret) < 32:
+        if len(secret) < MIN_SECRET_LENGTH:
             raise ValueError("Cookie secret must be at least 32 bytes")
 
         # Derive Fernet key from secret

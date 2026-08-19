@@ -6,14 +6,15 @@ import pytest
 django = pytest.importorskip("django")
 
 # Django is configured in conftest.py
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
 from django.http import HttpRequest, JsonResponse
 
 from hotosm_auth_django.middleware import (
+    HankoAuthMiddleware,
     get_token_from_request,
     login_required,
     osm_required,
-    HankoAuthMiddleware,
 )
 
 

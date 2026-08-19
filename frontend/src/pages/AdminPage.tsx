@@ -13,6 +13,8 @@ import {
   Cell,
 } from 'recharts';
 import hotLogo from '../assets/images/hot-logo.svg';
+import { useRoles } from '../hooks/useRoles';
+import { readError } from '../utils/api';
 
 interface Mapping {
   hanko_user_id: string;
@@ -78,6 +80,14 @@ interface SearchUser {
   apps: string[];
   created_at: string;
   last_login: string | null;
+  // Optional platform role, if provided by the backend (e.g. 'account_manager')
+  role?: string;
+}
+
+interface AccountManager {
+  hanko_user_id: string;
+  granted_by: string;
+  granted_at: string;
 }
 
 interface SearchResult {
@@ -217,10 +227,14 @@ const ProgressRing = ({
   );
 };
 
+type AdminTab = 'dashboard' | 'mappings' | 'users';
+
 function AdminPage() {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'mappings'>('dashboard');
+  // Platform roles decide which tabs are visible (admin vs account manager)
+  const { isAdmin, isAccountManager, loading: rolesLoading } = useRoles();
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [tabInitialized, setTabInitialized] = useState(false);
 
   // Dashboard state
   const [period, setPeriod] = useState<Period>('month');
@@ -260,26 +274,30 @@ function AdminPage() {
   const [searchTotalPages, setSearchTotalPages] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  // Account managers (users tab) — set of hanko_user_ids that are AMs
+  const [accountManagers, setAccountManagers] = useState<Set<string>>(new Set());
+
   const backendUrl = import.meta.env.VITE_BACKEND_URL || '/api';
 
-  // Check if user is admin
+  // Which tabs the current user can see (order matters: first visible = default)
+  const visibleTabs: AdminTab[] = [];
+  if (isAdmin) visibleTabs.push('dashboard', 'mappings');
+  if (isAdmin || isAccountManager) visibleTabs.push('users');
+
+  // Once roles resolve, land on the first visible tab (honoring ?tab=).
+  // An account-manager-only user starts on 'users', not 'dashboard'.
   useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/admin/check`, {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
-      } catch {
-        setIsAdmin(false);
-      }
-    };
-    checkAdmin();
-  }, [backendUrl]);
+    if (rolesLoading || tabInitialized) return;
+    const requested = new URLSearchParams(window.location.search).get(
+      'tab'
+    ) as AdminTab | null;
+    if (requested && visibleTabs.includes(requested)) {
+      setActiveTab(requested);
+    } else if (!visibleTabs.includes(activeTab) && visibleTabs.length > 0) {
+      setActiveTab(visibleTabs[0]);
+    }
+    setTabInitialized(true);
+  }, [rolesLoading, tabInitialized, activeTab, visibleTabs]);
 
   // Build query params for period filter
   const buildPeriodParams = () => {
@@ -408,9 +426,9 @@ function AdminPage() {
     fetchMappings();
   }, [isAdmin, activeTab, selectedApp, page, backendUrl]);
 
-  // Search users function
+  // Search users function (available to admins and account managers)
   const handleSearch = async (newPage = 1) => {
-    if (!isAdmin) return;
+    if (!isAdmin && !isAccountManager) return;
 
     setSearchLoading(true);
     setSearchPage(newPage);
@@ -445,12 +463,32 @@ function AdminPage() {
     }
   };
 
-  // Initial search on mount
+  // Run the user search when the Users tab opens (admins and account managers)
   useEffect(() => {
-    if (isAdmin && activeTab === 'dashboard') {
+    if ((isAdmin || isAccountManager) && activeTab === 'users') {
       handleSearch(1);
     }
-  }, [isAdmin, activeTab]);
+  }, [isAdmin, isAccountManager, activeTab]);
+
+  // Load current account managers to flag them in the users table.
+  // Admin-only endpoint — skip for account-manager-only users to avoid 403.
+  useEffect(() => {
+    if (!isAdmin || activeTab !== 'users') return;
+    const fetchAccountManagers = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/admin/account-managers`, {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data: AccountManager[] = await response.json();
+          setAccountManagers(new Set(data.map((am) => am.hanko_user_id)));
+        }
+      } catch {
+        // Non-critical: role column just falls back to '—'
+      }
+    };
+    fetchAccountManagers();
+  }, [isAdmin, activeTab, backendUrl]);
 
   const handleDeleteMapping = async (hankoUserId: string) => {
     if (!confirm('Are you sure you want to delete this mapping?')) return;
@@ -510,6 +548,25 @@ function AdminPage() {
     }
   };
 
+  // Grant/revoke the account manager role (admin only)
+  const handleToggleAccountManager = async (userId: string, makeAm: boolean) => {
+    try {
+      const response = await fetch(
+        `${backendUrl}/admin/account-managers/${userId}`,
+        { method: makeAm ? 'PUT' : 'DELETE', credentials: 'include' }
+      );
+      if (!response.ok) throw new Error(await readError(response));
+      setAccountManagers((prev) => {
+        const next = new Set(prev);
+        if (makeAm) next.add(userId);
+        else next.delete(userId);
+        return next;
+      });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update role');
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString();
   };
@@ -521,8 +578,8 @@ function AdminPage() {
 
   const totalPages = Math.ceil(total / 20);
 
-  // Loading admin check
-  if (isAdmin === null) {
+  // Loading roles
+  if (rolesLoading) {
     return (
       <div className="admin-page">
         <div className="admin-loading">
@@ -533,8 +590,8 @@ function AdminPage() {
     );
   }
 
-  // Not admin
-  if (!isAdmin) {
+  // Neither admin nor account manager — no access to the panel at all
+  if (!isAdmin && !isAccountManager) {
     return (
       <div className="admin-page">
         <div className="admin-card admin-error-card">
@@ -574,20 +631,33 @@ function AdminPage() {
         </button>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs — dashboard/mappings are admin-only; users is also
+          available to account managers */}
       <div className="admin-tabs">
-        <button
-          className={`admin-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          Dashboard
-        </button>
-        <button
-          className={`admin-tab ${activeTab === 'mappings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('mappings')}
-        >
-          User Mappings
-        </button>
+        {isAdmin && (
+          <button
+            className={`admin-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+        )}
+        {isAdmin && (
+          <button
+            className={`admin-tab ${activeTab === 'mappings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('mappings')}
+          >
+            User Mappings
+          </button>
+        )}
+        {(isAdmin || isAccountManager) && (
+          <button
+            className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            Users
+          </button>
+        )}
       </div>
 
       {/* Dashboard Tab */}
@@ -831,8 +901,13 @@ function AdminPage() {
             </div>
           </div>
 
-          {/* User Search Section */}
-          <div className="glass-card p-6 mt-6">
+        </div>
+      )}
+
+      {/* Users Tab — user search + account manager management */}
+      {(isAdmin || isAccountManager) && activeTab === 'users' && (
+        <div className="dashboard-content">
+          <div className="glass-card p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-1 flex items-center gap-2">
               <svg className="w-5 h-5 text-hot-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -913,6 +988,8 @@ function AdminPage() {
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Onboarded</th>
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Registered</th>
                     <th className="text-left py-3 px-2 font-semibold text-gray-600">Last Login</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Role</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-600">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -926,11 +1003,13 @@ function AdminPage() {
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
                         <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                        <td className="py-3 px-2"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                        <td className="py-3 px-2"><div className="h-7 bg-gray-200 rounded w-28"></div></td>
                       </tr>
                     ))
                   ) : searchResults.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-gray-500">No users found</td>
+                      <td colSpan={9} className="py-8 text-center text-gray-500">No users found</td>
                     </tr>
                   ) : (
                     searchResults.map((user) => (
@@ -1002,6 +1081,33 @@ function AdminPage() {
                         </td>
                         <td className="py-3 px-2 text-gray-600">
                           {user.last_login ? new Date(user.last_login).toLocaleDateString() : <span className="text-gray-400">-</span>}
+                        </td>
+                        <td className="py-3 px-2">
+                          {accountManagers.has(user.id) || user.role === 'account_manager' ? (
+                            <span className="text-xs px-2 py-0.5 rounded bg-hot-red-100 text-hot-red-700">account_manager</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-2">
+                          {!isAdmin ? (
+                            // Account Managers see the user list read-only.
+                            <span className="text-gray-400">—</span>
+                          ) : accountManagers.has(user.id) || user.role === 'account_manager' ? (
+                            <button
+                              onClick={() => handleToggleAccountManager(user.id, false)}
+                              className="text-xs px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 whitespace-nowrap"
+                            >
+                              Remove account manager
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleAccountManager(user.id, true)}
+                              className="text-xs px-2 py-1 border border-hot-red-200 text-hot-red-600 rounded-lg hover:bg-hot-red-50 whitespace-nowrap"
+                            >
+                              Make account manager
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))

@@ -9,122 +9,77 @@
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px' }}}%%
 flowchart TB
-    subgraph Top[" "]
-        direction LR
-        Browser[🌐 **Browser**]
+    Browser[🌐 **Browser**]
 
-        subgraph LoginService["login.hotosm.org"]
-            direction LR
-            Hanko[**Hanko SSO**]
-            LoginAPI[**Login API**]
-        end
+    subgraph LoginService["login.hotosm.org"]
+        direction LR
+        Hanko[**Hanko SSO**]
+        LoginAPI[**Login API**]
     end
 
     subgraph Backends["Application Backends"]
         direction LR
-        Portal[**Portal**<br/>FastAPI]
-        DroneTM[**Drone-TM**<br/>FastAPI]
-        fAIr[**fAIr**<br/>Django]
-        OAM[**OAM**<br/>FastAPI]
+        subgraph Portal["Portal"]
+            P1[FastAPI]
+            P2[(User Mappings\nHanko user → App user)]
+        end
+        subgraph DroneTM["Drone-TM"]
+            D1[FastAPI]
+            D2[(User Mappings\nHanko user → App user)]
+        end
+        subgraph fAIr["fAIr"]
+            F1[Django]
+            F2[(User Mappings\nHanko user → App user)]
+        end
+        subgraph uMap["uMap"]
+            U1[Django]
+            U2[(User Mappings\nHanko user → App user)]
+        end
     end
 
     Browser -->|"1️⃣ Authenticate"| LoginService
-    LoginService -->|"2️⃣ Set-Cookie: JWT<br/>(domain=.hotosm.org)"| Browser
-    Browser -->|"3️⃣ JWT Cookie"| Portal
-    Browser -->|"3️⃣ JWT Cookie"| DroneTM
-    Browser -->|"3️⃣ JWT Cookie"| fAIr
-    Browser -->|"3️⃣ JWT Cookie"| OAM
-
-    style Top fill:none,stroke:none
-```
-
----
-
-## Documentation
-
-### Core Concepts
-
-| Document | Description |
-|----------|-------------|
-| [**Overview**](overview.md) | Auth flow, JWT validation, user mapping |
-| [**Web Component**](web-component.md) | `<hotosm-auth>` Lit element |
-
-### Project Implementations
-
-| Project | Stack | Documentation |
-|---------|-------|---------------|
-| Portal | FastAPI + React | [Implementation](projects/portal.md) |
-| Drone-TM | FastAPI + React | [Implementation](projects/drone-tm.md) |
-| fAIr | Django + React | [Implementation](projects/fair.md) |
-| OpenAerialMap | FastAPI + React | [Implementation](projects/oam.md) |
-
----
-
-## Packages
-
-### Python
-
-```bash
-# Core only
-pip install "hotosm-auth @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
-
-# With FastAPI
-pip install "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
-
-# With Django
-pip install "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python"
-```
-
-### Web Component
-
-Distributed as pre-built JS bundles. Copy from `auth-libs/web-component/dist/`:
-
-```
-hanko-auth.esm.js    # ES Module
-hanko-auth.iife.js   # Browser global
-hanko-auth.umd.js    # Universal
+    LoginService -->|"2️⃣ Set-Cookie: JWT\n(domain=.hotosm.org)"| Browser
+    Browser -->|"3️⃣ JWT Cookie"| P1
+    Browser -->|"3️⃣ JWT Cookie"| D1
+    Browser -->|"3️⃣ JWT Cookie"| F1
+    Browser -->|"3️⃣ JWT Cookie"| U1
+    P1 -->|"4️⃣ lookup"| P2
+    D1 -->|"4️⃣ lookup"| D2
+    F1 -->|"4️⃣ lookup"| F2
+    U1 -->|"4️⃣ lookup"| U2
 ```
 
 ---
 
 ## Quick Start
 
-### FastAPI (5 min)
+### FastAPI
 
 ```python
-# main.py
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from hotosm_auth import AuthConfig
 from hotosm_auth_fastapi import init_auth, CurrentUser, osm_router
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_auth(AuthConfig.from_env())
+    yield
 
-# Initialize auth from .env
-auth_config = AuthConfig.from_env()
-init_auth(auth_config)
+app = FastAPI(lifespan=lifespan)
+app.include_router(osm_router, prefix="/api")
 
-# Mount OSM OAuth routes
-app.include_router(osm_router, prefix="/api/auth/osm")
-
-# Protected endpoint
 @app.get("/me")
 async def me(user: CurrentUser):
     return {"id": user.id, "email": user.email}
 ```
 
-### Django (5 min)
+### Django
 
 ```python
 # settings.py
-INSTALLED_APPS = [
-    ...
-    'hotosm_auth_django',
-]
-
-MIDDLEWARE = [
-    ...
-    'hotosm_auth_django.HankoAuthMiddleware',
-]
+INSTALLED_APPS = [..., 'hotosm_auth_django']
+MIDDLEWARE = [..., 'hotosm_auth_django.HankoAuthMiddleware']
 
 # views.py
 from hotosm_auth_django import login_required
@@ -135,56 +90,57 @@ def my_view(request):
     return JsonResponse({"email": user.email})
 ```
 
+### Litestar
+
+```python
+from litestar import Litestar, get
+from hotosm_auth_litestar import setup_auth, AuthContext
+
+deps, route_handlers = setup_auth()
+
+@get("/me")
+async def me(auth: AuthContext) -> dict:
+    return {"id": auth.user.id, "email": auth.user.email}
+
+app = Litestar(route_handlers=[*route_handlers, me], dependencies=deps)
+```
+
 ### Frontend
 
 ```html
 <hotosm-auth
   hanko-url="https://login.hotosm.org"
-  osm-required
   redirect-after-login="/"
 ></hotosm-auth>
 ```
 
 ---
 
-## Environment Variables
+## Reference
 
-```bash
-# Required
-HANKO_API_URL=https://login.hotosm.org
-COOKIE_SECRET=your-32-char-secret
-
-# OSM OAuth (for OSM linking)
-OSM_CLIENT_ID=your-osm-client-id
-OSM_CLIENT_SECRET=your-osm-client-secret
-OSM_REDIRECT_URI=http://localhost:8000/api/auth/osm/callback
-
-# Optional
-JWT_AUDIENCE=your-app-audience
-COOKIE_DOMAIN=.hotosm.org
-COOKIE_SECURE=true
-```
+| Document | Description |
+|----------|-------------|
+| [**Overview**](overview.md) | Auth flow, JWT validation, user mapping, env vars |
+| [**Python Libraries**](python-libs.md) | `hotosm_auth`, `hotosm_auth_fastapi`, `hotosm_auth_django` |
+| [**Web Component**](web-component.md) | `<hotosm-auth>` Lit element — attributes, events, modes |
 
 ---
 
-## Source Repository
+## Guides
 
-```
-github.com/hotosm/login
-├── backend/
-├── frontend/
-├── auth-libs/                      # ← Auth libraries
-│   ├── python/
-│   │   ├── src/
-│   │   │   ├── hotosm_auth/           # Core (JWT, config, crypto)
-│   │   │   ├── hotosm_auth_fastapi/   # FastAPI integration
-│   │   │   └── hotosm_auth_django/    # Django integration
-│   │   └── pyproject.toml
-│   ├── web-component/
-│   │   ├── src/hanko-auth.ts          # Lit component source
-│   │   └── dist/                       # Built bundles
-│   └── scripts/
-│       ├── build.sh                    # Build all
-│       └── distribute.sh               # Copy dist to projects
-└── ...
-```
+| Document | Description |
+|----------|-------------|
+| [**Integration Guide**](integration-guide.md) | Step-by-step guide to integrate auth in a new app |
+| [**Admin**](admin.md) | Manage user mappings via the login service dashboard |
+
+---
+
+## Implementations
+
+| Project | Stack | Documentation |
+|---------|-------|---------------|
+| Portal | FastAPI + React | [Implementation](projects/portal.md) |
+| ChatMap | FastAPI + React | [Implementation](projects/chatmap.md) |
+| Drone-TM | FastAPI + React | [Implementation](projects/drone-tm.md) |
+| fAIr | Django + React | [Implementation](projects/fair.md) |
+| uMap | Django (server-rendered) | [Implementation](projects/umap.md) |

@@ -24,7 +24,7 @@ RUN apt-get update --quiet \
     && update-ca-certificates
 
 
-# Deploy the application binary into sratch image
+# Deploy the application binary into scratch image
 FROM scratch AS release
 WORKDIR /app
 COPY --from=build /app/osm-userinfo /app/osm-userinfo

@@ -4,7 +4,7 @@ Lit-based web component for authentication UI.
 
 ## Source
 
-```
+```text
 auth-libs/web-component/
 ├── src/
 │   └── hanko-auth.ts       # Main component (1500+ lines)
@@ -19,27 +19,31 @@ auth-libs/web-component/
 
 ## Installation
 
-### Option 1: Script tag (IIFE)
+### Option 1: npm (React/Vite)
 
-```html
-<script src="/auth-libs/web-component/dist/hanko-auth.iife.js"></script>
-
-<hotosm-auth hanko-url="https://login.hotosm.org"></hotosm-auth>
+```bash
+pnpm add @hotosm/hanko-auth
 ```
 
-### Option 2: ES Module
-
 ```javascript
-import '/auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
 
 // Now <hotosm-auth> is registered
+```
+
+### Option 2: CDN (server-rendered apps)
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@hotosm/hanko-auth@0.5.2/dist/hanko-auth.esm.js"></script>
+
+<hotosm-auth hanko-url="https://login.hotosm.org"></hotosm-auth>
 ```
 
 ### Option 3: React wrapper
 
 ```tsx
 import { useEffect, useRef } from 'react';
-import '/auth-libs/web-component/dist/hanko-auth.esm.js';
+import '@hotosm/hanko-auth';
 
 export function AuthButton({ hankoUrl, onLogin }) {
   const ref = useRef<HTMLElement>(null);
@@ -69,8 +73,7 @@ export function AuthButton({ hankoUrl, onLogin }) {
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `hanko-url` | string | `window.location.origin` | Hanko API URL for SDK initialization and JWT validation |
-| `login-url` | string | `${hanko-url}/app` | Login page URL (override for standalone mode) |
+| `hanko-url` | string | `window.location.origin` | Login service URL (login.hotosm.org) for Hanko authentication |
 | `base-path` | string | `""` | Base URL for OSM OAuth endpoints. Usually same as `hanko-url` since login service hosts both Hanko and OSM auth |
 | `auth-path` | string | `/api/auth/osm` | OSM auth endpoints path (appended to `base-path`) |
 
@@ -142,6 +145,7 @@ auth.addEventListener('logout', () => {
 ### Header Mode (`show-profile=false`)
 
 Default mode. Shows:
+
 - **Logged out**: "Log in" button → redirects to login.hotosm.org
 - **Logged in**: Avatar dropdown with:
   - Profile link
@@ -160,6 +164,7 @@ Default mode. Shows:
 ### Profile Mode (`show-profile=true`)
 
 Shows full Hanko auth form (for login page):
+
 - **Logged out**: Hanko passkey/email form
 - **Logged in**: Profile card + OSM status + logout button
 
@@ -179,6 +184,7 @@ Shows full Hanko auth form (for login page):
 ## Hanko URL Detection
 
 Priority order:
+
 1. `hanko-url` attribute
 2. `<meta name="hanko-url" content="...">` tag
 3. `window.HANKO_URL` global
@@ -271,6 +277,7 @@ document.addEventListener('visibilitychange', () => {
 ## Debug Mode
 
 Enable with:
+
 - URL param: `?debug=true`
 - LocalStorage: `localStorage.setItem('hanko-auth-debug', 'true')`
 
@@ -375,30 +382,6 @@ flowchart TD
   app-id="portal"
 ></hotosm-auth>
 ```
-
-### Standalone Mode (Local Hanko)
-
-For development/standalone deployments with a local Hanko instance:
-
-```html
-<!-- In header (show login button) -->
-<hotosm-auth
-  hanko-url="http://localhost:8002"
-  login-url="http://localhost:5173/app"
-></hotosm-auth>
-
-<!-- In /app route (show Hanko form) -->
-<hotosm-auth
-  hanko-url="http://localhost:8002"
-  show-profile
-  redirect-after-login="http://localhost:5173"
-></hotosm-auth>
-```
-
-**Key difference from SSO mode:**
-
-- **SSO mode**: `hanko-url` points to login.hotosm.org which hosts both the Hanko API and the login UI
-- **Standalone mode**: `hanko-url` points to local Hanko API, `login-url` points to your app's login page with embedded Hanko form
 
 ---
 

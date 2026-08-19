@@ -4,10 +4,9 @@ from datetime import datetime
 
 import pytest
 
-from hotosm_auth.jwt_validator import JWTValidator
 from hotosm_auth.config import AuthConfig
 from hotosm_auth.exceptions import TokenInvalidError
-
+from hotosm_auth.jwt_validator import JWTValidator
 
 # We can't easily test the full validate_token flow without a real JWKS endpoint,
 # but we can test the payload parsing logic directly.
@@ -44,7 +43,7 @@ class TestPayloadToUser:
         assert user.username == "testuser"
 
     def test_handles_email_as_object(self):
-        """Hanko sometimes sends email as {address: ..., is_verified: ...}"""
+        """Hanko sometimes sends email as {address: ..., is_verified: ...}."""
         validator = self._make_validator()
 
         payload = {

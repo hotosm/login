@@ -1,3 +1,5 @@
+"""Main FastAPI application for HOTOSM Login backend."""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -5,9 +7,18 @@ from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from hotosm_auth import AuthConfig
-from hotosm_auth_fastapi import init_auth, CurrentUser, osm_router
+from hotosm_auth_fastapi import CurrentUser, init_auth, osm_router
 
-from app.core.config import settings
+from app.__version__ import __version__
+from app.api.routes import admin as admin_routes
+from app.api.routes import api_token as api_token_routes
+from app.api.routes import data_deletion as data_deletion_routes
+from app.api.routes import groups as groups_routes
+from app.api.routes import invitations as invitations_routes
+from app.api.routes import organizations_admin as organizations_admin_routes
+from app.api.routes import profile as profile_routes
+from app.api.routes import public as public_routes
+from app.api.routes import users as users_routes
 from app.schemas.auth import UserInfoResponse
 
 
@@ -24,7 +35,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="HOTOSM Login Service",
     description="Authentication and SSO service for HOTOSM applications",
-    version="1.0.0",
+    version=__version__,
     lifespan=lifespan,
 )
 
@@ -56,17 +67,24 @@ app.add_middleware(
         "https://login.hotosm.org",
         "https://chatmap.hotosm.org",
         "https://chatmap-dev.hotosm.org",
+        "https://dev.chatmap.hotosm.org",
         "https://fair.hotosm.org",
         "https://fair-dev.hotosm.org",
+        "https://stage.ai.hotosm.org",
+        "https://dev.ai.hotosm.org",
         "https://umap.hotosm.org",
         "https://umap-dev.hotosm.org",
         "https://field.hotosm.org",
+        "https://fieldtm.hotosm.org",
         # Test environments
-        "https://testlogin.dronetm.hotosm.org",
-        "https://testlogin.fair.hotosm.org",
-        "https://testlogin.umap.hotosm.org",
-        "https://testlogin.export.hotosm.org",
-        "https://dronetm.hotosm.org",
+        "https://dronetm.testlogin.hotosm.org",
+        "https://fair.testlogin.hotosm.org",
+        "https://umap.testlogin.hotosm.org",
+        "https://export.testlogin.hotosm.org",
+        "https://fieldtm.testlogin.hotosm.org",
+        "https://drone.hotosm.org",
+        "https://drone-dev.hotosm.org",
+        "https://dev.drone.hotosm.org",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -92,7 +110,51 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 # Initialize authentication
 # AuthConfig.from_env() reads from environment variables automatically
 auth_config = AuthConfig.from_env()
-init_auth(auth_config)
+
+
+async def _local_pat_resolver(token_hash: str, app_name: str):
+    """Resolve a PAT directly from the login DB (no HTTP call to self)."""
+    from hotosm_auth.models import HankoUser
+    from sqlalchemy import select
+
+    from app.db.database import async_session_maker
+    from app.db.models import UserApiToken, UserProfile
+
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(UserApiToken).where(
+                UserApiToken.token_hash == token_hash,
+                UserApiToken.app == app_name,
+            )
+        )
+        token_row = result.scalar_one_or_none()
+        if not token_row:
+            return None
+
+        from sqlalchemy import func
+
+        token_row.last_used_at = func.now()
+        await session.commit()
+
+        profile_result = await session.execute(
+            select(UserProfile).where(
+                UserProfile.hanko_user_id == token_row.hanko_user_id
+            )
+        )
+        profile = profile_result.scalar_one_or_none()
+        if not profile:
+            return None
+
+        return HankoUser(
+            id=profile.hanko_user_id,
+            email="",
+            email_verified=True,
+            created_at=profile.created_at,
+            updated_at=profile.updated_at or profile.created_at,
+        )
+
+
+init_auth(auth_config, app_name="portal", pat_resolver=_local_pat_resolver)
 
 # Include OSM OAuth routes
 api_v1_prefix = "/api"
@@ -102,18 +164,23 @@ app.include_router(
     tags=["auth"],
 )
 
-# Include admin routes for user mapping management
-from app.api.routes import admin as admin_routes
-from app.api.routes import profile as profile_routes
-
 app.include_router(admin_routes.router)
 app.include_router(profile_routes.router)
+app.include_router(api_token_routes.router)
+app.include_router(api_token_routes.internal_router)
+app.include_router(data_deletion_routes.router)
+app.include_router(groups_routes.router)
+app.include_router(invitations_routes.router)
+app.include_router(invitations_routes.me_router)
+app.include_router(organizations_admin_routes.router)
+app.include_router(organizations_admin_routes.me_router)
+app.include_router(public_routes.router)
+app.include_router(users_routes.router)
 
 
 @app.get("/me", response_model=UserInfoResponse)
 async def get_current_user(user: CurrentUser) -> UserInfoResponse:
-    """
-    Get current authenticated user information.
+    """Get current authenticated user information.
 
     Validates Hanko JWT from cookie or Authorization header.
 
@@ -142,6 +209,6 @@ async def root():
     """Root endpoint."""
     return {
         "message": "HOTOSM Login Service",
-        "version": "1.0.0",
+        "version": __version__,
         "docs": "/docs",
     }

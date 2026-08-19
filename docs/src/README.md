@@ -39,7 +39,7 @@ pip install mkdocs mkdocs-material pymdown-extensions mkdocs-offline
 mkdocs serve -a localhost:8001
 ```
 
-- Opens at http://127.0.0.1:8001/
+- Opens at <http://127.0.0.1:8001/>
 - Auto-reloads on file changes
 - Use `-a 0.0.0.0:8080` for different port/host
 
@@ -69,6 +69,7 @@ Output goes to `site/` folder (gitignored).
 
 1. Create `docs/src/new-page.md`
 2. Add to `docs/mkdocs.yml` nav section:
+
    ```yaml
    nav:
      - New Page: new-page.md
@@ -76,7 +77,7 @@ Output goes to `site/` folder (gitignored).
 
 ## Structure
 
-```
+```text
 login/
 └── docs/
     ├── mkdocs.yml        # MkDocs configuration

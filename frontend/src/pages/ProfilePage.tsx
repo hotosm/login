@@ -1,11 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Hanko } from "@teamhanko/hanko-elements";
+import { toast } from "sonner";
 import { validateReturnTo } from "../utils/validateReturnTo";
-import "@hotosm/tool-menu";
-import hotLogo from "../assets/images/hot-logo.svg";
 import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
+import PanelHeader from "@/components/PanelHeader";
+import Input from "@/components/forms/Input";
+import Button from "@/components/shared/Button";
+
+const ALLOWED_APPS = [
+  { id: "fair", label: "fAIr" },
+  { id: "drone-tm", label: "Drone TM" },
+  { id: "oam", label: "OpenAerialMap" },
+];
+
+interface ApiTokenMeta {
+  id: string;
+  app: string;
+  created_at: string;
+  last_used_at: string | null;
+}
 
 interface UserProfile {
   hanko_user_id: string;
@@ -27,8 +42,6 @@ function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -36,25 +49,26 @@ function ProfilePage() {
   const [pictureUrl, setPictureUrl] = useState("");
   const [language, setLanguage] = useState("en");
 
+  // API token state
+  const [tokens, setTokens] = useState<ApiTokenMeta[]>([]);
+  const [justCreatedToken, setJustCreatedToken] = useState<{
+    app: string;
+    token: string;
+  } | null>(null);
+  const [tokenCopied, setTokenCopied] = useState(false);
+  const [tokensExpanded, setTokensExpanded] = useState(false);
+
+  const [dataDeletionModalOpen, setDataDeletionModalOpen] = useState(false);
+  const [dataDeletionSubmitting, setDataDeletionSubmitting] = useState(false);
+  const [dataDeletionSent, setDataDeletionSent] = useState(false);
+  const [dataDeletionError, setDataDeletionError] = useState<string | null>(null);
+
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
   const hankoUrl = import.meta.env.VITE_HANKO_URL || "";
 
   // Get return URL from query params (passed by web component)
   const urlParams = new URLSearchParams(window.location.search);
   const returnTo = validateReturnTo(urlParams.get("return_to"));
-
-  // Determine back button text and destination
-  const backInfo = (() => {
-    if (!returnTo) return null;
-    try {
-      const url = new URL(returnTo);
-      const appName = url.hostname.split(".")[0];
-      const label = appName.charAt(0).toUpperCase() + appName.slice(1);
-      return { url: returnTo, label };
-    } catch {
-      return null;
-    }
-  })();
 
   // Fetch profile on mount
   useEffect(() => {
@@ -116,7 +130,6 @@ function ProfilePage() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      setError(null);
 
       const response = await fetch(`${backendUrl}/profile/me`, {
         credentials: "include",
@@ -144,17 +157,111 @@ function ProfilePage() {
       // Set the context language to match user's profile language
       setContextLanguage(data.language || "en");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      toast.error(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTokens = useCallback(async () => {
+    try {
+      const response = await fetch(`${backendUrl}/profile/me/api-tokens`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        setTokens(await response.json());
+      }
+    } catch {
+      // Silently fail — tokens section just shows empty
+    }
+  }, [backendUrl]);
+
+  useEffect(() => {
+    if (!loading && profile) {
+      fetchTokens();
+    }
+  }, [loading, profile, fetchTokens]);
+
+  const handleGenerateToken = async (app: string) => {
+    const existing = tokens.find((t) => t.app === app);
+    if (existing) {
+      if (!window.confirm(t("regenerateConfirm"))) return;
+    }
+    try {
+      const response = await fetch(`${backendUrl}/profile/me/api-tokens`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ app }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setJustCreatedToken({ app: data.app, token: data.token });
+        setTokenCopied(false);
+        await fetchTokens();
+      }
+    } catch {
+      toast.error("Failed to generate token");
+    }
+  };
+
+  const handleRevokeToken = async (tokenId: string) => {
+    if (!window.confirm(t("revokeConfirm"))) return;
+    try {
+      const response = await fetch(
+        `${backendUrl}/profile/me/api-tokens/${tokenId}`,
+        { method: "DELETE", credentials: "include" },
+      );
+      if (response.ok) {
+        await fetchTokens();
+        if (justCreatedToken) {
+          const revoked = tokens.find((tk) => tk.id === tokenId);
+          if (revoked && revoked.app === justCreatedToken.app) {
+            setJustCreatedToken(null);
+          }
+        }
+      }
+    } catch {
+      toast.error("Failed to revoke token");
+    }
+  };
+
+  const handleCopyToken = async (token: string) => {
+    await navigator.clipboard.writeText(token);
+    setTokenCopied(true);
+    setTimeout(() => setTokenCopied(false), 3000);
+  };
+
+  const handleRequestDataDeletion = async (): Promise<boolean> => {
+    setDataDeletionSubmitting(true);
+    setDataDeletionError(null);
+    try {
+      const response = await fetch(
+        `${backendUrl}/profile/me/request-data-deletion`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      setDataDeletionSent(true);
+      return true;
+    } catch (err) {
+      console.error("Data deletion request failed:", err);
+      setDataDeletionError(
+        err instanceof Error ? err.message : t("dataDeletionError"),
+      );
+      return false;
+    } finally {
+      setDataDeletionSubmitting(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const response = await fetch(`${backendUrl}/profile/me`, {
@@ -177,7 +284,7 @@ function ProfilePage() {
 
       const data = await response.json();
       setProfile(data);
-      setSuccess(t("profileUpdated"));
+      toast.success(t("profileUpdated"));
 
       // Update context language when user changes it
       setContextLanguage(data.language || "en");
@@ -189,9 +296,8 @@ function ProfilePage() {
         }),
       );
 
-      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      toast.error(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setSaving(false);
     }
@@ -206,45 +312,11 @@ function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-hot-gray-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={hotLogo} alt="HOT" className="h-10" />
-            </div>
-            <div className="flex items-center gap-4">
-              {backInfo && (
-                <button
-                  onClick={() => (window.location.href = backInfo.url)}
-                  className="text-hot-gray-1000 hover:text-hot-gray-900 text-sm transition-colors"
-                >
-                  {t("goBack")}
-                </button>
-              )}
-              <hotosm-tool-menu lang={language} />
-            </div>
-          </div>
-        </div>
-
-        {/* Messages */}
-        {error && (
-          <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-            {success}
-          </div>
-        )}
-
+    <div>
+      <div>
         {/* Profile Form */}
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-hot-gray-900 mb-4">
-            {t("profileInformation")}
-          </h2>
+          <PanelHeader sectionName={t("profileInformation")} />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Profile Picture */}
@@ -262,12 +334,11 @@ function ProfilePage() {
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                   {t("pictureUrl")}
                 </label>
-                <input
+                <Input
                   type="url"
                   value={pictureUrl}
-                  onChange={(e) => setPictureUrl(e.target.value)}
+                  onValueChange={setPictureUrl}
                   placeholder="https://example.com/avatar.jpg"
-                  className="input-field"
                 />
               </div>
             </div>
@@ -278,22 +349,20 @@ function ProfilePage() {
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                   {t("firstName")}
                 </label>
-                <input
+                <Input
                   type="text"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="input-field"
+                  onValueChange={setFirstName}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                   {t("lastName")}
                 </label>
-                <input
+                <Input
                   type="text"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="input-field"
+                  onValueChange={setLastName}
                 />
               </div>
             </div>
@@ -303,11 +372,10 @@ function ProfilePage() {
               <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                 {t("email")}
               </label>
-              <input
+              <Input
                 type="email"
                 value={profile?.email || ""}
                 disabled
-                className="input-field-disabled"
               />
               <p className="text-xs text-hot-gray-400 mt-1">
                 {t("emailManagedBy")}
@@ -355,30 +423,219 @@ function ProfilePage() {
 
             {/* Submit button */}
             <div className="pt-4 flex flex-col gap-2">
-              <button
+              <Button
                 type="submit"
                 disabled={saving}
-                className="w-full btn-primary-hot disabled:opacity-50"
               >
                 {saving ? t("saving") : t("saveChanges")}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                appearance="outlined"
                 onClick={async () => {
                   const hanko = new Hanko(hankoUrl);
                   await hanko.logout();
                   window.location.href = returnTo || "/app";
                 }}
-                className="w-full btn-secondary-hot"
               >
                 {t("logOut")}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
 
         <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
           <hanko-profile lang={language}></hanko-profile>
+        </div>
+
+        {/* Data deletion across HOT apps (independent from Hanko delete) */}
+        <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
+          <h2 className="text-lg font-semibold text-hot-gray-900 mb-2">
+            {t("dataDeletionTitle")}
+          </h2>
+          <p className="text-sm text-hot-gray-600 mb-4">
+            {t("dataDeletionDescription")}{" "}
+            <a
+              href="https://www.hotosm.org/en/policies/privacy-policy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-hot-red-600 hover:underline"
+            >
+              {t("dataDeletionPrivacyPolicy")}
+            </a>
+            .
+          </p>
+          {dataDeletionSent ? (
+            <div className="bg-green-50 border border-green-300 text-green-800 px-4 py-3 rounded-lg text-sm">
+              {t("dataDeletionSent")}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setDataDeletionError(null);
+                setDataDeletionModalOpen(true);
+              }}
+              className="px-4 py-2 bg-hot-red-600 text-white rounded-lg hover:bg-hot-red-700 text-sm font-medium"
+            >
+              {t("dataDeletionRequestButton")}
+            </button>
+          )}
+        </div>
+
+        {dataDeletionModalOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => !dataDeletionSubmitting && setDataDeletionModalOpen(false)}
+          >
+            <div
+              className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold text-hot-gray-900 mb-2">
+                {t("dataDeletionConfirmTitle")}
+              </h3>
+              <p className="text-sm text-hot-gray-600 mb-4">
+                {t("dataDeletionConfirmBody")}
+              </p>
+              {dataDeletionError && (
+                <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-3 py-2 rounded mb-3 text-sm">
+                  {dataDeletionError}
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={dataDeletionSubmitting}
+                  onClick={() => setDataDeletionModalOpen(false)}
+                  className="px-4 py-2 bg-hot-gray-100 text-hot-gray-700 rounded-lg hover:bg-hot-gray-200 text-sm"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={dataDeletionSubmitting}
+                  onClick={async () => {
+                    const ok = await handleRequestDataDeletion();
+                    if (ok) {
+                      setDataDeletionModalOpen(false);
+                    }
+                  }}
+                  className="px-4 py-2 bg-hot-red-600 text-white rounded-lg hover:bg-hot-red-700 text-sm font-medium disabled:opacity-50"
+                >
+                  {dataDeletionSubmitting
+                    ? t("dataDeletionSubmitting")
+                    : t("dataDeletionConfirmButton")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Developer Settings (collapsible, after hanko-profile) */}
+        <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
+          <button
+            type="button"
+            onClick={() => setTokensExpanded(!tokensExpanded)}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <h2 className="text-lg font-semibold text-hot-gray-900">
+              {t("developerSettings")}
+            </h2>
+            <span className="text-hot-gray-400 text-xl">
+              {tokensExpanded ? "▲" : "▼"}
+            </span>
+          </button>
+
+          {!tokensExpanded ? null : <>
+          <h3 className="text-sm font-semibold text-hot-gray-700 mt-4 mb-2">
+            {t("apiAccessTokens")}
+          </h3>
+
+          <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+            {t("apiTokenWarning")}
+          </div>
+
+          {/* One row per app */}
+          <div className="divide-y divide-hot-gray-200">
+            {ALLOWED_APPS.map((app) => {
+              /* Show inline token reveal instead of the normal row */
+              if (justCreatedToken && justCreatedToken.app === app.id) {
+                return (
+                  <div key={app.id} className="py-3">
+                    <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+                      <p className="text-sm font-medium text-yellow-800 mb-2">
+                        {ALLOWED_APPS.find((a) => a.id === justCreatedToken.app)
+                          ?.label || justCreatedToken.app}{" "}
+                        — {t("tokenShownOnce")}
+                      </p>
+                      <code className="block w-full bg-white border border-yellow-300 rounded px-3 py-2 text-sm font-mono break-all select-all mb-2">
+                        {justCreatedToken.token}
+                      </code>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleCopyToken(justCreatedToken.token)}
+                          className="btn-primary-hot text-sm px-3 py-2"
+                        >
+                          {tokenCopied ? t("tokenCopied") : t("copyToken")}
+                        </button>
+                        <button
+                          onClick={() => setJustCreatedToken(null)}
+                          className="text-sm text-yellow-700 hover:text-yellow-900 underline"
+                        >
+                          {t("iSavedIt")}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              const token = tokens.find((tk) => tk.app === app.id);
+              return (
+                <div
+                  key={app.id}
+                  className="flex items-center justify-between py-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-hot-gray-900">
+                      {app.label}
+                    </p>
+                    {token && (
+                      <p className="text-xs text-hot-gray-500">
+                        {t("tokenCreatedOn")}{" "}
+                        {new Date(token.created_at).toLocaleDateString()}
+                        {" · "}
+                        {token.last_used_at
+                          ? `${t("tokenLastUsed")} ${new Date(token.last_used_at).toLocaleDateString()}`
+                          : t("tokenNeverUsed")}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleGenerateToken(app.id)}
+                      className={
+                        token
+                          ? "text-sm text-hot-gray-600 hover:text-hot-gray-900 border border-hot-gray-300 rounded px-3 py-1"
+                          : "text-sm btn-primary-hot px-3 py-1"
+                      }
+                    >
+                      {token ? t("regenerateToken") : t("generateToken")}
+                    </button>
+                    {token && (
+                      <button
+                        onClick={() => handleRevokeToken(token.id)}
+                        className="text-sm text-hot-red-600 hover:text-hot-red-800 border border-hot-red-300 rounded px-3 py-1"
+                      >
+                        {t("revokeToken")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          </>}
         </div>
 
         {/* Footer */}

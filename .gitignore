@@ -11,3 +11,5 @@ site/
 node_modules/
 login.har
 CLAUDE.md
+
+.complexipy_cache

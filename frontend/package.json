@@ -12,13 +12,17 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@awesome.me/webawesome": "3.0.0-beta.1",
     "@hotosm/hanko-auth": "0.5.2",
     "@hotosm/tool-menu": "0.2.6",
+    "@lit/react": "^1.0.8",
     "@teamhanko/hanko-elements": "^2.5.0",
+    "hotosm-ui-design": "^1.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4",
-    "recharts": "^3.8.0"
+    "recharts": "^3.8.0",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

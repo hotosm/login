@@ -1,5 +1,4 @@
-"""
-FastAPI admin routes for managing user mappings (psycopg version).
+"""FastAPI admin routes for managing user mappings (psycopg version).
 
 This module provides the same functionality as admin_routes.py
 but uses psycopg3 directly instead of SQLAlchemy.
@@ -21,23 +20,66 @@ Usage:
     app.include_router(admin_router)
 """
 
-from typing import Callable
+from typing import Annotated, Any, Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from psycopg import sql
 
+from hotosm_auth.logger import get_logger
 from hotosm_auth.schemas.admin import (
-    MappingResponse,
-    MappingListResponse,
     MappingCreate,
+    MappingListResponse,
+    MappingResponse,
     MappingUpdate,
 )
 from hotosm_auth_fastapi.admin import AdminUser
-from hotosm_auth.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-def create_admin_mappings_router_psycopg(
+def _build_list_mappings_query(
+    user_table: str | None,
+    user_name_column: str,
+    user_email_column: str,
+    user_id_column: str,
+) -> str | sql.Composed:
+    """Build SQL query for listing mappings with optional user enrichment."""
+    if user_table:
+        return sql.SQL(
+            """
+            SELECT
+                m.hanko_user_id,
+                m.app_user_id,
+                m.app_name,
+                m.created_at,
+                m.updated_at,
+                u.{user_name_column} AS app_username,
+                u.{user_email_column} AS app_email
+            FROM hanko_user_mappings m
+            LEFT JOIN {user_table} u
+                ON m.app_user_id = u.{user_id_column}::text
+            WHERE m.app_name = %s
+            ORDER BY m.created_at DESC
+            LIMIT %s OFFSET %s
+            """
+        ).format(
+            user_name_column=sql.Identifier(user_name_column),
+            user_email_column=sql.Identifier(user_email_column),
+            user_table=sql.Identifier(user_table),
+            user_id_column=sql.Identifier(user_id_column),
+        )
+
+    return """
+        SELECT hanko_user_id, app_user_id, app_name, created_at, updated_at,
+               NULL as app_username, NULL as app_email
+        FROM hanko_user_mappings
+        WHERE app_name = %s
+        ORDER BY created_at DESC
+        LIMIT %s OFFSET %s
+    """
+
+
+def create_admin_mappings_router_psycopg(  # noqa: C901, PLR0915, CCR001
     get_db: Callable,
     app_name: str = "default",
     user_table: str | None = None,
@@ -62,11 +104,12 @@ def create_admin_mappings_router_psycopg(
         APIRouter: Router with admin endpoints
     """
     router = APIRouter(prefix="/admin", tags=["Admin"])
+    db_dep = Annotated[Any, Depends(get_db)]
 
     @router.get("/mappings", response_model=MappingListResponse)
     async def list_mappings(
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
         page: int = Query(1, ge=1, description="Page number"),
         page_size: int = Query(50, ge=1, le=100, description="Items per page"),
     ) -> MappingListResponse:
@@ -82,27 +125,12 @@ def create_admin_mappings_router_psycopg(
             row = await cur.fetchone()
             total = row[0] if row else 0
 
-            # Build query with optional user enrichment
-            if user_table:
-                query = f"""
-                    SELECT m.hanko_user_id, m.app_user_id, m.app_name, m.created_at, m.updated_at,
-                           u.{user_name_column} as app_username, u.{user_email_column} as app_email
-                    FROM hanko_user_mappings m
-                    LEFT JOIN {user_table} u ON m.app_user_id = u.{user_id_column}::text
-                    WHERE m.app_name = %s
-                    ORDER BY m.created_at DESC
-                    LIMIT %s OFFSET %s
-                """
-            else:
-                query = """
-                    SELECT hanko_user_id, app_user_id, app_name, created_at, updated_at,
-                           NULL as app_username, NULL as app_email
-                    FROM hanko_user_mappings
-                    WHERE app_name = %s
-                    ORDER BY created_at DESC
-                    LIMIT %s OFFSET %s
-                """
-
+            query = _build_list_mappings_query(
+                user_table,
+                user_name_column,
+                user_email_column,
+                user_id_column,
+            )
             await cur.execute(query, (app_name, page_size, offset))
             rows = await cur.fetchall()
 
@@ -132,7 +160,7 @@ def create_admin_mappings_router_psycopg(
     async def get_mapping(
         hanko_user_id: str,
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
     ) -> MappingResponse:
         """Get a single user mapping by Hanko user ID."""
         async with db.cursor() as cur:
@@ -162,11 +190,13 @@ def create_admin_mappings_router_psycopg(
             updated_at=row[4],
         )
 
-    @router.post("/mappings", response_model=MappingResponse, status_code=status.HTTP_201_CREATED)
+    @router.post(
+        "/mappings", response_model=MappingResponse, status_code=status.HTTP_201_CREATED
+    )
     async def create_mapping(
         data: MappingCreate,
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
     ) -> MappingResponse:
         """Create a new user mapping."""
         async with db.cursor() as cur:
@@ -181,13 +211,18 @@ def create_admin_mappings_router_psycopg(
             if await cur.fetchone():
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Mapping already exists for hanko_user_id: {data.hanko_user_id}",
+                    detail=(
+                        "Mapping already exists for "
+                        f"hanko_user_id: {data.hanko_user_id}"
+                    ),
                 )
 
             # Create mapping
             await cur.execute(
                 """
-                INSERT INTO hanko_user_mappings (hanko_user_id, app_user_id, app_name, created_at)
+                INSERT INTO hanko_user_mappings (
+                    hanko_user_id, app_user_id, app_name, created_at
+                )
                 VALUES (%s, %s, %s, NOW())
                 RETURNING hanko_user_id, app_user_id, app_name, created_at, updated_at
                 """,
@@ -196,7 +231,10 @@ def create_admin_mappings_router_psycopg(
             row = await cur.fetchone()
 
         logger.info(
-            f"Admin {admin.email} created mapping: {data.hanko_user_id} -> {data.app_user_id}"
+            "Admin %s created mapping: %s -> %s",
+            admin.email,
+            data.hanko_user_id,
+            data.app_user_id,
         )
 
         return MappingResponse(
@@ -212,7 +250,7 @@ def create_admin_mappings_router_psycopg(
         hanko_user_id: str,
         data: MappingUpdate,
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
     ) -> MappingResponse:
         """Update an existing user mapping."""
         async with db.cursor() as cur:
@@ -234,7 +272,10 @@ def create_admin_mappings_router_psycopg(
             )
 
         logger.info(
-            f"Admin {admin.email} updated mapping: {hanko_user_id} -> {data.app_user_id}"
+            "Admin %s updated mapping: %s -> %s",
+            admin.email,
+            hanko_user_id,
+            data.app_user_id,
         )
 
         return MappingResponse(
@@ -249,7 +290,7 @@ def create_admin_mappings_router_psycopg(
     async def delete_mapping(
         hanko_user_id: str,
         admin: AdminUser,
-        db=Depends(get_db),
+        db: db_dep,
     ) -> None:
         """Delete a user mapping."""
         async with db.cursor() as cur:

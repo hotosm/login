@@ -1,5 +1,4 @@
-"""
-Data models for HOTOSM authentication.
+"""Data models for HOTOSM authentication.
 
 These are simple dataclasses, not database models. They represent:
 - HankoUser: Authenticated user from Hanko JWT

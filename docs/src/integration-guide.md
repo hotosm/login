@@ -8,16 +8,17 @@ Step by step guide to integrate `hotosm-auth` in your project.
 |-----------|---------------------|------------------|
 | **FastAPI** | [Simple](#fastapi-simple-integration) | [With Mapping](#fastapi-integration-with-mapping) |
 | **Django** | [Simple](#django-simple-integration) | [With Mapping](#django-integration-with-mapping) |
+| **Litestar** | [Simple](#litestar-simple-integration) | [With Mapping](#litestar-integration-with-mapping) |
 | **Frontend** | [All](#frontend-all) | [All](#frontend-all) |
 
 ---
 
 ## Step 0: Determine your case
 
-```
+```text
 Does your app have an existing auth system (legacy)?
 │
-├─ NO → Simple Integration (Portal, OAM)
+├─ NO → Simple Integration (Portal, ChatMap)
 │       You only need to validate Hanko JWT
 │
 └─ YES → Integration with Mapping (Drone-TM, fAIr)
@@ -28,14 +29,14 @@ Does your app have an existing auth system (legacy)?
 
 ## FastAPI: Simple Integration
 
-For apps **without legacy auth** (e.g.: Portal, OAM).
+For apps **without legacy auth** (e.g.: Portal, ChatMap).
 
 ### Step 1: Dependency
 
 ```toml
 # pyproject.toml
 dependencies = [
-    "hotosm-auth[fastapi] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python",
+    "hotosm-auth[fastapi]==0.2.10",
 ]
 ```
 
@@ -57,7 +58,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Mount OSM OAuth routes (optional)
-app.include_router(osm_router, prefix="/api/auth/osm")
+# router already has prefix="/auth/osm" → routes: /api/auth/osm/login, /api/auth/osm/callback
+app.include_router(osm_router, prefix="/api")
 ```
 
 ### Step 3: Protect routes
@@ -172,7 +174,7 @@ app.include_router(admin_router, prefix="/api/admin")
 
 ```toml
 dependencies = [
-    "hotosm-auth[django] @ git+https://github.com/hotosm/login.git@auth-libs-v0.2.2#subdirectory=auth-libs/python",
+    "hotosm-auth[django]==0.2.10",
 ]
 ```
 
@@ -194,6 +196,14 @@ MIDDLEWARE = [
 
 ```python
 # views.py
+from hotosm_auth_django import login_required
+
+# Decorator approach
+@login_required
+def my_view(request):
+    return JsonResponse({"email": request.hotosm.user.email})
+
+# Class-based view — check manually
 class ProtectedView(APIView):
     def get(self, request):
         if not request.hotosm.user:
@@ -205,9 +215,12 @@ class ProtectedView(APIView):
 
 ## Django: Integration with Mapping
 
+### Steps 1-2: Same as Simple
+
 ### Step 3: Settings with dual-mode
 
 ```python
+# settings.py
 AUTH_PROVIDER = env("AUTH_PROVIDER", default="legacy")
 
 if AUTH_PROVIDER == "hanko":
@@ -218,17 +231,182 @@ if AUTH_PROVIDER == "hanko":
     )
 ```
 
-### Step 4: Admin routes
+### Step 4: DRF authentication backend
+
+The middleware populates `request.hotosm.user`. Create a DRF `BaseAuthentication` class that maps that Hanko user to your app user:
+
+```python
+# authentication.py
+from rest_framework import authentication
+from hotosm_auth_django import get_mapped_user_id
+from myapp.models import AppUser
+
+class HankoAuthentication(authentication.BaseAuthentication):
+    def authenticate(self, request):
+        hanko_user = getattr(request, 'hotosm', None) and request.hotosm.user
+        if not hanko_user:
+            return None, None
+
+        app_user_id = get_mapped_user_id(hanko_user, app_name="my-app")
+
+        if app_user_id:
+            user = AppUser.objects.get(id=app_user_id)
+            return user, None
+
+        # No mapping yet → send to onboarding
+        request.needs_onboarding = True
+        return None, None
+
+
+# Select auth class based on provider
+if settings.AUTH_PROVIDER == "hanko":
+    MyAuthentication = HankoAuthentication
+else:
+    MyAuthentication = LegacyAuthentication  # your existing class
+```
+
+Register it in settings:
+
+```python
+# settings.py
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "myapp.authentication.MyAuthentication",
+    ]
+}
+```
+
+### Step 5: Admin routes
 
 ```python
 # urls.py
-if getattr(settings, 'AUTH_PROVIDER', 'legacy') == 'hanko':
+if settings.AUTH_PROVIDER == "hanko":
     from hotosm_auth_django.admin_routes import create_admin_urlpatterns
     admin_patterns = create_admin_urlpatterns(
-        app_name="my-app", user_model="myapp.User",
+        app_name="my-app", user_model="myapp.AppUser",
         user_id_column="id", user_name_column="username", user_email_column="email",
     )
     urlpatterns += [path("api/admin/", include(admin_patterns))]
+```
+
+---
+
+## Litestar: Simple Integration
+
+For apps **without legacy auth**.
+
+### Step 1: Dependency
+
+```toml
+# pyproject.toml
+dependencies = [
+    "hotosm-auth[litestar]==0.2.10",
+]
+```
+
+### Step 2: Initialization
+
+```python
+# main.py
+from litestar import Litestar
+from hotosm_auth_litestar import setup_auth
+
+# setup_auth() loads config from env, returns (deps, route_handlers)
+# route_handlers includes the OSM OAuth routes — spread alongside your own handlers
+deps, route_handlers = setup_auth()
+
+app = Litestar(route_handlers=[*route_handlers, me, ...], dependencies=deps)
+```
+
+### Step 3: Protect routes
+
+```python
+from litestar import get
+from hotosm_auth_litestar import AuthContext, OptionalAuthContext
+
+@get("/me")
+async def me(auth: AuthContext) -> dict:
+    """Requires authentication."""
+    return {"user_id": auth.user.id, "email": auth.user.email}
+
+@get("/public")
+async def public(optional_auth: OptionalAuthContext) -> dict:
+    """Optional auth."""
+    return {"user": optional_auth.user.email if optional_auth.user else "anonymous"}
+```
+
+### Step 4: Environment variables
+
+```bash
+HANKO_API_URL=https://login.hotosm.org
+COOKIE_SECRET=your-32-byte-secret
+
+# Only if using OSM OAuth
+OSM_CLIENT_ID=your-client-id
+OSM_CLIENT_SECRET=your-client-secret
+```
+
+---
+
+## Litestar: Integration with Mapping
+
+### Steps 1-2: Same as Simple
+
+### Step 3: Custom auth dependency
+
+```python
+# auth_deps.py
+from litestar import Request
+from hotosm_auth_litestar import get_current_user, get_mapped_user_id
+from app.hanko_helpers import lookup_user_by_email, create_app_user
+
+async def login_required(request: Request):
+    hanko_user = await get_current_user(request)
+    db = request.app.state.db
+    user_id = await get_mapped_user_id(
+        hanko_user=hanko_user,
+        db_conn=db,
+        app_name="my-app",
+        auto_create=True,
+        email_lookup_fn=lookup_user_by_email,
+        user_creator_fn=create_app_user,
+    )
+    return await get_user_by_id(db, user_id)
+```
+
+### Step 4: Helper functions
+
+```python
+# hanko_helpers.py
+async def lookup_user_by_email(db, email: str) -> Optional[str]:
+    """Look up user by email. Returns user_id or None."""
+    async with db.cursor() as cur:
+        await cur.execute("SELECT id FROM users WHERE email = %s", [email])
+        row = await cur.fetchone()
+    return str(row[0]) if row else None
+
+async def create_app_user(db, hanko_user: HankoUser) -> str:
+    """Create new user. Returns user_id."""
+    async with db.cursor() as cur:
+        await cur.execute(
+            "INSERT INTO users (email, name) VALUES (%s, %s) RETURNING id",
+            [hanko_user.email, hanko_user.username or hanko_user.email.split("@")[0]]
+        )
+        row = await cur.fetchone()
+    return str(row[0])
+```
+
+### Step 5: Admin routes (optional)
+
+```python
+# main.py
+from hotosm_auth_litestar import create_admin_mappings_router
+
+admin_router = create_admin_mappings_router(
+    get_db, app_name="my-app"
+)
+deps, route_handlers = setup_auth()
+app = Litestar(route_handlers=[*route_handlers, admin_router], dependencies=deps)
 ```
 
 ---
@@ -466,11 +644,11 @@ FRONTEND_URL=https://your-app.example.org
 
 ## Checklist
 
-| Step | FastAPI Simple | FastAPI+Mapping | Django Simple | Django+Mapping |
-|------|----------------|-----------------|---------------|----------------|
-| Dependency | ✓ | ✓ | ✓ | ✓ |
-| init_auth / middleware | ✓ | ✓ | ✓ | ✓ |
-| Protect routes | CurrentUser | Override login_required | request.hotosm | request.hotosm |
-| Helper functions | - | ✓ | - | ✓ |
-| Admin routes | - | Optional | - | Optional |
-| AUTH_PROVIDER env | - | ✓ | - | ✓ |
+| Step | FastAPI Simple | FastAPI+Mapping | Django Simple | Django+Mapping | Litestar Simple | Litestar+Mapping |
+|------|----------------|-----------------|---------------|----------------|-----------------|------------------|
+| Dependency | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Init | init_auth | init_auth | middleware | middleware | setup_auth() | setup_auth() |
+| Protect routes | CurrentUser | Override login_required | request.hotosm | BaseAuthentication | AuthContext | Custom dep |
+| Helper functions | - | ✓ | - | - | - | ✓ |
+| Admin routes | - | Step 5 | - | Step 5 | - | Step 5 |
+| AUTH_PROVIDER env | - | ✓ | - | ✓ | - | ✓ |

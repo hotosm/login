@@ -12,16 +12,15 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from hotosm_auth.config import AuthConfig
-from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth.exceptions import OSMOAuthError
-from hotosm_auth_fastapi.osm_routes import router, _oauth_states
+from hotosm_auth.models import HankoUser, OSMConnection
 from hotosm_auth_fastapi.dependencies import (
-    init_auth,
-    get_current_user,
     get_config,
+    get_current_user,
     get_osm_connection,
-    get_cookie_crypto,
+    init_auth,
 )
+from hotosm_auth_fastapi.osm_routes import _oauth_states, router
 
 
 def _make_config():
@@ -158,12 +157,17 @@ class TestOSMCallback:
             mock_client.exchange_code = AsyncMock(return_value=osm_conn)
             mock_client_class.return_value = mock_client
 
-            with patch("hotosm_auth_fastapi.osm_routes.get_cookie_crypto") as mock_crypto:
+            with patch(
+                "hotosm_auth_fastapi.osm_routes.get_cookie_crypto"
+            ) as mock_crypto:
                 from hotosm_auth.crypto import CookieCrypto
+
                 mock_crypto.return_value = CookieCrypto(config.cookie_secret)
 
                 client = TestClient(app, follow_redirects=False)
-                response = client.get("/auth/osm/callback?code=auth-code&state=valid-state")
+                response = client.get(
+                    "/auth/osm/callback?code=auth-code&state=valid-state"
+                )
 
         # Verify redirect to stored URL
         assert response.status_code == 303

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.3] - 2026-04-16
+
+### Changed
+
+- Login button color and font size.
+
 ## [0.5.2] - 2026-03-9
 
 ### Added

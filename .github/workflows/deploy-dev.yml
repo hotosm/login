@@ -128,7 +128,7 @@ jobs:
             sed -i 's|domain: "\.login\.hotosm\.org"|domain: ".hotosm.org"|g' hanko-config.yaml
             sed -i 's|domain: "\.dev\.login\.hotosm\.org"|domain: ".hotosm.org"|g' hanko-config.yaml
             # Add testlogin domains to all required sections
-            for domain in "dev.portal.hotosm.org" "testlogin.dronetm.hotosm.org" "testlogin.fair.hotosm.org" "fair-dev.hotosm.org" "fair.hotosm.org" "testlogin.umap.hotosm.org" "umap-dev.hotosm.org" "testlogin.export.hotosm.org" "chatmap-dev.hotosm.org"; do
+            for domain in "dev.portal.hotosm.org" "dev.drone.hotosm.org" "dronetm.testlogin.hotosm.org" "fair.testlogin.hotosm.org" "fair-dev.hotosm.org" "fair.hotosm.org" "stage.ai.hotosm.org" "dev.ai.hotosm.org" "umap.testlogin.hotosm.org" "umap-dev.hotosm.org" "export.testlogin.hotosm.org" "chatmap-dev.hotosm.org" "dev.chatmap.hotosm.org" "fieldtm.testlogin.hotosm.org" "fieldtm.hotosm.org" "field.hotosm.org"; do
               # CORS allow_origins (check specifically in allow_origins section)
               if ! grep -A 10 'allow_origins:' hanko-config.yaml | grep -q "$domain"; then
                 sed -i '/allow_origins:/a\        - "https://'"$domain"'"' hanko-config.yaml
@@ -171,6 +171,41 @@ jobs:
             sed -i 's|^OSM_CLIENT_ID=.*|OSM_CLIENT_ID=${{ secrets.OSM_CLIENT_ID }}|' .env
             sed -i 's|^OSM_CLIENT_SECRET=.*|OSM_CLIENT_SECRET=${{ secrets.OSM_CLIENT_SECRET }}|' .env
             sed -i 's|^OSM_REDIRECT_URI=.*|OSM_REDIRECT_URI=${{ secrets.OSM_REDIRECT_URI }}|' .env
+            if grep -q '^LOGIN_INTERNAL_API_KEY=' .env; then
+              sed -i 's|^LOGIN_INTERNAL_API_KEY=.*|LOGIN_INTERNAL_API_KEY=${{ secrets.LOGIN_INTERNAL_API_KEY }}|' .env
+            else
+              echo 'LOGIN_INTERNAL_API_KEY=${{ secrets.LOGIN_INTERNAL_API_KEY }}' >> .env
+            fi
+            if grep -q '^SMTP_HOST=' .env; then
+              sed -i 's|^SMTP_HOST=.*|SMTP_HOST=${{ secrets.SMTP_HOST }}|' .env
+            else
+              echo 'SMTP_HOST=${{ secrets.SMTP_HOST }}' >> .env
+            fi
+            if grep -q '^SMTP_PORT=' .env; then
+              sed -i 's|^SMTP_PORT=.*|SMTP_PORT=587|' .env
+            else
+              echo 'SMTP_PORT=587' >> .env
+            fi
+            if grep -q '^SMTP_USER=' .env; then
+              sed -i 's|^SMTP_USER=.*|SMTP_USER=${{ secrets.SMTP_USER }}|' .env
+            else
+              echo 'SMTP_USER=${{ secrets.SMTP_USER }}' >> .env
+            fi
+            if grep -q '^SMTP_PASSWORD=' .env; then
+              sed -i 's|^SMTP_PASSWORD=.*|SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}|' .env
+            else
+              echo 'SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}' >> .env
+            fi
+            if grep -q '^SMTP_FROM_ADDRESS=' .env; then
+              sed -i 's|^SMTP_FROM_ADDRESS=.*|SMTP_FROM_ADDRESS=${{ secrets.SMTP_FROM_ADDRESS }}|' .env
+            else
+              echo 'SMTP_FROM_ADDRESS=${{ secrets.SMTP_FROM_ADDRESS }}' >> .env
+            fi
+            if grep -q '^SMTP_STARTTLS=' .env; then
+              sed -i 's|^SMTP_STARTTLS=.*|SMTP_STARTTLS=true|' .env
+            else
+              echo 'SMTP_STARTTLS=true' >> .env
+            fi
             echo "✓ Updated secrets in .env"
 
             # Login to GitHub Container Registry

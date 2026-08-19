@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 from hotosm_auth.config import AuthConfig
 from hotosm_auth.models import HankoUser
 from hotosm_auth_fastapi.admin_routes import create_admin_mappings_router
-from hotosm_auth_fastapi.dependencies import init_auth, get_current_user, get_config
+from hotosm_auth_fastapi.dependencies import get_config, get_current_user, init_auth
 
 
 def _make_config():
