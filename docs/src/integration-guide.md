@@ -9,7 +9,7 @@ Step by step guide to integrate `hotosm-auth` in your project.
 | **FastAPI** | [Simple](#fastapi-simple-integration) | [With Mapping](#fastapi-integration-with-mapping) |
 | **Django** | [Simple](#django-simple-integration) | [With Mapping](#django-integration-with-mapping) |
 | **Litestar** | [Simple](#litestar-simple-integration) | [With Mapping](#litestar-integration-with-mapping) |
-| **Frontend** | [All](#frontend-all) | [All](#frontend-all) |
+| **Frontend** | [All](#frontend-downstream-apps) | [All](#frontend-downstream-apps) |
 
 ---
 
@@ -425,7 +425,7 @@ The centralized login app itself is implemented in this repo already. If you nee
 
 For downstream apps, the implementation is easiest to think about as four steps.
 
-#### Step 1: Make the web component available
+### Step 1: Make the web component available
 
 Import `@hotosm/hanko-auth` anywhere you render `<hotosm-auth>`.
 
@@ -459,7 +459,7 @@ declare module 'react' {
 }
 ```
 
-#### Step 2: Keep one hidden verifier mounted
+### Step 2: Keep one hidden verifier mounted
 
 This is the key downstream-app pattern. The hidden `<hotosm-auth>` instance validates the login session after redirect back from the centralized login app and emits `hanko-login`.
 
@@ -479,7 +479,7 @@ Mount it near the top of your app:
 {enableAuth && <SessionVerifier hankoApiUrl={config.HANKO_API_URL} />}
 ```
 
-#### Step 3: Listen for auth events and store auth state
+### Step 3: Listen for auth events and store auth state
 
 The web component drives auth through document-level events:
 
@@ -531,7 +531,7 @@ export function AuthProvider({ children }) {
 }
 ```
 
-#### Step 4: Protect routes and redirect to centralized login
+### Step 4: Protect routes and redirect to centralized login
 
 When a protected page is opened by an unauthenticated user:
 
