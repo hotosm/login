@@ -292,3 +292,35 @@ class AccountManager(Base):
     def __repr__(self) -> str:
         """Return short debug representation for logging."""
         return f"<AccountManager(user={self.hanko_user_id[:8]}...)>"
+
+
+class Notification(Base):
+    """An in-app notification addressed to a single user.
+
+    Generic by design: ``type`` discriminates the event and ``data`` carries the
+    structured context needed to render it. Display text is deliberately kept
+    out of the database so the frontend can translate it. Like the group tables,
+    the recipient is a bare ``hanko_user_id`` (no FK to user_profiles).
+    """
+
+    __tablename__ = "notifications"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid_str)
+    hanko_user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    type: Mapped[str] = mapped_column(String(50), nullable=False)
+    data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        # Unread counts and the per-user feed both start from this pair.
+        Index("ix_notifications_user_read", "hanko_user_id", "read_at"),
+    )
+
+    def __repr__(self) -> str:
+        """Return short debug representation for logging."""
+        return f"<Notification(user={self.hanko_user_id[:8]}..., type={self.type})>"
