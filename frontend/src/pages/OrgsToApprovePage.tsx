@@ -1,4 +1,5 @@
 import Button from '@/components/shared/Button';
+import OrgNameChangeReviewForm from '@/components/OrgNameChangeReviewForm';
 import OrgReviewForm from '@/components/OrgReviewForm';
 import PanelHeader from '@/components/PanelHeader';
 import { useEffect, useState } from 'react';
@@ -26,6 +27,7 @@ function OrgsToApprovePage() {
     approve,
     reject,
     approveName,
+    rejectName,
   } = usePendingOrgs(canModerate);
 
   const [reviewingId, setReviewingId] = useState<string | null>(null);
@@ -93,17 +95,6 @@ function OrgsToApprovePage() {
               <div key={org.id}>
                 <div className="flex items-center justify-between py-3 gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    {org.avatar_url ? (
-                      <img
-                        src={org.avatar_url}
-                        alt=""
-                        className="w-9 h-9 rounded-full object-cover border border-hot-gray-200 flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-hot-gray-100 text-hot-gray-600 flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                        {org.name[0]?.toUpperCase()}
-                      </div>
-                    )}
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-hot-gray-900 truncate">
                         {org.name}
@@ -137,26 +128,40 @@ function OrgsToApprovePage() {
                 {/* Review block for this org — replaces the admin console's modal */}
                 {reviewingId === org.id && (
                   <div className="mb-xl">
-                    <OrgReviewForm
-                      org={org}
-                      submitting={submitting}
-                      onCancel={() => setReviewingId(null)}
-                      onApprove={() =>
-                        runAction(() => approve(org.id), t('orgApproved'))
-                      }
-                      onReject={(reason) =>
-                        runAction(
-                          () => reject(org.id, reason.trim() || undefined),
-                          t('orgRejected'),
-                        )
-                      }
-                      onApproveName={() =>
-                        runAction(
-                          () => approveName(org.id),
-                          t('orgNameApproved'),
-                        )
-                      }
-                    />
+                    {org.pending_name ? (
+                      <OrgNameChangeReviewForm
+                        org={org}
+                        submitting={submitting}
+                        onCancel={() => setReviewingId(null)}
+                        onApproveName={() =>
+                          runAction(
+                            () => approveName(org.id),
+                            t('orgNameApproved'),
+                          )
+                        }
+                        onRejectName={() =>
+                          runAction(
+                            () => rejectName(org.id),
+                            t('orgNameRejected'),
+                          )
+                        }
+                      />
+                    ) : (
+                      <OrgReviewForm
+                        org={org}
+                        submitting={submitting}
+                        onCancel={() => setReviewingId(null)}
+                        onApprove={() =>
+                          runAction(() => approve(org.id), t('orgApproved'))
+                        }
+                        onReject={(reason) =>
+                          runAction(
+                            () => reject(org.id, reason.trim() || undefined),
+                            t('orgRejected'),
+                          )
+                        }
+                      />
+                    )}
                   </div>
                 )}
               </div>

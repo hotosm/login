@@ -31,7 +31,6 @@ const messageFor = (n: AppNotification, t: Translate): string => {
   }
 };
 
-// Unread rows are actionable (clicking marks them read); read rows are muted.
 function NotificationRow({
   notification,
   onRead,
@@ -62,9 +61,6 @@ function NotificationRow({
 
   if (!unread) return <div className={rowClass}>{body}</div>;
 
-  // The row stays the same <div> a read row uses: a <button> sizes its height
-  // from the unwrapped text and spills over the divider. The hit area is a real
-  // button taken out of the flow, so it adds no layout of its own.
   return (
     <div className={`${rowClass} relative hover:bg-hot-gray-50`}>
       {body}

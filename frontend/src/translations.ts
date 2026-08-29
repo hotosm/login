@@ -204,6 +204,7 @@ export interface Translations {
   approveBtn?: string;
   rejectBtn?: string;
   approveNameBtn?: string;
+  rejectNameBtn?: string;
 
   // Organizations to approve (account area)
   orgsToApprove?: string;
@@ -215,9 +216,12 @@ export interface Translations {
   rejectReasonHint?: string;
   requestedOn?: string;
   requestedBy?: string;
+  currentName?: string;
+  proposedName?: string;
   orgApproved?: string;
   orgRejected?: string;
   orgNameApproved?: string;
+  orgNameRejected?: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -404,6 +408,7 @@ export const translations: Record<string, Translations> = {
     approveBtn: 'Approve',
     rejectBtn: 'Reject',
     approveNameBtn: 'Approve name',
+    rejectNameBtn: 'Reject name',
     orgsToApprove: 'Organizations to approve',
     orgsToApproveNoAccess:
       "You don't have permission to review organization requests.",
@@ -414,9 +419,12 @@ export const translations: Record<string, Translations> = {
     rejectReasonHint: 'Optional — shared with the requester',
     requestedOn: 'Requested',
     requestedBy: 'Requested by',
+    currentName: 'Current name',
+    proposedName: 'Proposed name',
     orgApproved: 'Organization approved.',
     orgRejected: 'Organization rejected.',
     orgNameApproved: 'Name change approved.',
+    orgNameRejected: 'Name change rejected.',
   },
   es: {
     welcomeTo: "Bienvenido a HOT's",
@@ -610,12 +618,16 @@ export const translations: Record<string, Translations> = {
     rejectReasonHint: 'Opcional — se comparte con quien lo solicitó',
     requestedOn: 'Solicitada',
     requestedBy: 'Solicitada por',
+    currentName: 'Nombre actual',
+    proposedName: 'Nombre propuesto',
     orgApproved: 'Organización aprobada.',
     orgRejected: 'Organización rechazada.',
     orgNameApproved: 'Cambio de nombre aprobado.',
+    orgNameRejected: 'Cambio de nombre rechazado.',
     approveBtn: 'Aprobar',
     rejectBtn: 'Rechazar',
     approveNameBtn: 'Aprobar nombre',
+    rejectNameBtn: 'Rechazar nombre',
   },
   fr: {
     welcomeTo: "Bienvenue sur HOT's",
@@ -802,6 +814,7 @@ export const translations: Record<string, Translations> = {
     approveBtn: 'Approuver',
     rejectBtn: 'Rejeter',
     approveNameBtn: 'Approuver le nom',
+    rejectNameBtn: 'Rejeter le nom',
     orgsToApprove: 'Organisations à approuver',
     orgsToApproveNoAccess:
       "Vous n'avez pas la permission d'examiner les demandes d'organisation.",
@@ -812,9 +825,12 @@ export const translations: Record<string, Translations> = {
     rejectReasonHint: 'Facultatif — partagé avec le demandeur',
     requestedOn: 'Demandée le',
     requestedBy: 'Demandée par',
+    currentName: 'Nom actuel',
+    proposedName: 'Nom proposé',
     orgApproved: 'Organisation approuvée.',
     orgRejected: 'Organisation rejetée.',
     orgNameApproved: 'Changement de nom approuvé.',
+    orgNameRejected: 'Changement de nom rejeté.',
   },
   pt: {
     welcomeTo: "Bem-vindo ao HOT's",
@@ -999,6 +1015,7 @@ export const translations: Record<string, Translations> = {
     approveBtn: 'Aprovar',
     rejectBtn: 'Rejeitar',
     approveNameBtn: 'Aprovar nome',
+    rejectNameBtn: 'Rejeitar nome',
     orgsToApprove: 'Organizações para aprovar',
     orgsToApproveNoAccess:
       'Você não tem permissão para revisar solicitações de organizações.',
@@ -1009,9 +1026,12 @@ export const translations: Record<string, Translations> = {
     rejectReasonHint: 'Opcional — compartilhado com quem solicitou',
     requestedOn: 'Solicitada em',
     requestedBy: 'Solicitada por',
+    currentName: 'Nome atual',
+    proposedName: 'Nome proposto',
     orgApproved: 'Organização aprovada.',
     orgRejected: 'Organização rejeitada.',
     orgNameApproved: 'Alteração de nome aprovada.',
+    orgNameRejected: 'Alteração de nome rejeitada.',
   },
 };
 
