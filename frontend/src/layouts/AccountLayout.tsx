@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import '@hotosm/tool-menu';
+import '@hotosm/ui';
 import externalLinkIcon from '../assets/icons/box-arrow-up-right.svg';
 import hotLogo from '../assets/images/hot-logo.svg';
 import SidebarNav, { type SidebarNavItem } from '../components/SidebarNav';
@@ -13,14 +13,14 @@ function AccountLayout() {
 
   const navItems: SidebarNavItem[] = [
     { to: '/profile', label: t('navProfile') },
-    /* { to: '/organizations', label: t('navOrganizations') }, */
+    { to: '/organizations', label: t('navOrganizations') },
     { to: '/teams', label: t('navTeams') },
-    /* { to: '/notifications', label: t('navNotifications') }, */
+    { to: '/notifications', label: t('navNotifications') },
   ];
 
   if (isAdmin || isAccountManager) {
     navItems.push(
-      /* { to: '/orgs-to-approve', label: t('navOrgsToApprove'), elevated: true }, */
+      { to: '/orgs-to-approve', label: t('navOrgsToApprove'), elevated: true },
       {
         to: '/admin',
         label: t('navAdmin'),
@@ -36,7 +36,7 @@ function AccountLayout() {
       <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <img src={hotLogo} alt="HOT" className="h-10" />
-          <hotosm-tool-menu lang={currentLanguage} />
+          <hotosm-tool-menu />
         </div>
       </header>
 
