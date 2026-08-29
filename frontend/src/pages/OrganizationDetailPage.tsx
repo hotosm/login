@@ -1,12 +1,24 @@
+import AddMemberForm from '@/components/AddMemberForm';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { useEffect, useState } from 'react';
+import GroupNameField from '@/components/GroupNameField';
+import Breadcrumb from '@/components/shared/Breadcrumb';
+import BreadcrumbItem from '@/components/shared/BreadcrumbItem';
+import Button from '@/components/shared/Button';
+import ErrorBanner from '@/components/shared/ErrorBanner';
+import Icon from '@/components/shared/Icon';
+import Spinner from '@/components/shared/Spinner';
+import { Tab, TabGroup, TabPanel } from '@/components/shared/Tabs';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import MembersPanel from '../components/MembersPanel';
 import StatusBadge from '../components/shared/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOrganization } from '../hooks/useOrgs';
-import type { MemberRole } from '../types/groups';
+
+type TabName = 'details' | 'members';
+
+const panelStyle = { '--padding': '0' } as React.CSSProperties;
 
 function OrganizationDetailPage() {
   const { id = '' } = useParams();
@@ -33,22 +45,18 @@ function OrganizationDetailPage() {
     deleteOrganization,
   } = useOrganization(id);
 
-  const [activeTab, setActiveTab] = useState<'details' | 'members'>('details');
+  const [activeTab, setActiveTab] = useState<TabName>('details');
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // The pencils over the banner and avatar open these hidden pickers
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Editable details form, seeded from the loaded organization
   const [description, setDescription] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [isPublic, setIsPublic] = useState(false);
-
-  // Name change
-  const [editingName, setEditingName] = useState(false);
-  const [newName, setNewName] = useState('');
-
-  // Invite form
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<MemberRole>('member');
 
   useEffect(() => {
     if (!org) return;
@@ -77,17 +85,6 @@ function OrganizationDetailPage() {
     }
   };
 
-  const handleChangeName = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (!(await changeName(newName))) return;
-      setEditingName(false);
-      setNewName('');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'An error occurred');
-    }
-  };
-
   const handleUpload = async (kind: 'avatar' | 'banner', file: File) => {
     try {
       await uploadImage(kind, file);
@@ -110,27 +107,6 @@ function OrganizationDetailPage() {
     }
   };
 
-  const handleInvite = async (e: React.FormEvent, onChanged: () => void) => {
-    e.preventDefault();
-    const email = inviteEmail;
-    try {
-      const created = await invite(inviteEmail, inviteRole);
-      if (!created) return;
-      setInviteEmail('');
-      setInviteRole('member');
-      toast.success(
-        created.recipient_exists === false
-          ? `Invitation sent to ${email}. They don't have a HOT account yet — they'll need to sign up to accept.`
-          : `Invitation sent to ${email}.`,
-        // The no-account case is a long sentence worth reading
-        { duration: 8000 },
-      );
-      onChanged();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'An error occurred');
-    }
-  };
-
   const handleCancelInvite = async (invId: string) => {
     if (!window.confirm(t('cancelInviteConfirm'))) return;
     try {
@@ -140,54 +116,99 @@ function OrganizationDetailPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-600 border-t-transparent"></div>
-      </div>
-    );
-  }
+  if (loading) return <Spinner />;
 
   if (!org) {
     return (
       <div>
-        <div className="bg-hot-red-50 border border-hot-red-200 text-hot-red-700 px-4 py-3 rounded-lg">
-          {loadError || 'Not found'}
-        </div>
+        <ErrorBanner>{loadError || 'Not found'}</ErrorBanner>
       </div>
     );
   }
 
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => navigate(listPath)}
-        className="text-sm text-hot-gray-500 hover:text-hot-red-600 transition-colors"
-      >
-        ← {t('navOrganizations')}
-      </button>
-
-      {/* Header with banner + name */}
-      <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-        <div
-          className="h-28 bg-hot-gray-100 bg-cover bg-center"
-          style={
-            org.banner_url
-              ? { backgroundImage: `url(${org.banner_url})` }
-              : undefined
-          }
-        />
+    <div className="bg-white rounded-xl shadow-xl p-6">
+      <div>
+        <Breadcrumb>
+          <BreadcrumbItem onClick={() => navigate(listPath)}>
+            {t('navOrganizations')}
+          </BreadcrumbItem>
+          <BreadcrumbItem>{org.name}</BreadcrumbItem>
+        </Breadcrumb>
+        <div className="relative">
+          <div
+            className="h-[200px] bg-hot-gray-100 bg-cover bg-center"
+            style={
+              org.banner_url
+                ? { backgroundImage: `url(${org.banner_url})` }
+                : undefined
+            }
+          />
+          {canManage && (
+            <>
+              <input
+                ref={bannerInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  // Clear it so picking the same file again still fires a change
+                  e.target.value = '';
+                  if (file) handleUpload('banner', file);
+                }}
+              />
+              <Button
+                appearance="filled"
+                size="small"
+                pill
+                title={t('changeBanner')}
+                className="absolute top-2 right-2"
+                onClick={() => bannerInputRef.current?.click()}
+              >
+                <Icon name="pencil" label={t('changeBanner')} />
+              </Button>
+            </>
+          )}
+        </div>
         <div className="p-6">
           <div className="flex items-center gap-4">
-            <img
-              src={
-                org.avatar_url ||
-                'https://www.gravatar.com/avatar/?d=identicon&s=96'
-              }
-              alt=""
-              className="w-16 h-16 rounded-full object-cover border-2 border-white shadow -mt-12 bg-white"
-            />
+            <div className="relative -mt-12 z-10">
+              <img
+                src={
+                  org.avatar_url ||
+                  'https://www.gravatar.com/avatar/?d=identicon&s=96'
+                }
+                alt=""
+                className="w-24 h-24 rounded-full object-cover border-2 border-white shadow bg-white"
+              />
+              {canManage && (
+                <>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      // Clear it so picking the same file again still fires a change
+                      e.target.value = '';
+                      if (file) handleUpload('avatar', file);
+                    }}
+                  />
+                  <Button
+                    appearance="filled"
+                    size="small"
+                    pill
+                    title={t('changeAvatar')}
+                    className="absolute bottom-0 right-0"
+                    onClick={() => avatarInputRef.current?.click()}
+                  >
+                    <Icon name="pencil" label={t('changeAvatar')} />
+                  </Button>
+                </>
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-semibold text-hot-gray-900">
@@ -206,274 +227,171 @@ function OrganizationDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab('details')}
-          className={`admin-tab ${activeTab === 'details' ? 'active' : ''}`}
-        >
-          {t('detailsTab')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('members')}
-          className={`admin-tab ${activeTab === 'members' ? 'active' : ''}`}
-        >
+      <TabGroup
+        active={activeTab}
+        onWaTabShow={(e) => setActiveTab(e.detail.name as TabName)}
+      >
+        <Tab panel="details">{t('detailsTab')}</Tab>
+        <Tab panel="members">
           {t('membersTab')} ({org.members_count})
-        </button>
-      </div>
+        </Tab>
 
-      {activeTab === 'details' && (
-        <div className="bg-white rounded-xl shadow-xl p-6 space-y-6">
-          {/* Name change */}
-          <div>
-            <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-              {t('name')}
-            </label>
-            {editingName ? (
-              <form onSubmit={handleChangeName} className="flex gap-2">
-                <input
-                  type="text"
-                  required
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="input-field"
-                />
-                <button
-                  type="submit"
-                  className="btn-primary-hot w-auto px-4 py-2 text-sm"
-                >
-                  {t('saveChanges')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingName(false)}
-                  className="btn-secondary-hot w-auto px-4 py-2 text-sm"
-                >
-                  {t('cancel')}
-                </button>
+        <TabPanel name="details" style={panelStyle}>
+          <div className="pt-xl space-y-6">
+            <GroupNameField
+              name={org.name}
+              canManage={canManage}
+              onChangeName={changeName}
+              pendingName={org.pending_name}
+            />
+
+            {canManage ? (
+              <form onSubmit={handleSaveDetails} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-hot-gray-700 mb-1">
+                    {t('contactEmail')}
+                  </label>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-hot-gray-700 mb-1">
+                    {t('website')}
+                  </label>
+                  <input
+                    type="url"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-hot-gray-700 mb-1">
+                    {t('description')}
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    className="input-field"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  {canDelete && (
+                    <Button
+                      appearance="outlined"
+                      variant="danger"
+                      onClick={() => setConfirmDelete(true)}
+                    >
+                      {t('deleteGroupBtn')}
+                    </Button>
+                  )}
+                  <Button type="submit" disabled={saving}>
+                    {saving ? t('saving') : t('saveChanges')}
+                  </Button>
+                </div>
               </form>
             ) : (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-hot-gray-900">{org.name}</span>
-                {canManage && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewName(org.name);
-                      setEditingName(true);
-                    }}
-                    className="text-sm text-hot-red-600 hover:underline"
-                  >
-                    {t('changeName')}
-                  </button>
-                )}
-              </div>
-            )}
-            {org.pending_name && (
-              <p className="text-xs text-hot-gray-500 mt-1">
-                {t('nameChangePending')}: {org.pending_name}
-              </p>
+              <dl className="space-y-3 text-sm">
+                <div>
+                  <dt className="font-medium text-hot-gray-700">
+                    {t('contactEmail')}
+                  </dt>
+                  <dd className="text-hot-gray-600">
+                    {org.contact_email || '—'}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-hot-gray-700">
+                    {t('website')}
+                  </dt>
+                  <dd className="text-hot-gray-600">{org.website || '—'}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-hot-gray-700">
+                    {t('description')}
+                  </dt>
+                  <dd className="text-hot-gray-600 whitespace-pre-line">
+                    {org.description || '—'}
+                  </dd>
+                </div>
+              </dl>
             )}
           </div>
+        </TabPanel>
 
-          {canManage ? (
-            <form onSubmit={handleSaveDetails} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  {t('contactEmail')}
-                </label>
-                <input
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  {t('website')}
-                </label>
-                <input
-                  type="url"
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                  {t('description')}
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="input-field"
-                />
-              </div>
-              {/* Public-profile toggle hidden until portal public profiles ship.
-                  The is_public state is still submitted (unchanged) so nothing breaks. */}
-
-              {/* Avatar / banner upload */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                    {t('avatarLabel')}
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      e.target.files?.[0] &&
-                      handleUpload('avatar', e.target.files[0])
-                    }
-                    className="text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                    {t('bannerLabel')}
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      e.target.files?.[0] &&
-                      handleUpload('banner', e.target.files[0])
-                    }
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="btn-primary-hot w-auto px-4 py-2 text-sm disabled:opacity-50"
-                >
-                  {saving ? t('saving') : t('saveChanges')}
-                </button>
-                {canDelete && (
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDelete(true)}
-                    className="btn-danger-small"
-                  >
-                    {t('deleteGroupBtn')}
-                  </button>
-                )}
-              </div>
-            </form>
-          ) : (
-            <dl className="space-y-3 text-sm">
-              <div>
-                <dt className="font-medium text-hot-gray-700">
-                  {t('contactEmail')}
-                </dt>
-                <dd className="text-hot-gray-600">{org.contact_email || '—'}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-hot-gray-700">
-                  {t('website')}
-                </dt>
-                <dd className="text-hot-gray-600">{org.website || '—'}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-hot-gray-700">
-                  {t('description')}
-                </dt>
-                <dd className="text-hot-gray-600 whitespace-pre-line">
-                  {org.description || '—'}
-                </dd>
-              </div>
-            </dl>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'members' && (
-        <div className="bg-white rounded-xl shadow-xl p-6">
-          <MembersPanel
-            groupId={id}
-            viewerRole={org.role}
-            onLeft={() => navigate(listPath)}
-            onViewerRoleChanged={refresh}
-            renderAdd={(onChanged) =>
-              org.status !== 'approved' ? (
-                <div className="text-sm text-hot-gray-500 bg-hot-gray-50 border border-hot-gray-200 rounded-lg px-3 py-2 mb-2">
-                  You can invite members once this organization is approved.
-                </div>
-              ) : (
-                <div className="space-y-4 mb-2">
-                <form
-                  onSubmit={(e) => handleInvite(e, onChanged)}
-                  className="flex flex-wrap items-end gap-2"
-                >
-                  <div className="flex-1 min-w-[180px]">
-                    <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                      {t('addMemberByEmail')}
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="person@example.org"
-                      className="input-field"
-                    />
-                  </div>
-                  <select
-                    value={inviteRole}
-                    onChange={(e) => setInviteRole(e.target.value as MemberRole)}
-                    className="input-field w-auto"
-                  >
-                    <option value="member">{t('roleMember')}</option>
-                    <option value="manager">{t('roleManager')}</option>
-                  </select>
-                  <button
-                    type="submit"
-                    className="btn-primary-hot w-auto px-4 py-2 text-sm"
-                  >
-                    {t('inviteBtn')}
-                  </button>
-                </form>
-
-                {invitations.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-hot-gray-500 mb-2">
-                      {t('sentInvitations')}
-                    </h3>
-                    <div className="divide-y divide-hot-gray-100">
-                      {invitations.map((inv) => (
-                        <div
-                          key={inv.id}
-                          className="flex items-center justify-between py-2 text-sm"
-                        >
-                          <span className="text-hot-gray-700">
-                            {inv.email}{' '}
-                            <span className="text-hot-gray-400">· {inv.role}</span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleCancelInvite(inv.id)}
-                            className="text-xs text-hot-red-600 hover:underline"
-                          >
-                            {t('cancelInvite')}
-                          </button>
-                        </div>
-                      ))}
+        <TabPanel name="members" style={panelStyle}>
+          {activeTab === 'members' && (
+            <div className="pt-xl space-y-6">
+              <MembersPanel
+                groupId={id}
+                viewerRole={org.role}
+                onLeft={() => navigate(listPath)}
+                onViewerRoleChanged={refresh}
+                renderAdd={(onChanged) =>
+                  org.status !== 'approved' ? (
+                    <div className="text-sm text-hot-gray-500 bg-hot-gray-50 border border-hot-gray-200 rounded-lg px-3 py-2 mb-2">
+                      You can invite members once this organization is approved.
                     </div>
-                  </div>
-                )}
-                <hr className="border-hot-gray-200" />
-                </div>
-              )
-            }
-          />
-        </div>
-      )}
+                  ) : (
+                    <AddMemberForm
+                      submitLabel={t('inviteBtn')}
+                      onSubmit={async (email, role) => {
+                        const created = await invite(email, role);
+                        if (!created) return false;
+                        toast.success(
+                          created.recipient_exists === false
+                            ? `Invitation sent to ${email}. They don't have a HOT account yet — they'll need to sign up to accept.`
+                            : `Invitation sent to ${email}.`,
+                          // The no-account case is a long sentence worth reading
+                          { duration: 8000 },
+                        );
+                        onChanged();
+                        return true;
+                      }}
+                    >
+                      {invitations.length > 0 && (
+                        <div>
+                          <h3 className="text-xs font-semibold uppercase tracking-wide text-hot-gray-500 mb-2">
+                            {t('sentInvitations')}
+                          </h3>
+                          <div className="divide-y divide-hot-gray-100">
+                            {invitations.map((inv) => (
+                              <div
+                                key={inv.id}
+                                className="flex items-center justify-between py-2 text-sm"
+                              >
+                                <span className="text-hot-gray-700">
+                                  {inv.email}{' '}
+                                  <span className="text-hot-gray-400">
+                                    · {inv.role}
+                                  </span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCancelInvite(inv.id)}
+                                  className="text-xs text-hot-red-600 hover:underline"
+                                >
+                                  {t('cancelInvite')}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </AddMemberForm>
+                  )
+                }
+              />
+            </div>
+          )}
+        </TabPanel>
+      </TabGroup>
 
       <ConfirmDialog
         open={confirmDelete}
