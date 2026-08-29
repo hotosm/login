@@ -93,6 +93,13 @@ export interface Translations {
   // Notifications
   notifications?: string;
   noNotifications?: string;
+  markRead?: string;
+  markAllRead?: string;
+  // {name} is replaced at runtime (t() does not interpolate).
+  notifOrgApproved?: string;
+  notifOrgRejected?: string;
+  notifOrgNameApproved?: string;
+  notifOrgNameRejected?: string;
 
   // Organizations
   organizations?: string;
@@ -299,6 +306,12 @@ export const translations: Record<string, Translations> = {
     navNotifications: 'Notifications',
     notifications: 'Notifications',
     noNotifications: 'You have no notifications.',
+    markRead: 'Mark as read',
+    markAllRead: 'Mark all as read',
+    notifOrgApproved: 'Your organization {name} was approved.',
+    notifOrgRejected: 'Your organization {name} was not approved.',
+    notifOrgNameApproved: 'Your name change to {name} was approved.',
+    notifOrgNameRejected: 'Your name change to {name} was not approved.',
     organizations: 'Organizations',
     organizationsSubtitle: 'Official organizations you belong to',
     requestOrganization: 'Request organization',
@@ -492,6 +505,12 @@ export const translations: Record<string, Translations> = {
     navNotifications: 'Notificaciones',
     notifications: 'Notificaciones',
     noNotifications: 'No tienes notificaciones.',
+    markRead: 'Marcar como leída',
+    markAllRead: 'Marcar todas como leídas',
+    notifOrgApproved: 'Tu organización {name} fue aprobada.',
+    notifOrgRejected: 'Tu organización {name} no fue aprobada.',
+    notifOrgNameApproved: 'Tu cambio de nombre a {name} fue aprobado.',
+    notifOrgNameRejected: 'Tu cambio de nombre a {name} no fue aprobado.',
     organizations: 'Organizaciones',
     organizationsSubtitle: 'Organizaciones oficiales a las que perteneces',
     requestOrganization: 'Solicitar organización',
@@ -683,6 +702,13 @@ export const translations: Record<string, Translations> = {
     navNotifications: 'Notifications',
     notifications: 'Notifications',
     noNotifications: "Vous n'avez aucune notification.",
+    markRead: 'Marquer comme lu',
+    markAllRead: 'Tout marquer comme lu',
+    notifOrgApproved: 'Votre organisation {name} a été approuvée.',
+    notifOrgRejected: "Votre organisation {name} n'a pas été approuvée.",
+    notifOrgNameApproved: 'Votre changement de nom en {name} a été approuvé.',
+    notifOrgNameRejected:
+      "Votre changement de nom en {name} n'a pas été approuvé.",
     organizations: 'Organisations',
     organizationsSubtitle: 'Organisations officielles dont vous faites partie',
     requestOrganization: 'Demander une organisation',
@@ -875,6 +901,12 @@ export const translations: Record<string, Translations> = {
     navNotifications: 'Notificações',
     notifications: 'Notificações',
     noNotifications: 'Você não tem notificações.',
+    markRead: 'Marcar como lida',
+    markAllRead: 'Marcar todas como lidas',
+    notifOrgApproved: 'Sua organização {name} foi aprovada.',
+    notifOrgRejected: 'Sua organização {name} não foi aprovada.',
+    notifOrgNameApproved: 'Sua alteração de nome para {name} foi aprovada.',
+    notifOrgNameRejected: 'Sua alteração de nome para {name} não foi aprovada.',
     organizations: 'Organizações',
     organizationsSubtitle: 'Organizações oficiais às quais você pertence',
     requestOrganization: 'Solicitar organização',

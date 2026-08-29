@@ -4,18 +4,24 @@ import externalLinkIcon from '../assets/icons/box-arrow-up-right.svg';
 import hotLogo from '../assets/images/hot-logo.svg';
 import SidebarNav, { type SidebarNavItem } from '../components/SidebarNav';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNotifications } from '../hooks/useNotifications';
 import { useRoles } from '../hooks/useRoles';
 
 
 function AccountLayout() {
   const { t, currentLanguage } = useLanguage();
   const { isAdmin, isAccountManager } = useRoles();
+  const { unreadCount } = useNotifications();
 
   const navItems: SidebarNavItem[] = [
     { to: '/profile', label: t('navProfile') },
     { to: '/organizations', label: t('navOrganizations') },
     { to: '/teams', label: t('navTeams') },
-    { to: '/notifications', label: t('navNotifications') },
+    {
+      to: '/notifications',
+      label: t('navNotifications'),
+      badge: unreadCount,
+    },
   ];
 
   if (isAdmin || isAccountManager) {
