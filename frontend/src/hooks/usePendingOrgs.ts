@@ -16,7 +16,7 @@ export function usePendingOrgs(enabled: boolean) {
     setError(null);
     try {
       const response = await fetch(
-        `${backendUrl}/admin/organizations?status=pending&page=1&page_size=50`,
+        `${backendUrl}/admin/organizations?pending_action=true&page=1&page_size=50`,
         { credentials: 'include' },
       );
       // Session expired — the caller sends the user back to login
@@ -76,6 +76,18 @@ export function usePendingOrgs(enabled: boolean) {
     },
     [refresh],
   );
+  
+    const rejectName = useCallback(
+    async (orgId: string) => {
+      const response = await fetch(
+        `${backendUrl}/admin/organizations/${orgId}/reject-name`,
+        { method: 'POST', credentials: 'include' },
+      );
+      if (!response.ok) throw new Error(await readError(response));
+      await refresh();
+    },
+    [refresh],
+  );
 
   return {
     pendingOrgs,
@@ -86,5 +98,6 @@ export function usePendingOrgs(enabled: boolean) {
     approve,
     reject,
     approveName,
+    rejectName
   };
 }

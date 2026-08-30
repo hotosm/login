@@ -9,7 +9,6 @@ interface OrgReviewFormProps {
   org: GroupResponse;
   onApprove: () => void | Promise<void>;
   onReject: (reason: string) => void | Promise<void>;
-  onApproveName: () => void | Promise<void>;
   onCancel: () => void;
   submitting?: boolean;
 }
@@ -18,7 +17,6 @@ function OrgReviewForm({
   org,
   onApprove,
   onReject,
-  onApproveName,
   onCancel,
   submitting = false,
 }: OrgReviewFormProps) {
@@ -34,15 +32,6 @@ function OrgReviewForm({
           alt=""
           className="w-full h-32 object-cover rounded-lg"
         />
-      )}
-
-      {org.pending_name && (
-        <p className="text-sm">
-          <span className="text-hot-gray-500">{t('nameChangePending')}: </span>
-          <span className="font-medium text-hot-gray-900">
-            {org.pending_name}
-          </span>
-        </p>
       )}
 
       <dl className="space-y-3 text-sm">
@@ -107,16 +96,6 @@ function OrgReviewForm({
         <Button appearance="plain" type="button" onClick={onCancel}>
           {t('cancel')}
         </Button>
-        {org.pending_name && (
-          <Button
-            appearance="outlined"
-            type="button"
-            onClick={onApproveName}
-            disabled={submitting}
-          >
-            {t('approveNameBtn')}
-          </Button>
-        )}
         <Button
           appearance="outlined"
           variant="danger"

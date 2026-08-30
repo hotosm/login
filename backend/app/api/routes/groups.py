@@ -35,7 +35,7 @@ from app.schemas.groups import (
     MyGroupsResponse,
     NameChangeRequest,
 )
-from app.services import groups_service, hanko_lookup, s3_service
+from app.services import groups_service, hanko_lookup, notifications_service, s3_service
 
 router = APIRouter(prefix="/api/groups", tags=["Groups"])
 
@@ -54,7 +54,7 @@ _require_role = groups_service.require_role
 
 
 async def _add_team_members_by_email(
-    db: AsyncSession, group_id: str, emails: list[str], owner_id: str
+    db: AsyncSession, group: Group, emails: list[str], owner_id: str
 ) -> None:
     """Resolve emails to accounts and add them as members (skip unknown/dupes)."""
     seen = {owner_id}
@@ -64,7 +64,43 @@ async def _add_team_members_by_email(
             continue
         seen.add(member_id)
         db.add(
-            GroupMembership(group_id=group_id, hanko_user_id=member_id, role="member")
+            GroupMembership(group_id=group.id, hanko_user_id=member_id, role="member")
+        )
+        await _notify_member_joined(db, group, member_id)
+
+
+async def _notify_member_joined(db: AsyncSession, group: Group, member_id: str) -> None:
+    """Tell a user they were added to a team (caller commits)."""
+    await notifications_service.create(
+        db,
+        recipient_id=member_id,
+        type="team_member_joined",
+        data={"group_id": group.id, "group_name": group.name},
+    )
+
+
+async def _notify_member_left(
+    db: AsyncSession, group: Group, member_id: str, actor_id: str
+) -> None:
+    """Tell a team's owner and managers that a member is gone (caller commits).
+
+    Neither the departing member nor whoever removed them is notified.
+    """
+    label = (await groups_service.creator_labels(db, [member_id])).get(member_id)
+    recipient_ids = set(await groups_service.manager_ids(db, group.id)) - {
+        member_id,
+        actor_id,
+    }
+    for recipient_id in recipient_ids:
+        await notifications_service.create(
+            db,
+            recipient_id=recipient_id,
+            type="team_member_left",
+            data={
+                "group_id": group.id,
+                "group_name": group.name,
+                "member_name": label.name if label else None,
+            },
         )
 
 
@@ -93,7 +129,7 @@ async def create_group(
     db.add(GroupMembership(group_id=group.id, hanko_user_id=user.id, role="owner"))
     # Teams may seed members directly by email; orgs use invitations.
     if payload.type == "team" and payload.member_emails:
-        await _add_team_members_by_email(db, group.id, payload.member_emails, user.id)
+        await _add_team_members_by_email(db, group, payload.member_emails, user.id)
     await db.commit()
     await db.refresh(group)
     members_count = await groups_service.count_members(db, group.id)
@@ -259,6 +295,7 @@ async def add_group_member(
                 group_id=group_id, hanko_user_id=member_id, role=payload.role
             )
         )
+        await _notify_member_joined(db, group, member_id)
         await db.commit()
     items, total = await groups_service.list_members(db, group_id, 1, 50)
     return MemberListResponse(items=items, total=total, page=1, page_size=50)
@@ -324,6 +361,8 @@ async def remove_group_member(
                 detail="Cannot remove this member",
             )
     await db.delete(target)
+    if group.type == "team":
+        await _notify_member_left(db, group, member_id, actor_id=user.id)
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

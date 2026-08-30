@@ -151,3 +151,64 @@ async def test_non_admin_cannot_grant_am(client, auth):
     resp = await client.put(f"/api/admin/account-managers/{USER_B.id}")
     # USER_A (default) is neither admin nor AM.
     assert resp.status_code == 403
+
+
+async def _stage_name_change(client, auth, org_id, new_name="ADF New"):
+    """Approve the org, then stage a name change as its owner."""
+    auth["user"] = ADMIN
+    await client.post(f"/api/admin/organizations/{org_id}/approve")
+    auth["user"] = USER_A
+    resp = await client.post(
+        f"/api/groups/{org_id}/name-change", json={"name": new_name}
+    )
+    assert resp.status_code == 200
+    auth["user"] = ADMIN
+
+
+async def test_pending_action_lists_pending_name_changes(client, auth):
+    org = await _create_org(client)
+    await _stage_name_change(client, auth, org["id"])
+
+    resp = await client.get("/api/admin/organizations?pending_action=true")
+    assert resp.status_code == 200
+    ids = [item["id"] for item in resp.json()["items"]]
+    assert org["id"] in ids
+
+
+async def test_pending_action_excludes_settled_orgs(client, auth):
+    org = await _create_org(client)
+    auth["user"] = ADMIN
+    await client.post(f"/api/admin/organizations/{org['id']}/approve")
+
+    resp = await client.get("/api/admin/organizations?pending_action=true")
+    ids = [item["id"] for item in resp.json()["items"]]
+    assert org["id"] not in ids
+
+    # The plain status filter is untouched by the new flag.
+    resp = await client.get("/api/admin/organizations?status=approved")
+    ids = [item["id"] for item in resp.json()["items"]]
+    assert org["id"] in ids
+
+
+async def test_reject_name_change_clears_pending_name(client, auth):
+    org = await _create_org(client)
+    await _stage_name_change(client, auth, org["id"])
+
+    resp = await client.post(f"/api/admin/organizations/{org['id']}/reject-name")
+    assert resp.status_code == 204
+
+    auth["user"] = USER_A
+    body = (await client.get(f"/api/groups/{org['id']}")).json()
+    assert body["pending_name"] is None
+    assert body["name"] == "ADF Haiti"
+    assert body["slug"] == "adf-haiti"
+    assert body["status"] == "approved"
+
+
+async def test_reject_name_change_without_pending_name(client, auth):
+    org = await _create_org(client)
+    auth["user"] = ADMIN
+    await client.post(f"/api/admin/organizations/{org['id']}/approve")
+
+    resp = await client.post(f"/api/admin/organizations/{org['id']}/reject-name")
+    assert resp.status_code == 400

@@ -15,6 +15,7 @@ from app.api.routes import api_token as api_token_routes
 from app.api.routes import data_deletion as data_deletion_routes
 from app.api.routes import groups as groups_routes
 from app.api.routes import invitations as invitations_routes
+from app.api.routes import notifications as notifications_routes
 from app.api.routes import organizations_admin as organizations_admin_routes
 from app.api.routes import profile as profile_routes
 from app.api.routes import public as public_routes
@@ -174,6 +175,7 @@ app.include_router(data_deletion_routes.router)
 app.include_router(groups_routes.router)
 app.include_router(invitations_routes.router)
 app.include_router(invitations_routes.me_router)
+app.include_router(notifications_routes.me_router)
 app.include_router(organizations_admin_routes.router)
 app.include_router(organizations_admin_routes.me_router)
 app.include_router(public_routes.router)

@@ -84,31 +84,6 @@ function OrgRequestForm({
             rows={3}
           />
         </div>
-        {/* wa-input has no `file` type, so these stay native inputs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-              {t('avatarLabel')}
-            </label>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => set('avatarFile', e.target.files?.[0] ?? null)}
-              className="text-sm text-hot-gray-600"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-              {t('bannerLabel')}
-            </label>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => set('bannerFile', e.target.files?.[0] ?? null)}
-              className="text-sm text-hot-gray-600"
-            />
-          </div>
-        </div>
       </div>
       <div className="flex justify-end gap-2">
         <Button appearance="plain" onClick={onCancel}>

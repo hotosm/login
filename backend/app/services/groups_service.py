@@ -157,6 +157,17 @@ async def count_members(db: AsyncSession, group_id: str) -> int:
     return int(result.scalar_one())
 
 
+async def manager_ids(db: AsyncSession, group_id: str) -> list[str]:
+    """Return the hanko user ids of a group's owner and managers."""
+    result = await db.execute(
+        select(GroupMembership.hanko_user_id).where(
+            GroupMembership.group_id == group_id,
+            GroupMembership.role.in_(("owner", "manager")),
+        )
+    )
+    return list(result.scalars().all())
+
+
 async def list_user_groups(
     db: AsyncSession, user_id: str, group_type: str | None = None
 ) -> list[tuple[Group, str]]:
