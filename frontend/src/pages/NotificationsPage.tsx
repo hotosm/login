@@ -11,21 +11,27 @@ import Button from '@/components/shared/Button';
 
 type Translate = ReturnType<typeof useLanguage>['t'];
 
-// t() has no interpolation: the templates carry a literal {name} we substitute.
+// The templates carry {placeholder}s that t() fills in from its params.
 const messageFor = (n: AppNotification, t: Translate): string => {
   const d = n.data ?? {};
   switch (n.type) {
     case 'org_approved':
-      return t('notifOrgApproved').replace('{name}', d.group_name ?? '');
+      return t('notifOrgApproved', { name: d.group_name ?? '' });
     case 'org_rejected':
-      return t('notifOrgRejected').replace('{name}', d.group_name ?? '');
+      return t('notifOrgRejected', { name: d.group_name ?? '' });
     case 'org_name_approved':
-      return t('notifOrgNameApproved').replace(
-        '{name}',
-        d.new_name ?? d.group_name ?? '',
-      );
+      return t('notifOrgNameApproved', {
+        name: d.new_name ?? d.group_name ?? '',
+      });
     case 'org_name_rejected':
-      return t('notifOrgNameRejected').replace('{name}', d.rejected_name ?? '');
+      return t('notifOrgNameRejected', { name: d.rejected_name ?? '' });
+    case 'team_member_joined':
+      return t('notifTeamMemberJoined', { name: d.group_name ?? '' });
+    case 'team_member_left':
+      return t('notifTeamMemberLeft', {
+        member: d.member_name ?? t('aMember'),
+        team: d.group_name ?? '',
+      });
     default:
       return '';
   }

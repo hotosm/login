@@ -9,7 +9,9 @@ export type NotificationType =
   | 'org_approved'
   | 'org_rejected'
   | 'org_name_approved'
-  | 'org_name_rejected';
+  | 'org_name_rejected'
+  | 'team_member_joined'
+  | 'team_member_left';
 
 export interface NotificationData {
   group_id?: string;
@@ -17,6 +19,7 @@ export interface NotificationData {
   new_name?: string;
   rejected_name?: string;
   reason?: string | null;
+  member_name?: string | null;
 }
 
 /** Named AppNotification so it does not clash with the DOM Notification type. */

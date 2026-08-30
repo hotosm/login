@@ -100,6 +100,11 @@ export interface Translations {
   notifOrgRejected?: string;
   notifOrgNameApproved?: string;
   notifOrgNameRejected?: string;
+  notifTeamMemberJoined?: string;
+  // {member} and {team} are replaced at runtime too.
+  notifTeamMemberLeft?: string;
+  // Stands in for {member} when the departed member has no resolvable name.
+  aMember?: string;
 
   // Organizations
   organizations?: string;
@@ -316,6 +321,9 @@ export const translations: Record<string, Translations> = {
     notifOrgRejected: 'Your organization {name} was not approved.',
     notifOrgNameApproved: 'Your name change to {name} was approved.',
     notifOrgNameRejected: 'Your name change to {name} was not approved.',
+    notifTeamMemberJoined: 'You were added to the team {name}.',
+    notifTeamMemberLeft: '{member} left the team {team}.',
+    aMember: 'A member',
     organizations: 'Organizations',
     organizationsSubtitle: 'Official organizations you belong to',
     requestOrganization: 'Request organization',
@@ -519,6 +527,9 @@ export const translations: Record<string, Translations> = {
     notifOrgRejected: 'Tu organización {name} no fue aprobada.',
     notifOrgNameApproved: 'Tu cambio de nombre a {name} fue aprobado.',
     notifOrgNameRejected: 'Tu cambio de nombre a {name} no fue aprobado.',
+    notifTeamMemberJoined: 'Te agregaron al equipo {name}.',
+    notifTeamMemberLeft: '{member} dejó el equipo {team}.',
+    aMember: 'Un miembro',
     organizations: 'Organizaciones',
     organizationsSubtitle: 'Organizaciones oficiales a las que perteneces',
     requestOrganization: 'Solicitar organización',
@@ -721,6 +732,9 @@ export const translations: Record<string, Translations> = {
     notifOrgNameApproved: 'Votre changement de nom en {name} a été approuvé.',
     notifOrgNameRejected:
       "Votre changement de nom en {name} n'a pas été approuvé.",
+    notifTeamMemberJoined: "Vous avez été ajouté à l'équipe {name}.",
+    notifTeamMemberLeft: "{member} a quitté l'équipe {team}.",
+    aMember: 'Un membre',
     organizations: 'Organisations',
     organizationsSubtitle: 'Organisations officielles dont vous faites partie',
     requestOrganization: 'Demander une organisation',
@@ -923,6 +937,9 @@ export const translations: Record<string, Translations> = {
     notifOrgRejected: 'Sua organização {name} não foi aprovada.',
     notifOrgNameApproved: 'Sua alteração de nome para {name} foi aprovada.',
     notifOrgNameRejected: 'Sua alteração de nome para {name} não foi aprovada.',
+    notifTeamMemberJoined: 'Você foi adicionado à equipe {name}.',
+    notifTeamMemberLeft: '{member} saiu da equipe {team}.',
+    aMember: 'Um membro',
     organizations: 'Organizações',
     organizationsSubtitle: 'Organizações oficiais às quais você pertence',
     requestOrganization: 'Solicitar organização',

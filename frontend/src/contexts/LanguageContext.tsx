@@ -4,7 +4,10 @@ import { translations } from '../translations';
 interface LanguageContextType {
   currentLanguage: string;
   setLanguage: (lang: string) => void;
-  t: (key: keyof typeof translations.en) => string;
+  t: (
+    key: keyof typeof translations.en,
+    params?: Record<string, string | number>,
+  ) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -47,10 +50,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Translation helper function with fallback to English
-  const t = (key: keyof typeof translations.en): string => {
+  // Translation helper function with fallback to English.
+  // Strings may carry {placeholder}s: pass `params` to fill them in. Unknown
+  // placeholders are left as-is so a missing variable is visible, not blank.
+  const t = (
+    key: keyof typeof translations.en,
+    params?: Record<string, string | number>,
+  ): string => {
     const langTranslations = translations[currentLanguage] || translations.en;
-    return langTranslations[key] || translations.en[key] || key;
+    const template = langTranslations[key] || translations.en[key] || key;
+    if (!params) return template;
+    return template.replace(/\{(\w+)\}/g, (match, name) =>
+      name in params ? String(params[name]) : match,
+    );
   };
 
   return (
