@@ -10,7 +10,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 
 function AccountLayout() {
-  const { t, currentLanguage } = useLanguage();
+  const { t } = useLanguage();
   const { isAdmin, isAccountManager } = useRoles();
   const { unreadCount } = useNotifications();
 
