@@ -6,6 +6,7 @@ import SidebarNav, { type SidebarNavItem } from '../components/SidebarNav';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotifications } from '../hooks/useNotifications';
 import { useRoles } from '../hooks/useRoles';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 
 function AccountLayout() {
@@ -42,7 +43,10 @@ function AccountLayout() {
       <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <img src={hotLogo} alt="HOT" className="h-10" />
-          <hotosm-tool-menu />
+          <span className='flex items-center'>
+            <LanguageSwitcher />
+            <hotosm-tool-menu />
+          </span>
         </div>
       </header>
 
