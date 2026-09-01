@@ -103,6 +103,14 @@ export interface Translations {
   notifTeamMemberJoined?: string;
   // {member} and {team} are replaced at runtime too.
   notifTeamMemberLeft?: string;
+  // {member} and {name} are replaced at runtime.
+  notifMemberLeft?: string;
+  // {name} is replaced at runtime.
+  notifMemberRemoved?: string;
+  notifOrgInviteAccepted?: string;
+  notifOrgInviteDeclined?: string;
+  notifInviteAcceptedSelf?: string;
+  notifInviteDeclinedSelf?: string;
   // Stands in for {member} when the departed member has no resolvable name.
   aMember?: string;
 
@@ -323,6 +331,12 @@ export const translations: Record<string, Translations> = {
     notifOrgNameRejected: 'Your name change to {name} was not approved.',
     notifTeamMemberJoined: 'You were added to the team {name}.',
     notifTeamMemberLeft: '{member} left the team {team}.',
+    notifMemberLeft: '{member} left {name}.',
+    notifMemberRemoved: 'You were removed from {name}.',
+    notifOrgInviteAccepted: '{member} accepted the invitation to join {name}.',
+    notifOrgInviteDeclined: '{member} declined the invitation to join {name}.',
+    notifInviteAcceptedSelf: 'You joined {name}.',
+    notifInviteDeclinedSelf: 'You declined the invitation to {name}.',
     aMember: 'A member',
     organizations: 'Organizations',
     organizationsSubtitle: 'Official organizations you belong to',
@@ -529,6 +543,14 @@ export const translations: Record<string, Translations> = {
     notifOrgNameRejected: 'Tu cambio de nombre a {name} no fue aprobado.',
     notifTeamMemberJoined: 'Te agregaron al equipo {name}.',
     notifTeamMemberLeft: '{member} dejó el equipo {team}.',
+    notifMemberLeft: '{member} salió de {name}.',
+    notifMemberRemoved: 'Te eliminaron de {name}.',
+    notifOrgInviteAccepted:
+      '{member} aceptó la invitación para unirse a {name}.',
+    notifOrgInviteDeclined:
+      '{member} rechazó la invitación para unirse a {name}.',
+    notifInviteAcceptedSelf: 'Te uniste a {name}.',
+    notifInviteDeclinedSelf: 'Rechazaste la invitación a {name}.',
     aMember: 'Un miembro',
     organizations: 'Organizaciones',
     organizationsSubtitle: 'Organizaciones oficiales a las que perteneces',
@@ -734,6 +756,14 @@ export const translations: Record<string, Translations> = {
       "Votre changement de nom en {name} n'a pas été approuvé.",
     notifTeamMemberJoined: "Vous avez été ajouté à l'équipe {name}.",
     notifTeamMemberLeft: "{member} a quitté l'équipe {team}.",
+    notifMemberLeft: '{member} a quitté {name}.',
+    notifMemberRemoved: 'Vous avez été retiré de {name}.',
+    notifOrgInviteAccepted:
+      "{member} a accepté l'invitation à rejoindre {name}.",
+    notifOrgInviteDeclined:
+      "{member} a refusé l'invitation à rejoindre {name}.",
+    notifInviteAcceptedSelf: 'Vous avez rejoint {name}.',
+    notifInviteDeclinedSelf: "Vous avez refusé l'invitation à {name}.",
     aMember: 'Un membre',
     organizations: 'Organisations',
     organizationsSubtitle: 'Organisations officielles dont vous faites partie',
@@ -939,6 +969,12 @@ export const translations: Record<string, Translations> = {
     notifOrgNameRejected: 'Sua alteração de nome para {name} não foi aprovada.',
     notifTeamMemberJoined: 'Você foi adicionado à equipe {name}.',
     notifTeamMemberLeft: '{member} saiu da equipe {team}.',
+    notifMemberLeft: '{member} saiu de {name}.',
+    notifMemberRemoved: 'Você foi removido de {name}.',
+    notifOrgInviteAccepted: '{member} aceitou o convite para entrar em {name}.',
+    notifOrgInviteDeclined: '{member} recusou o convite para entrar em {name}.',
+    notifInviteAcceptedSelf: 'Você entrou em {name}.',
+    notifInviteDeclinedSelf: 'Você recusou o convite para {name}.',
     aMember: 'Um membro',
     organizations: 'Organizações',
     organizationsSubtitle: 'Organizações oficiais às quais você pertence',

@@ -31,7 +31,7 @@ from app.schemas.groups import (
     InvitationResponse,
     MyInvitationResponse,
 )
-from app.services import groups_service, hanko_lookup
+from app.services import groups_service, hanko_lookup, notifications_service
 from app.services.email import send_email
 
 logger = logging.getLogger(__name__)
@@ -222,6 +222,21 @@ async def _get_pending_invitation(db: AsyncSession, token: str) -> GroupInvitati
     return invitation
 
 
+async def _notify_managers_of_response(
+    db: AsyncSession, group: Group, responder_id: str, type: str, data: dict
+) -> None:
+    """Tell an org's owner and managers how an invitation was answered.
+
+    The responder is not notified here (they get their own receipt). The caller
+    commits.
+    """
+    recipient_ids = set(await groups_service.manager_ids(db, group.id)) - {responder_id}
+    for recipient_id in recipient_ids:
+        await notifications_service.create(
+            db, recipient_id=recipient_id, type=type, data=data
+        )
+
+
 @me_router.get("", response_model=list[MyInvitationResponse])
 async def list_my_invitations(user: CurrentUser, db: DB) -> list[MyInvitationResponse]:
     """List the current user's pending, unexpired invitations."""
@@ -288,6 +303,41 @@ async def accept_invitation(token: str, user: CurrentUser, db: DB) -> Response:
     invitation.status = "accepted"
     invitation.invited_hanko_user_id = user.id
     invitation.responded_at = _now()
+
+    group = await groups_service.load_group_or_404(db, invitation.group_id)
+    label = (await groups_service.creator_labels(db, [user.id])).get(user.id)
+    member_name = (
+        next(
+            (v for v in (label.name, label.username, label.email) if v),
+            invitation.email,
+        )
+        if label
+        else invitation.email
+    )
+    await _notify_managers_of_response(
+        db,
+        group,
+        user.id,
+        "org_invite_accepted",
+        {
+            "group_id": group.id,
+            "group_name": group.name,
+            "member_name": member_name,
+            "role": invitation.role,
+        },
+    )
+    await notifications_service.create(
+        db,
+        recipient_id=user.id,
+        type="org_invite_response_self",
+        data={
+            "group_id": group.id,
+            "group_name": group.name,
+            "response": "accepted",
+            "role": invitation.role,
+        },
+        read_at=_now(),
+    )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -303,5 +353,38 @@ async def decline_invitation(token: str, user: CurrentUser, db: DB) -> Response:
         )
     invitation.status = "declined"
     invitation.responded_at = _now()
+
+    group = await groups_service.load_group_or_404(db, invitation.group_id)
+    label = (await groups_service.creator_labels(db, [user.id])).get(user.id)
+    member_name = (
+        next(
+            (v for v in (label.name, label.username, label.email) if v),
+            invitation.email,
+        )
+        if label
+        else invitation.email
+    )
+    await _notify_managers_of_response(
+        db,
+        group,
+        user.id,
+        "org_invite_declined",
+        {
+            "group_id": group.id,
+            "group_name": group.name,
+            "member_name": member_name,
+        },
+    )
+    await notifications_service.create(
+        db,
+        recipient_id=user.id,
+        type="org_invite_response_self",
+        data={
+            "group_id": group.id,
+            "group_name": group.name,
+            "response": "declined",
+        },
+        read_at=_now(),
+    )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

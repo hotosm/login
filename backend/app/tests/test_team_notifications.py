@@ -1,4 +1,4 @@
-"""Tests for the in-app notifications emitted by team membership changes."""
+"""Tests for the in-app notifications emitted by group membership changes."""
 
 from app.db.models import GroupMembership, UserProfile
 from app.tests.conftest import USER_A, USER_B, USER_C, USER_D
@@ -82,18 +82,19 @@ async def test_leaving_a_team_notifies_owner_and_managers(client, auth, db):
     assert resp.status_code == 204
 
     for recipient in (USER_A, USER_B, USER_C):
-        items = await _notifications_of(client, auth, recipient, "team_member_left")
+        items = await _notifications_of(client, auth, recipient, "member_left")
         assert len(items) == 1, recipient.id
         assert items[0]["data"] == {
             "group_id": team["id"],
             "group_name": "Mappers",
+            "group_type": "team",
             "member_name": "Dana Doe",
         }
 
-    assert await _notifications_of(client, auth, USER_D, "team_member_left") == []
+    assert await _notifications_of(client, auth, USER_D, "member_left") == []
 
 
-async def test_member_name_is_null_without_a_profile(client, auth):
+async def test_member_name_falls_back_to_email_without_a_profile(client, auth):
     team = await _create_team(client)
     await _add_member(client, team["id"], USER_B)
 
@@ -101,11 +102,11 @@ async def test_member_name_is_null_without_a_profile(client, auth):
     resp = await client.delete(f"/api/groups/{team['id']}/members/{USER_B.id}")
     assert resp.status_code == 204
 
-    items = await _notifications_of(client, auth, USER_A, "team_member_left")
-    assert items[0]["data"]["member_name"] is None
+    items = await _notifications_of(client, auth, USER_A, "member_left")
+    assert items[0]["data"]["member_name"] == USER_B.email
 
 
-async def test_manager_removing_a_member_excludes_itself(client, auth):
+async def test_manager_removing_a_member_notifies_only_that_member(client, auth):
     team = await _create_team(client)  # USER_A is the owner
     await _add_member(client, team["id"], USER_B, role="manager")
     await _add_member(client, team["id"], USER_C, role="manager")
@@ -115,22 +116,38 @@ async def test_manager_removing_a_member_excludes_itself(client, auth):
     resp = await client.delete(f"/api/groups/{team['id']}/members/{USER_D.id}")
     assert resp.status_code == 204
 
-    for recipient in (USER_A, USER_C):
-        items = await _notifications_of(client, auth, recipient, "team_member_left")
-        assert len(items) == 1, recipient.id
+    items = await _notifications_of(client, auth, USER_D, "member_removed")
+    assert len(items) == 1
+    assert items[0]["data"] == {
+        "group_id": team["id"],
+        "group_name": "Mappers",
+        "group_type": "team",
+    }
 
-    for excluded in (USER_B, USER_D):
-        assert await _notifications_of(client, auth, excluded, "team_member_left") == []
+    # The managers did the removing, so none of them is notified.
+    for manager in (USER_A, USER_B, USER_C):
+        assert await _notifications_of(client, auth, manager, "member_left") == []
+        assert await _notifications_of(client, auth, manager, "member_removed") == []
 
 
-async def test_organizations_do_not_emit_team_notifications(client, auth, db):
+async def _create_org_with_member(client, auth, db, member, role="member"):
+    """Create an org owned by USER_A and seed a member the way an invite would."""
+    auth["user"] = USER_A
     resp = await client.post(
         "/api/groups", json={"type": "organization", "name": "ADF Haiti"}
     )
     assert resp.status_code == 201
     org = resp.json()
+    db.add(GroupMembership(group_id=org["id"], hanko_user_id=member.id, role=role))
+    await db.commit()
+    return org
+
+
+async def test_orgs_reject_direct_member_adds(client, auth, db):
+    org = await _create_org_with_member(client, auth, db, USER_C)
 
     # Orgs add members via invitations; the direct endpoint is rejected.
+    auth["user"] = USER_A
     resp = await client.post(
         f"/api/groups/{org['id']}/members",
         json={"email": USER_B.email, "role": "member"},
@@ -138,13 +155,43 @@ async def test_organizations_do_not_emit_team_notifications(client, auth, db):
     assert resp.status_code == 400
     assert await _notifications_of(client, auth, USER_B) == []
 
-    # Seed the membership the way an accepted invitation would, then remove it.
-    auth["user"] = USER_A
-    db.add(GroupMembership(group_id=org["id"], hanko_user_id=USER_B.id, role="member"))
+
+async def test_leaving_an_org_notifies_owner_and_managers(client, auth, db):
+    org = await _create_org_with_member(client, auth, db, USER_B)
+    db.add(GroupMembership(group_id=org["id"], hanko_user_id=USER_C.id, role="manager"))
+    db.add(UserProfile(hanko_user_id=USER_B.id, first_name="Bea", last_name="Blue"))
     await db.commit()
+
+    auth["user"] = USER_B
     resp = await client.delete(f"/api/groups/{org['id']}/members/{USER_B.id}")
     assert resp.status_code == 204
 
-    for user in (USER_A, USER_B):
-        items = await _notifications_of(client, auth, user)
-        assert [item["type"] for item in items] == []
+    for recipient in (USER_A, USER_C):
+        items = await _notifications_of(client, auth, recipient, "member_left")
+        assert len(items) == 1, recipient.id
+        assert items[0]["data"] == {
+            "group_id": org["id"],
+            "group_name": "ADF Haiti",
+            "group_type": "organization",
+            "member_name": "Bea Blue",
+        }
+
+    assert await _notifications_of(client, auth, USER_B, "member_left") == []
+
+
+async def test_removing_an_org_member_notifies_only_that_member(client, auth, db):
+    org = await _create_org_with_member(client, auth, db, USER_B)
+
+    auth["user"] = USER_A  # the owner does the removing
+    resp = await client.delete(f"/api/groups/{org['id']}/members/{USER_B.id}")
+    assert resp.status_code == 204
+
+    items = await _notifications_of(client, auth, USER_B, "member_removed")
+    assert len(items) == 1
+    assert items[0]["data"] == {
+        "group_id": org["id"],
+        "group_name": "ADF Haiti",
+        "group_type": "organization",
+    }
+
+    assert await _notifications_of(client, auth, USER_A) == []

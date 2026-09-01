@@ -32,6 +32,27 @@ const messageFor = (n: AppNotification, t: Translate): string => {
         member: d.member_name ?? t('aMember'),
         team: d.group_name ?? '',
       });
+    case 'member_left':
+      return t('notifMemberLeft', {
+        member: d.member_name ?? t('aMember'),
+        name: d.group_name ?? '',
+      });
+    case 'member_removed':
+      return t('notifMemberRemoved', { name: d.group_name ?? '' });
+    case 'org_invite_accepted':
+      return t('notifOrgInviteAccepted', {
+        member: d.member_name ?? t('aMember'),
+        name: d.group_name ?? '',
+      });
+    case 'org_invite_declined':
+      return t('notifOrgInviteDeclined', {
+        member: d.member_name ?? t('aMember'),
+        name: d.group_name ?? '',
+      });
+    case 'org_invite_response_self':
+      return d.response === 'declined'
+        ? t('notifInviteDeclinedSelf', { name: d.group_name ?? '' })
+        : t('notifInviteAcceptedSelf', { name: d.group_name ?? '' });
     default:
       return '';
   }
@@ -134,13 +155,6 @@ function NotificationsPage() {
           </p>
         ) : (
           <div className="divide-y divide-hot-gray-200">
-            {notifications.map((n) => (
-              <NotificationRow
-                key={n.id}
-                notification={n}
-                onRead={() => markRead(n.id)}
-              />
-            ))}
             {invitations.map((inv) => (
               <div
                 key={inv.id}
@@ -171,6 +185,13 @@ function NotificationsPage() {
                   </Button>
                 </div>
               </div>
+            ))}
+            {notifications.map((n) => (
+              <NotificationRow
+                key={n.id}
+                notification={n}
+                onRead={() => markRead(n.id)}
+              />
             ))}
           </div>
         )}

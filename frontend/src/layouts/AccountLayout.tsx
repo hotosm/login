@@ -5,6 +5,7 @@ import hotLogo from '../assets/images/hot-logo.svg';
 import SidebarNav, { type SidebarNavItem } from '../components/SidebarNav';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotifications } from '../hooks/useNotifications';
+import { useMyInvitations } from '../hooks/useOrgs';
 import { useRoles } from '../hooks/useRoles';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
@@ -13,6 +14,8 @@ function AccountLayout() {
   const { t } = useLanguage();
   const { isAdmin, isAccountManager } = useRoles();
   const { unreadCount } = useNotifications();
+  // Pending invitations are actionable too, so they count towards the badge.
+  const { invitations } = useMyInvitations();
 
   const navItems: SidebarNavItem[] = [
     { to: '/profile', label: t('navProfile') },
@@ -21,7 +24,7 @@ function AccountLayout() {
     {
       to: '/notifications',
       label: t('navNotifications'),
-      badge: unreadCount,
+      badge: unreadCount + invitations.length,
     },
   ];
 

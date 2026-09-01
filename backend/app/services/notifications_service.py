@@ -24,12 +24,18 @@ async def create(
     recipient_id: str,
     type: str,
     data: dict | None = None,
+    read_at: datetime | None = None,
 ) -> Notification:
-    """Stage a notification for a user (the caller commits)."""
+    """Stage a notification for a user (the caller commits).
+
+    Pass ``read_at`` to stage it already read (e.g. a receipt of the user's own
+    action, which needs no badge).
+    """
     notification = Notification(
         hanko_user_id=recipient_id,
         type=type,
         data=data,
+        read_at=read_at,
         # Set here rather than relying on the server default: the feed is
         # ordered by this column and SQLite's now() only has second precision.
         created_at=_now(),

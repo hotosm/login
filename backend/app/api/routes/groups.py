@@ -82,11 +82,12 @@ async def _notify_member_joined(db: AsyncSession, group: Group, member_id: str) 
 async def _notify_member_left(
     db: AsyncSession, group: Group, member_id: str, actor_id: str
 ) -> None:
-    """Tell a team's owner and managers that a member is gone (caller commits).
+    """Tell a group's owner and managers that a member is gone (caller commits).
 
     Neither the departing member nor whoever removed them is notified.
     """
     label = (await groups_service.creator_labels(db, [member_id])).get(member_id)
+    member_name = (label.name or label.username or label.email) if label else None
     recipient_ids = set(await groups_service.manager_ids(db, group.id)) - {
         member_id,
         actor_id,
@@ -95,13 +96,30 @@ async def _notify_member_left(
         await notifications_service.create(
             db,
             recipient_id=recipient_id,
-            type="team_member_left",
+            type="member_left",
             data={
                 "group_id": group.id,
                 "group_name": group.name,
-                "member_name": label.name if label else None,
+                "group_type": group.type,
+                "member_name": member_name,
             },
         )
+
+
+async def _notify_member_removed(
+    db: AsyncSession, group: Group, member_id: str
+) -> None:
+    """Tell a user that a manager removed them from a group (caller commits)."""
+    await notifications_service.create(
+        db,
+        recipient_id=member_id,
+        type="member_removed",
+        data={
+            "group_id": group.id,
+            "group_name": group.name,
+            "group_type": group.type,
+        },
+    )
 
 
 # --- Group CRUD ------------------------------------------------------------
@@ -361,8 +379,10 @@ async def remove_group_member(
                 detail="Cannot remove this member",
             )
     await db.delete(target)
-    if group.type == "team":
+    if member_id == user.id:
         await _notify_member_left(db, group, member_id, actor_id=user.id)
+    else:
+        await _notify_member_removed(db, group, member_id)
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
