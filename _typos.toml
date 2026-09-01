@@ -1,3 +1,5 @@
 [default.extend-words]
 # Slug of "café" in backend/app/tests/test_slug.py, not a misspelt "calf"
 caf = "caf"
+# Spanish given name in backend/app/tests/test_notifications.py, not "Lines"
+ines = "ines"
