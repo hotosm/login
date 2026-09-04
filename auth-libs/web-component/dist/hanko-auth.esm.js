@@ -5001,21 +5001,10 @@ let oe = class extends qt {
   }
   // styles injected to ensure global availability
   injectHotStyles() {
-    [
-      {
-        id: "hot-design-system",
-        href: "https://cdn.jsdelivr.net/npm/@hotosm/ui-design@latest/dist/hot.css"
-      },
-      {
-        id: "google-font-archivo",
-        href: "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap"
-      }
-    ].forEach(({ id: t, href: e }) => {
-      if (!document.getElementById(t)) {
-        const o = document.createElement("link");
-        o.rel = "stylesheet", o.href = e, o.id = t, document.head.appendChild(o);
-      }
-    });
+    const n = "hot-design-system";
+    if (document.getElementById(n)) return;
+    const t = document.createElement("link");
+    t.rel = "stylesheet", t.href = "https://cdn.jsdelivr.net/npm/@hotosm/ui-design@latest/dist/hot.css", t.id = n, document.head.prepend(t);
   }
   async init() {
     if (!this._isPrimary) {
