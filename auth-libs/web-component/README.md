@@ -96,6 +96,7 @@ export function AuthButton({ hankoUrl, onLogin }) {
 | ------------------- | ------ | ------- | ----------------------------- |
 | `mapping-check-url` | string | `""` | URL to check user mapping |
 | `app-id` | string | `""` | App identifier for onboarding |
+| `onboarding-url` | string | `""` | App's onboarding callback URL; login derives it from `return_to` when unset |
 
 ## Events
 

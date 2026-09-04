@@ -50,9 +50,15 @@ function LoginPage() {
   const onboardingApp = searchParams.get("onboarding");
   const isOnboarding = !!onboardingApp;
   const returnTo = validateReturnTo(searchParams.get("return_to"));
+  const callback = validateReturnTo(searchParams.get("callback"));
   const osmRequired = searchParams.get("osm_required") === "true";
   const autoConnect = searchParams.get("auto_connect") === "true";
   const errorMessage = searchParams.get("error");
+
+  // Apps that send no callback get it derived from return_to, as before.
+  const onboardingCallback =
+    callback ||
+    `${returnTo ? new URL(returnTo).origin : window.location.origin}/api/v1/auth/onboarding/`;
 
   // Show error toast if there's an error param. The fixed id keeps StrictMode's
   // double effect run from stacking two toasts.
@@ -145,13 +151,8 @@ function LoginPage() {
       setOnboardingStep("redirecting");
       sessionStorage.removeItem(ONBOARDING_STEP_KEY);
 
-      const baseUrl = returnTo
-        ? new URL(returnTo).origin
-        : window.location.origin;
-      const callbackUrl = `${baseUrl}/api/v1/auth/onboarding/`;
-
       setTimeout(() => {
-        window.location.href = callbackUrl;
+        window.location.href = onboardingCallback;
       }, 500);
     };
 
@@ -161,7 +162,7 @@ function LoginPage() {
     return () => {
       document.removeEventListener("osm-connected", handleOSMConnected);
     };
-  }, [isOnboarding, onboardingStep, returnTo]);
+  }, [isOnboarding, onboardingStep, onboardingCallback]);
 
   const hankoUrl = import.meta.env.VITE_HANKO_URL || "http://login.localhost";
   const hankoBaseUrl = hankoUrl.replace(/\/login$/, "") || "http://localhost";
@@ -175,14 +176,11 @@ function LoginPage() {
     // User is new - redirect back to app with new_user flag
     setOnboardingStep("redirecting");
 
-    // Build callback URL for the app
-    const baseUrl = returnTo
-      ? new URL(returnTo).origin
-      : window.location.origin;
-    const callbackUrl = `${baseUrl}/api/v1/auth/onboarding/?new_user=true`;
+    const callbackUrl = new URL(onboardingCallback);
+    callbackUrl.searchParams.set("new_user", "true");
 
     setTimeout(() => {
-      window.location.href = callbackUrl;
+      window.location.href = callbackUrl.toString();
     }, 500);
   };
 
@@ -269,7 +267,7 @@ function LoginPage() {
                 osm-required={true}
                 auto-connect={true}
                 lang={currentLanguage}
-                redirect-after-login={`${returnTo ? new URL(returnTo).origin : ""}/api/v1/auth/onboarding/`}
+                redirect-after-login={onboardingCallback}
               />
             </div>
           )}
