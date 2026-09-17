@@ -216,6 +216,8 @@ async def get_user_profile(hanko_user_id: str, db: DB) -> ProfileResponse:
         last_name=profile.last_name,
         picture_url=profile.picture_url,
         language=profile.language,
+        slug=profile.slug,
+        is_public=profile.is_public,
         osm_user_id=profile.osm_user_id,
         osm_username=profile.osm_username,
         osm_avatar_url=profile.osm_avatar_url,

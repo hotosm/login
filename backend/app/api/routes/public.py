@@ -101,6 +101,7 @@ async def public_user(slug: str, db: DB) -> PublicUserResponse:
     profile = await _public_profile_by_slug(db, slug)
     return PublicUserResponse(
         slug=profile.slug,
+        hanko_user_id=profile.hanko_user_id,
         first_name=profile.first_name,
         last_name=profile.last_name,
         picture_url=profile.picture_url,

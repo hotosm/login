@@ -210,6 +210,9 @@ class PublicUserResponse(BaseModel):
     """Public-facing user profile."""
 
     slug: str
+    # Internal cross-service join key (e.g. for Portal's own per-user tables).
+    # Not a secret — login's own by-id profile lookup is already unauthenticated.
+    hanko_user_id: str
     first_name: str | None = None
     last_name: str | None = None
     picture_url: str | None = None
