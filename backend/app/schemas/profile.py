@@ -17,7 +17,8 @@ class ProfileBase(BaseModel):
 class ProfileUpdate(ProfileBase):
     """Schema for updating profile."""
 
-    pass
+    slug: str | None = Field(None, min_length=1, max_length=80)
+    is_public: bool | None = None
 
 
 class ProfileResponse(ProfileBase):
@@ -25,6 +26,8 @@ class ProfileResponse(ProfileBase):
 
     hanko_user_id: str
     email: str | None = None  # From Hanko, not stored in profile
+    slug: str | None = None
+    is_public: bool = False
     osm_user_id: int | None = None
     osm_username: str | None = None
     osm_avatar_url: str | None = None

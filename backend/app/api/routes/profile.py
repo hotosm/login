@@ -1,6 +1,7 @@
 """Profile management routes."""
 
 import hashlib
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -12,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import UserProfile, get_db
 from app.schemas.profile import ProfileResponse, ProfileUpdate
+from app.services import groups_service, profile_service
 
 router = APIRouter(prefix="/api/profile", tags=["Profile"])
 
@@ -58,6 +60,8 @@ async def get_my_profile(user: CurrentUser, db: DB) -> ProfileResponse:
         last_name=profile.last_name,
         picture_url=profile.picture_url,
         language=profile.language,
+        slug=profile.slug,
+        is_public=profile.is_public,
         osm_user_id=profile.osm_user_id,
         osm_username=profile.osm_username,
         osm_avatar_url=profile.osm_avatar_url,
@@ -67,6 +71,54 @@ async def get_my_profile(user: CurrentUser, db: DB) -> ProfileResponse:
     )
 
 
+async def _apply_slug_update(
+    db: AsyncSession, user: HankoUser, profile: UserProfile, requested_slug: str
+) -> str:
+    """Validate and normalize a requested slug change, raising on conflict.
+
+    Returns the normalized slug to apply. Raises 422 for an empty slug, 429 if
+    the 15-day change cooldown hasn't elapsed, and 409 (with a suggested
+    alternative) if the slug is reserved or already taken by another profile.
+    """
+    normalized = groups_service.slugify(requested_slug)
+    if not normalized:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Invalid slug",
+        )
+    if normalized == profile.slug:
+        return normalized
+
+    if profile.slug is not None and profile_service.slug_change_on_cooldown(profile):
+        next_change = profile_service.next_slug_change_at(profile)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Slug can only be changed once every "
+            f"{profile_service.SLUG_CHANGE_COOLDOWN_DAYS} days; "
+            f"next change available at {next_change.isoformat()}",
+        )
+
+    taken = normalized in groups_service.RESERVED_SLUGS
+    if not taken:
+        result = await db.execute(
+            select(UserProfile.hanko_user_id).where(
+                UserProfile.slug == normalized,
+                UserProfile.hanko_user_id != user.id,
+            )
+        )
+        taken = result.scalar_one_or_none() is not None
+    if taken:
+        suggestion = await profile_service.generate_unique_user_slug(
+            db, normalized, exclude_hanko_user_id=user.id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"error": "slug_taken", "suggestion": suggestion},
+        )
+
+    return normalized
+
+
 @router.patch("/me", response_model=ProfileResponse)
 async def update_my_profile(
     user: CurrentUser,
@@ -74,33 +126,42 @@ async def update_my_profile(
     profile_update: ProfileUpdate,
 ) -> ProfileResponse:
     """Update current user's profile."""
-    # Use upsert to handle race conditions
     update_data = profile_update.model_dump(exclude_unset=True)
+    requested_slug = update_data.pop("slug", None)
 
-    # Build insert values, using gravatar as default only if picture_url not provided
-    insert_values = {"hanko_user_id": user.id}
-    if "picture_url" not in update_data:
-        insert_values["picture_url"] = (
-            get_gravatar_url(user.email) if user.email else None
-        )
-    insert_values.update(update_data)
-
-    stmt = (
+    # Ensure the profile row exists (handles race conditions), then load it so
+    # slug changes can be validated against its current slug/cooldown state.
+    ensure_stmt = (
         insert(UserProfile)
-        .values(**insert_values)
-        .on_conflict_do_update(
-            index_elements=["hanko_user_id"],
-            set_=update_data if update_data else {"hanko_user_id": user.id},
+        .values(
+            hanko_user_id=user.id,
+            picture_url=get_gravatar_url(user.email) if user.email else None,
         )
+        .on_conflict_do_nothing(index_elements=["hanko_user_id"])
     )
-    await db.execute(stmt)
-    await db.commit()
-
-    # Fetch updated profile
+    await db.execute(ensure_stmt)
     result = await db.execute(
         select(UserProfile).where(UserProfile.hanko_user_id == user.id)
     )
     profile = result.scalar_one()
+
+    if requested_slug is not None:
+        update_data["slug"] = await _apply_slug_update(
+            db, user, profile, requested_slug
+        )
+        if update_data["slug"] != profile.slug:
+            update_data["slug_updated_at"] = datetime.now(timezone.utc)
+
+    if update_data.get("is_public") and not update_data.get("slug", profile.slug):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A public profile requires a slug",
+        )
+
+    for field, value in update_data.items():
+        setattr(profile, field, value)
+    await db.commit()
+    await db.refresh(profile)
 
     return ProfileResponse(
         hanko_user_id=profile.hanko_user_id,
@@ -109,6 +170,8 @@ async def update_my_profile(
         last_name=profile.last_name,
         picture_url=profile.picture_url,
         language=profile.language,
+        slug=profile.slug,
+        is_public=profile.is_public,
         osm_user_id=profile.osm_user_id,
         osm_username=profile.osm_username,
         osm_avatar_url=profile.osm_avatar_url,

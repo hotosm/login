@@ -213,3 +213,9 @@ class PublicUserResponse(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
     picture_url: str | None = None
+
+
+class PublicUserGroupsResponse(BaseModel):
+    """Public organizations/teams a user owns."""
+
+    items: list[PublicGroupResponse]
