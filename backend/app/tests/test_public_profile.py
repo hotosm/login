@@ -84,9 +84,7 @@ async def _make_group(
 
 
 async def test_public_user_groups_lists_owned_public_approved_orgs(client, db):
-    await client.patch(
-        "/api/profile/me", json={"slug": "alice", "is_public": True}
-    )
+    await client.patch("/api/profile/me", json={"slug": "alice", "is_public": True})
     await _make_group(
         db, type="organization", name="Visible Org", slug="visible-org", is_public=True
     )
@@ -109,9 +107,7 @@ async def test_public_user_groups_lists_owned_public_approved_orgs(client, db):
 
 
 async def test_public_user_groups_excludes_non_owner_membership(client, db):
-    await client.patch(
-        "/api/profile/me", json={"slug": "alice", "is_public": True}
-    )
+    await client.patch("/api/profile/me", json={"slug": "alice", "is_public": True})
     group = await _make_group(
         db, type="organization", name="Managed Org", slug="managed-org", is_public=True
     )
@@ -131,9 +127,7 @@ async def test_public_user_groups_excludes_non_owner_membership(client, db):
 
 
 async def test_public_user_groups_type_team(client, db):
-    await client.patch(
-        "/api/profile/me", json={"slug": "alice", "is_public": True}
-    )
+    await client.patch("/api/profile/me", json={"slug": "alice", "is_public": True})
     await _make_group(
         db, type="team", name="Mappers Team", slug="mappers-team", is_public=True
     )
