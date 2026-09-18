@@ -44,6 +44,34 @@ export interface Translations {
   accountDeleted: string;
   profileUpdated: string;
 
+  // Public profile on Portal
+  publicProfileTitle: string;
+  publicProfileDescription: string;
+  createPublicProfile: string;
+  slugLabel: string;
+  // {url} is filled in with the resulting public profile address.
+  slugUrlPreview: string;
+  publicProfileSubmit: string;
+  publicProfileCreating: string;
+  viewEditPublicProfile: string;
+  // {suggestion} is filled in with the alternative the backend proposes.
+  slugTaken: string;
+  useSuggestedSlug: string;
+  publicProfileValidationError: string;
+  publicProfileCooldown: string;
+  publicProfileError: string;
+  editUrl: string;
+  // {date} is filled in with the localized date the cooldown ends.
+  slugCooldownUntil: string;
+  slugChangeBreaksLinks: string;
+  slugUpdated: string;
+  slugUpdateError: string;
+  unpublishProfile: string;
+  unpublishConfirmTitle: string;
+  unpublishConfirmBody: string;
+  unpublish: string;
+  unpublishError: string;
+
   // Developer Settings
   developerSettings: string;
   apiAccessTokens: string;
@@ -278,6 +306,34 @@ export const translations: Record<string, Translations> = {
     accountCreated: 'Account created',
     accountDeleted: 'Your account has been deleted successfully.',
     profileUpdated: 'Profile updated successfully',
+    publicProfileTitle: 'Public profile',
+    publicProfileDescription:
+      'Share who you are with the HOT community. Your public profile shows your name and your work across HOT tools.',
+    createPublicProfile: 'Create public profile',
+    slugLabel: 'Profile URL',
+    slugUrlPreview: 'Your profile will be at {url}',
+    publicProfileSubmit: 'Create public profile',
+    publicProfileCreating: 'Creating...',
+    viewEditPublicProfile: 'View / edit my public profile',
+    slugTaken: 'That URL is already taken, try: {suggestion}',
+    useSuggestedSlug: 'Use this one',
+    publicProfileValidationError:
+      'First name, last name and profile URL are all required.',
+    publicProfileCooldown:
+      'Your profile URL was changed recently. Try again later.',
+    publicProfileError: 'Could not create your public profile',
+    editUrl: 'Edit URL',
+    slugCooldownUntil: 'You can change your profile URL again on {date}.',
+    slugChangeBreaksLinks:
+      'Changing your URL breaks every link to your old address — we do not redirect it.',
+    slugUpdated: 'Profile URL updated',
+    slugUpdateError: 'Could not update your profile URL',
+    unpublishProfile: 'Unpublish profile',
+    unpublishConfirmTitle: 'Unpublish your public profile?',
+    unpublishConfirmBody:
+      'Your public page stops being available to anyone. Your URL stays reserved for you, so you can publish again whenever you want.',
+    unpublish: 'Unpublish',
+    unpublishError: 'Could not unpublish your profile',
     developerSettings: 'Developer Settings',
     apiAccessTokens: 'API Access Tokens',
     apiTokenWarning:
@@ -489,6 +545,34 @@ export const translations: Record<string, Translations> = {
     accountCreated: 'Cuenta creada',
     accountDeleted: 'Tu cuenta ha sido eliminada exitosamente.',
     profileUpdated: 'Perfil actualizado exitosamente',
+    publicProfileTitle: 'Perfil público',
+    publicProfileDescription:
+      'Contá quién sos a la comunidad de HOT. Tu perfil público muestra tu nombre y tu trabajo en las herramientas de HOT.',
+    createPublicProfile: 'Crear perfil público',
+    slugLabel: 'URL del perfil',
+    slugUrlPreview: 'Tu perfil va a estar en {url}',
+    publicProfileSubmit: 'Crear perfil público',
+    publicProfileCreating: 'Creando...',
+    viewEditPublicProfile: 'Ver / editar mi perfil público',
+    slugTaken: 'Esa URL ya está en uso, probá: {suggestion}',
+    useSuggestedSlug: 'Usar esta',
+    publicProfileValidationError:
+      'Nombre, apellido y URL del perfil son obligatorios.',
+    publicProfileCooldown:
+      'Cambiaste la URL de tu perfil hace poco. Probá de nuevo más adelante.',
+    publicProfileError: 'No pudimos crear tu perfil público',
+    editUrl: 'Editar URL',
+    slugCooldownUntil: 'Vas a poder cambiar la URL de tu perfil el {date}.',
+    slugChangeBreaksLinks:
+      'Cambiar la URL rompe todos los links a tu dirección anterior: no la redirigimos.',
+    slugUpdated: 'URL del perfil actualizada',
+    slugUpdateError: 'No pudimos actualizar la URL de tu perfil',
+    unpublishProfile: 'Despublicar perfil',
+    unpublishConfirmTitle: '¿Despublicar tu perfil público?',
+    unpublishConfirmBody:
+      'Tu página pública deja de estar disponible para todo el mundo. Tu URL queda reservada, así que podés volver a publicarla cuando quieras.',
+    unpublish: 'Despublicar',
+    unpublishError: 'No pudimos despublicar tu perfil',
     developerSettings: 'Configuración de Desarrollador',
     apiAccessTokens: 'Tokens de acceso API',
     apiTokenWarning:
@@ -702,6 +786,35 @@ export const translations: Record<string, Translations> = {
     accountCreated: 'Compte créé',
     accountDeleted: 'Votre compte a été supprimé avec succès.',
     profileUpdated: 'Profil mis à jour avec succès',
+    publicProfileTitle: 'Profil public',
+    publicProfileDescription:
+      'Présentez-vous à la communauté HOT. Votre profil public affiche votre nom et votre travail sur les outils HOT.',
+    createPublicProfile: 'Créer un profil public',
+    slugLabel: 'URL du profil',
+    slugUrlPreview: 'Votre profil sera à {url}',
+    publicProfileSubmit: 'Créer un profil public',
+    publicProfileCreating: 'Création...',
+    viewEditPublicProfile: 'Voir / modifier mon profil public',
+    slugTaken: 'Cette URL est déjà prise, essayez : {suggestion}',
+    useSuggestedSlug: 'Utiliser celle-ci',
+    publicProfileValidationError:
+      'Le prénom, le nom et l’URL du profil sont obligatoires.',
+    publicProfileCooldown:
+      'Vous avez changé l’URL de votre profil récemment. Réessayez plus tard.',
+    publicProfileError: 'Impossible de créer votre profil public',
+    editUrl: 'Modifier l’URL',
+    slugCooldownUntil:
+      'Vous pourrez changer l’URL de votre profil à nouveau le {date}.',
+    slugChangeBreaksLinks:
+      'Changer votre URL casse tous les liens vers votre ancienne adresse : nous ne la redirigeons pas.',
+    slugUpdated: 'URL du profil mise à jour',
+    slugUpdateError: 'Impossible de mettre à jour l’URL de votre profil',
+    unpublishProfile: 'Dépublier le profil',
+    unpublishConfirmTitle: 'Dépublier votre profil public ?',
+    unpublishConfirmBody:
+      'Votre page publique ne sera plus accessible à personne. Votre URL reste réservée, vous pourrez donc republier quand vous le souhaitez.',
+    unpublish: 'Dépublier',
+    unpublishError: 'Impossible de dépublier votre profil',
     developerSettings: 'Paramètres Développeur',
     apiAccessTokens: "Tokens d'accès API",
     apiTokenWarning:
@@ -915,6 +1028,34 @@ export const translations: Record<string, Translations> = {
     accountCreated: 'Conta criada',
     accountDeleted: 'Sua conta foi excluída com sucesso.',
     profileUpdated: 'Perfil atualizado com sucesso',
+    publicProfileTitle: 'Perfil público',
+    publicProfileDescription:
+      'Mostre quem você é para a comunidade HOT. Seu perfil público exibe seu nome e seu trabalho nas ferramentas da HOT.',
+    createPublicProfile: 'Criar perfil público',
+    slugLabel: 'URL do perfil',
+    slugUrlPreview: 'Seu perfil ficará em {url}',
+    publicProfileSubmit: 'Criar perfil público',
+    publicProfileCreating: 'Criando...',
+    viewEditPublicProfile: 'Ver / editar meu perfil público',
+    slugTaken: 'Essa URL já está em uso, tente: {suggestion}',
+    useSuggestedSlug: 'Usar esta',
+    publicProfileValidationError:
+      'Nome, sobrenome e URL do perfil são obrigatórios.',
+    publicProfileCooldown:
+      'Você mudou a URL do seu perfil recentemente. Tente mais tarde.',
+    publicProfileError: 'Não foi possível criar seu perfil público',
+    editUrl: 'Editar URL',
+    slugCooldownUntil: 'Você poderá mudar a URL do seu perfil de novo em {date}.',
+    slugChangeBreaksLinks:
+      'Mudar a URL quebra todos os links para o seu endereço anterior: não fazemos redirecionamento.',
+    slugUpdated: 'URL do perfil atualizada',
+    slugUpdateError: 'Não foi possível atualizar a URL do seu perfil',
+    unpublishProfile: 'Despublicar perfil',
+    unpublishConfirmTitle: 'Despublicar seu perfil público?',
+    unpublishConfirmBody:
+      'Sua página pública deixa de ficar disponível para qualquer pessoa. Sua URL continua reservada, então você pode publicar de novo quando quiser.',
+    unpublish: 'Despublicar',
+    unpublishError: 'Não foi possível despublicar seu perfil',
     developerSettings: 'Configurações de Desenvolvedor',
     apiAccessTokens: 'Tokens de acesso API',
     apiTokenWarning:

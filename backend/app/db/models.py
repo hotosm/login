@@ -47,6 +47,12 @@ class UserProfile(Base):
 
     # Public profile slug (/user/{slug}); generated lazily from username/email.
     slug: Mapped[str | None] = mapped_column(String(80), nullable=True, unique=True)
+    # Opt-in flag: only public profiles are served at /api/public/user/{slug}.
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Last time the slug was changed, for the 15-day change cooldown.
+    slug_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # OSM connection (cached from OAuth)
     osm_user_id: Mapped[int | None] = mapped_column(nullable=True)
