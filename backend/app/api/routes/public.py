@@ -114,10 +114,11 @@ async def public_user_groups(
     db: DB,
     type: Annotated[Literal["org", "team"], Query()] = "org",
 ) -> PublicUserGroupsResponse:
-    """Public organizations/teams the user owns.
+    """Public organizations/teams the user belongs to.
 
     Only ``is_public`` groups are listed; organizations are additionally
-    required to be ``approved``. Ownership (not just membership) is required.
+    required to be ``approved``. Any membership role counts (owner, manager
+    or member).
     """
     profile = await _public_profile_by_slug(db, slug)
     group_type = "organization" if type == "org" else "team"
@@ -125,7 +126,6 @@ async def public_user_groups(
         Group.type == group_type,
         Group.is_public.is_(True),
         GroupMembership.hanko_user_id == profile.hanko_user_id,
-        GroupMembership.role == "owner",
     ]
     if group_type == "organization":
         conditions.append(Group.status == "approved")

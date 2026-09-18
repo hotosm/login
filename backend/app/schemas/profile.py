@@ -28,6 +28,9 @@ class ProfileResponse(ProfileBase):
     email: str | None = None  # From Hanko, not stored in profile
     slug: str | None = None
     is_public: bool = False
+    # Computed, not stored: None means the slug can be changed right now, a
+    # future timestamp means it stays locked until then.
+    next_slug_change_at: datetime | None = None
     osm_user_id: int | None = None
     osm_username: str | None = None
     osm_avatar_url: str | None = None

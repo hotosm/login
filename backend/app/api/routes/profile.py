@@ -62,6 +62,7 @@ async def get_my_profile(user: CurrentUser, db: DB) -> ProfileResponse:
         language=profile.language,
         slug=profile.slug,
         is_public=profile.is_public,
+        next_slug_change_at=profile_service.next_slug_change_at(profile),
         osm_user_id=profile.osm_user_id,
         osm_username=profile.osm_username,
         osm_avatar_url=profile.osm_avatar_url,
@@ -158,6 +159,17 @@ async def update_my_profile(
             detail="A public profile requires a slug",
         )
 
+    # Checked against the resulting state, so that clearing a name on an
+    # already public profile is rejected too (not only publishing without one).
+    will_be_public = update_data.get("is_public", profile.is_public)
+    first_name = (update_data.get("first_name", profile.first_name) or "").strip()
+    last_name = (update_data.get("last_name", profile.last_name) or "").strip()
+    if will_be_public and not (first_name and last_name):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A public profile requires first and last name",
+        )
+
     for field, value in update_data.items():
         setattr(profile, field, value)
     await db.commit()
@@ -172,6 +184,7 @@ async def update_my_profile(
         language=profile.language,
         slug=profile.slug,
         is_public=profile.is_public,
+        next_slug_change_at=profile_service.next_slug_change_at(profile),
         osm_user_id=profile.osm_user_id,
         osm_username=profile.osm_username,
         osm_avatar_url=profile.osm_avatar_url,
