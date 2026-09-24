@@ -512,7 +512,10 @@ def _build_search_filters(
     param_idx = 1
 
     if email:
-        conditions.append(f"e.address ILIKE ${param_idx}")
+        # `email` may be an email fragment or a (partial) user id — match either.
+        conditions.append(
+            f"(e.address ILIKE ${param_idx} OR u.id::text ILIKE ${param_idx})"
+        )
         params.append(f"%{email}%")
         param_idx += 1
     if date_from:
@@ -995,7 +998,9 @@ async def get_recent_users(
 async def search_users(  # noqa: PLR0913
     admin: AccountManagerUser,
     request: Request,
-    email: str | None = Query(None, description="Search by email (partial match)"),
+    email: str | None = Query(
+        None, description="Search by email or user ID (partial match)"
+    ),
     date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
     date_to: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
     verified: str | None = Query(
