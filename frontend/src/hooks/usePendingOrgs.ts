@@ -101,3 +101,41 @@ export function usePendingOrgs(enabled: boolean) {
     rejectName
   };
 }
+
+// Every organization regardless of membership or status (account manager only).
+export function useAllOrganizations(enabled: boolean) {
+  const [organizations, setOrganizations] = useState<GroupResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${backendUrl}/admin/organizations?page=1&page_size=100`,
+        { credentials: 'include' },
+      );
+      if (response.status === 401) {
+        setUnauthorized(true);
+        return;
+      }
+      if (!response.ok) throw new Error(await readError(response));
+      const data = await response.json();
+      setOrganizations(data.items || []);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to load organizations',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (enabled) refresh();
+  }, [enabled, refresh]);
+
+  return { organizations, loading, error, unauthorized, refresh };
+}

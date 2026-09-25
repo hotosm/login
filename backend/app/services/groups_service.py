@@ -147,6 +147,19 @@ async def require_role(
     return role
 
 
+async def require_manage_access(
+    db: AsyncSession, group: Group, user: HankoUser, min_role: str
+) -> str | None:
+    """Require at least ``min_role`` in the group, or account-manager status.
+
+    Account-manager status only bypasses the role check for organizations — it
+    can manage any organization regardless of membership role.
+    """
+    if group.type == "organization" and await is_account_manager(user, db):
+        return await get_user_role(db, group.id, user.id)
+    return await require_role(db, group, user, min_role)
+
+
 async def count_members(db: AsyncSession, group_id: str) -> int:
     """Count the members of a group."""
     result = await db.execute(

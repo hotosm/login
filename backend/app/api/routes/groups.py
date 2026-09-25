@@ -51,6 +51,7 @@ _BANNER_MAX_WIDTH = 1600  # px
 _load_group_or_404 = groups_service.load_group_or_404
 _require_access = groups_service.require_access
 _require_role = groups_service.require_role
+_require_manage_access = groups_service.require_manage_access
 
 
 async def _add_team_members_by_email(
@@ -187,9 +188,12 @@ async def get_group(group_id: str, user: CurrentUser, db: DB) -> GroupResponse:
 async def update_group(
     group_id: str, payload: GroupUpdate, user: CurrentUser, db: DB
 ) -> GroupResponse:
-    """Update group details (owner/manager). The name is not editable here."""
+    """Update group details (owner/manager, or account manager for organizations).
+
+    The name is not editable here.
+    """
     group = await _load_group_or_404(db, group_id)
-    role = await _require_role(db, group, user, "manager")
+    role = await _require_manage_access(db, group, user, "manager")
 
     data = payload.model_dump(exclude_unset=True)
     for field in ("description", "contact_email", "website", "is_public"):
@@ -228,9 +232,12 @@ async def change_group_name(
 
 @router.delete("/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_group(group_id: str, user: CurrentUser, db: DB) -> Response:
-    """Delete a group (owner only). Memberships cascade."""
+    """Delete a group (owner only, or account manager for organizations).
+
+    Memberships cascade.
+    """
     group = await _load_group_or_404(db, group_id)
-    await _require_role(db, group, user, "owner")
+    await _require_manage_access(db, group, user, "owner")
     await db.delete(group)
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -7,6 +7,7 @@ import type {
 } from '../types/groups';
 import { jsonBody, useApiRequest } from './useApiRequest';
 import { uploadGroupImage, useGroup, useGroupList } from './useGroups';
+import { useRoles } from './useRoles';
 
 export interface OrgCreateInput {
   name: string;
@@ -109,10 +110,21 @@ export function useOrganizations() {
 
 export function useOrganization(id: string) {
   const request = useApiRequest();
-  const { group, remove, groupRequest, refresh, canManage, ...rest } = useGroup(
-    id,
-    'organization',
-  );
+  const {
+    group,
+    remove,
+    groupRequest,
+    refresh,
+    canManage: canManageOwnRole,
+    canDelete: canDeleteOwnRole,
+    ...rest
+  } = useGroup(id, 'organization');
+  const { isAccountManager } = useRoles();
+
+  // An account manager can manage/delete any organization, not just ones they
+  // belong to — the per-org role check stays as-is for everyone else.
+  const canManage = canManageOwnRole || isAccountManager;
+  const canDelete = canDeleteOwnRole || isAccountManager;
 
   const [invitations, setInvitations] = useState<Invitation[]>([]);
 
@@ -166,6 +178,7 @@ export function useOrganization(id: string) {
   return {
     organization: group,
     canManage,
+    canDelete,
     invitations,
     refresh,
     refreshInvitations,

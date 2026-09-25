@@ -176,6 +176,41 @@ async def test_delete_group_owner_only(client, auth):
     assert resp.status_code == 404
 
 
+async def test_account_manager_can_update_any_organization(client, auth):
+    resp = await client.post(
+        "/api/groups", json={"type": "organization", "name": "ADF Haiti"}
+    )
+    org = resp.json()
+
+    auth["user"] = ADMIN  # admin@test.org is an account manager by allowlist
+    resp = await client.patch(f"/api/groups/{org['id']}", json={"description": "hi"})
+    assert resp.status_code == 200
+    assert resp.json()["description"] == "hi"
+
+
+async def test_account_manager_can_delete_any_organization(client, auth):
+    resp = await client.post(
+        "/api/groups", json={"type": "organization", "name": "ADF Haiti"}
+    )
+    org = resp.json()
+
+    auth["user"] = ADMIN
+    resp = await client.delete(f"/api/groups/{org['id']}")
+    assert resp.status_code == 204
+    resp = await client.get(f"/api/groups/{org['id']}")
+    assert resp.status_code == 404
+
+
+async def test_account_manager_cannot_bypass_team_role(client, auth):
+    team = await _create_team(client)
+
+    auth["user"] = ADMIN
+    resp = await client.patch(f"/api/groups/{team['id']}", json={"description": "hi"})
+    assert resp.status_code == 404
+    resp = await client.delete(f"/api/groups/{team['id']}")
+    assert resp.status_code == 404
+
+
 async def test_membership_check(client):
     team = await _create_team(client)
     await client.post(

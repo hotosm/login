@@ -128,6 +128,8 @@ export interface Translations {
   submitRequest?: string;
   orgRequestSubmitted?: string;
   noOrganizations?: string;
+  myOrganizations?: string;
+  allOrganizations?: string;
 
   // Invitations
   pendingInvitations?: string;
@@ -354,6 +356,8 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted:
       'Your organization request was submitted and is pending approval.',
     noOrganizations: "You don't belong to any organizations yet.",
+    myOrganizations: 'My organizations',
+    allOrganizations: 'All organizations',
     pendingInvitations: 'Pending invitations',
     invitedToJoin: "You've been invited to join as a",
     accept: 'Accept',
@@ -568,6 +572,8 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted:
       'Tu solicitud de organización fue enviada y está pendiente de aprobación.',
     noOrganizations: 'Todavía no perteneces a ninguna organización.',
+    myOrganizations: 'Mis organizaciones',
+    allOrganizations: 'Todas las organizaciones',
     pendingInvitations: 'Invitaciones pendientes',
     invitedToJoin: 'Te invitaron a unirte como',
     accept: 'Aceptar',
@@ -782,6 +788,8 @@ export const translations: Record<string, Translations> = {
       "Votre demande d'organisation a été envoyée et est en attente d'approbation.",
     noOrganizations:
       "Vous ne faites partie d'aucune organisation pour l'instant.",
+    myOrganizations: 'Mes organisations',
+    allOrganizations: 'Toutes les organisations',
     pendingInvitations: 'Invitations en attente',
     invitedToJoin: 'Vous avez été invité à rejoindre en tant que',
     accept: 'Accepter',
@@ -992,6 +1000,8 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted:
       'Sua solicitação de organização foi enviada e está pendente de aprovação.',
     noOrganizations: 'Você ainda não pertence a nenhuma organização.',
+    myOrganizations: 'Minhas organizações',
+    allOrganizations: 'Todas as organizações',
     pendingInvitations: 'Convites pendentes',
     invitedToJoin: 'Você foi convidado para entrar como',
     accept: 'Aceitar',

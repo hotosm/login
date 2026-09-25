@@ -1,18 +1,36 @@
 import OrgRequestForm from '@/components/OrgRequestForm';
 import type { OrgRequestPayload } from '@/components/OrgRequestForm';
 import PanelHeader from '@/components/PanelHeader';
+import { Tab, TabGroup } from '@/components/shared/Tabs';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import GroupCard from '../components/GroupCard';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useErrorToast } from '../hooks/useGroups';
 import { useOrganizations } from '../hooks/useOrgs';
+import { useAllOrganizations } from '../hooks/usePendingOrgs';
+import { useRoles } from '../hooks/useRoles';
+
+type ListView = 'mine' | 'all';
 
 function OrganizationsPage() {
   const { t } = useLanguage();
   const { organizations, loading, loadError, submitting, createOrganization } =
     useOrganizations();
   useErrorToast(loadError);
+
+  const { isAccountManager } = useRoles();
+  const [listView, setListView] = useState<ListView>('mine');
+  const {
+    organizations: allOrganizations,
+    loading: allLoading,
+    error: allError,
+  } = useAllOrganizations(isAccountManager);
+  useErrorToast(allError);
+
+  const showingAll = isAccountManager && listView === 'all';
+  const visibleOrganizations = showingAll ? allOrganizations : organizations;
+  const listLoading = showingAll ? allLoading : loading;
 
   // Create/request form — field state lives in OrgRequestForm
   const [showForm, setShowForm] = useState(false);
@@ -74,14 +92,29 @@ function OrganizationsPage() {
         </div>
       )}
 
+      {/* My organizations / all organizations toggle (account managers only) */}
+      {isAccountManager && (
+        <TabGroup
+          active={listView}
+          onWaTabShow={(e) => setListView(e.detail.name as ListView)}
+        >
+          <Tab panel="mine">{t('myOrganizations')}</Tab>
+          <Tab panel="all">{t('allOrganizations')}</Tab>
+        </TabGroup>
+      )}
+
       {/* panel content */}
-      {organizations.length === 0 ? (
+      {listLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-hot-red-600 border-t-transparent"></div>
+        </div>
+      ) : visibleOrganizations.length === 0 ? (
         <p className="text-sm text-hot-gray-500 py-6 text-center">
           {t('noOrganizations')}
         </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {organizations.map((group) => (
+            {visibleOrganizations.map((group) => (
               <GroupCard
                 key={group.id}
                 group={group}
