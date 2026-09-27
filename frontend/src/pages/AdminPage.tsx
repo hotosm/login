@@ -262,7 +262,7 @@ function AdminPage() {
   const [editValue, setEditValue] = useState<string>('');
 
   // User search state
-  const [searchEmail, setSearchEmail] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchDateFrom, setSearchDateFrom] = useState('');
   const [searchDateTo, setSearchDateTo] = useState('');
   const [searchVerified, setSearchVerified] = useState('all');
@@ -438,7 +438,7 @@ function AdminPage() {
       params.set('page', String(newPage));
       params.set('page_size', '15');
 
-      if (searchEmail) params.set('email', searchEmail);
+      if (searchQuery) params.set('email', searchQuery);
       if (searchDateFrom) params.set('date_from', searchDateFrom);
       if (searchDateTo) params.set('date_to', searchDateTo);
       if (searchVerified !== 'all') params.set('verified', searchVerified);
@@ -914,15 +914,15 @@ function AdminPage() {
               </svg>
               User Search
             </h3>
-            <p className="text-xs text-gray-400 mb-4">Search Hanko accounts by email, date, or connected apps</p>
+            <p className="text-xs text-gray-400 mb-4">Search Hanko accounts by email, user ID, date, or connected apps</p>
 
             {/* Search Filters */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
               <input
                 type="text"
-                placeholder="Search email..."
-                value={searchEmail}
-                onChange={(e) => setSearchEmail(e.target.value)}
+                placeholder="Search user..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="col-span-2 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 focus:border-hot-red-400"
               />
               <input

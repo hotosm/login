@@ -6,6 +6,7 @@ with Hanko user statistics.
 """
 
 import logging
+import re
 from datetime import date, datetime, timedelta
 from typing import Annotated, Any
 
@@ -500,6 +501,27 @@ def _default_app_stats(unavailable: bool = False) -> dict[str, Any]:
     return result
 
 
+_USER_ID_FRAGMENT_RE = re.compile(r"[0-9a-fA-F-]+")
+_USER_ID_MIN_LEN = 8
+
+
+def _looks_like_user_id(fragment: str) -> bool:
+    """Whether a search fragment is worth matching against user ids.
+
+    A user id is a UUID: 32 hex characters and four dashes. A short hex
+    fragment therefore matches a large share of ids by chance — "a" is in
+    ~89% of them, "ab" in ~11% — which would bury the email results an admin
+    is actually looking for. Anything containing a non-hex letter ("ana",
+    "mar") can never match an id at all, so the id branch is only worth adding
+    for a fragment that is hex and long enough to be selective. Eight
+    characters is the first block of a UUID, which is what gets pasted.
+    """
+    return (
+        len(fragment) >= _USER_ID_MIN_LEN
+        and _USER_ID_FRAGMENT_RE.fullmatch(fragment) is not None
+    )
+
+
 def _build_search_filters(
     email: str | None,
     date_from: str | None,
@@ -512,7 +534,11 @@ def _build_search_filters(
     param_idx = 1
 
     if email:
-        conditions.append(f"e.address ILIKE ${param_idx}")
+        # `email` may be an email fragment or a (partial) user id — match either.
+        match_conditions = [f"e.address ILIKE ${param_idx}"]
+        if _looks_like_user_id(email):
+            match_conditions.append(f"u.id::text ILIKE ${param_idx}")
+        conditions.append(f"({' OR '.join(match_conditions)})")
         params.append(f"%{email}%")
         param_idx += 1
     if date_from:
@@ -995,7 +1021,9 @@ async def get_recent_users(
 async def search_users(  # noqa: PLR0913
     admin: AccountManagerUser,
     request: Request,
-    email: str | None = Query(None, description="Search by email (partial match)"),
+    email: str | None = Query(
+        None, description="Search by email or user ID (partial match)"
+    ),
     date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
     date_to: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
     verified: str | None = Query(
