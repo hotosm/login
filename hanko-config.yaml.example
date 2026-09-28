@@ -107,6 +107,11 @@ session:
   lifespan: 1h
   issuer: "https://login.hotosm.test"
   audience:
+    # No wildcards here: audience is a plain list that Hanko copies into
+    # the JWT "aud" claim. It only gates anything for an app that sets
+    # JWT_AUDIENCE (auth-libs leaves that off by default), so a missing
+    # entry is usually harmless — but add the domain here when onboarding
+    # a site rather than patching the deployed file.
     # Local development
     - "https://portal.hotosm.test"
     - "https://login.hotosm.test"
@@ -135,6 +140,22 @@ session:
     - "https://umap.hotosm.org"
     - "https://umap-dev.hotosm.org"
     - "https://export-tool.hotosm.org"
+    - "https://dev.portal.hotosm.org"
+    - "https://dev.drone.hotosm.org"
+    - "https://dronetm.testlogin.hotosm.org"
+    - "https://fair.testlogin.hotosm.org"
+    - "https://fair-dev.hotosm.org"
+    - "https://fair.hotosm.org"
+    - "https://stage.ai.hotosm.org"
+    - "https://dev.ai.hotosm.org"
+    - "https://umap.testlogin.hotosm.org"
+    - "https://umap-dev.hotosm.org"
+    - "https://export.testlogin.hotosm.org"
+    - "https://chatmap-dev.hotosm.org"
+    - "https://dev.chatmap.hotosm.org"
+    - "https://fieldtm.testlogin.hotosm.org"
+    - "https://fieldtm.hotosm.org"
+    - "https://field.hotosm.org"
   cookie:
     name: "hanko"
     domain: ".hotosm.test"  # .hotosm.test with dot enables cookie sharing across all *.hotosm.test subdomains
@@ -146,34 +167,17 @@ third_party:
   redirect_url: "https://login.hotosm.test/thirdparty/callback"
   error_redirect_url: "https://login.hotosm.test/error"
   allowed_redirect_urls:
-    # Local development
-    - "https://portal.hotosm.test/**"
-    - "https://login.hotosm.test/**"
-    - "https://dronetm.hotosm.test/**"
-    - "https://fair.hotosm.test/**"
-    - "https://openaerialmap.hotosm.test/**"
-    - "https://chatmap.hotosm.test/**"
-    - "https://umap.hotosm.test/**"
-    - "https://export-tool.hotosm.test/**"
-    # Test environments
-    - "https://dronetm.testlogin.hotosm.org/**"
-    - "https://fair.testlogin.hotosm.org/**"
-    - "https://umap.testlogin.hotosm.org/**"
-    - "https://export.testlogin.hotosm.org/**"
-    # Production/dev
-    - "https://dev.portal.hotosm.org/**"
-    - "https://dev.login.hotosm.org/**"
-    - "https://portal.hotosm.org/**"
-    - "https://login.hotosm.org/**"
-    - "https://drone.hotosm.org/**"
-    - "https://fair.hotosm.org/**"
-    - "https://fair-dev.hotosm.org/**"
-    - "https://openaerialmap.hotosm.org/**"
-    - "https://chatmap.hotosm.org/**"
-    - "https://chatmap-dev.hotosm.org/**"
-    - "https://umap.hotosm.org/**"
-    - "https://umap-dev.hotosm.org/**"
-    - "https://export-tool.hotosm.org/**"
+    # Globbed with "." and "/" as separators, so a single * stops at a dot and
+    # would miss dev.portal.hotosm.org. ** crosses separators and covers every
+    # depth, which is what we want here.
+    #
+    # This is as broad as the session cookie already is: it is scoped to
+    # ".hotosm.org" (see cookie.domain below), so every subdomain receives it
+    # anyway. Listing redirect targets one by one was not buying a tighter
+    # boundary, only more places to edit when a site is added.
+    - "https://**.hotosm.org/**"
+    - "https://**.hotosm.test/**"
+    - "https://hotosm.org/**"
   cookie:
     domain: ".hotosm.test"  # .hotosm.test with dot enables cookie sharing across all *.hotosm.test subdomains
     http_only: true
