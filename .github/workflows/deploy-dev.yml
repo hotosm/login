@@ -116,6 +116,20 @@ jobs:
             cp hanko-config.yaml.example hanko-config.yaml
             echo "✓ Updated hanko-config.yaml from example"
 
+            # Inject the Hanko JWK encryption key. Without this the config would
+            # keep the placeholder from the example and Hanko would run on a key
+            # that is published in this repository.
+            if [ -z "${{ secrets.HANKO_SECRET_KEY }}" ]; then
+              echo "✗ HANKO_SECRET_KEY is not set — refusing to deploy Hanko with the placeholder key"
+              exit 1
+            fi
+            sed -i "s|HANKO_SECRET_KEY_PLACEHOLDER|${{ secrets.HANKO_SECRET_KEY }}|" hanko-config.yaml
+            if grep -q "HANKO_SECRET_KEY_PLACEHOLDER" hanko-config.yaml; then
+              echo "✗ Hanko secret key placeholder still present after substitution"
+              exit 1
+            fi
+            echo "✓ Injected Hanko secret key"
+
             # Fix CORS config in hanko-config.yaml (ensure wildcard is disabled)
             sed -i 's/unsafe_wildcard_origin_allowed: true/unsafe_wildcard_origin_allowed: false/' hanko-config.yaml
             echo "✓ Updated CORS config in hanko-config.yaml"

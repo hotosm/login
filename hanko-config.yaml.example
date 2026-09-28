@@ -44,7 +44,22 @@ database:
 
 secrets:
   keys:
-    - "abcdefghijklmnopqrstuvwxyz123456"  # Change this for production
+    # Encrypts the JWKs in the database — the private keys every session JWT is
+    # signed with. Injected by the deploy from the HANKO_SECRET_KEY secret; the
+    # placeholder is deliberately unusable so a config that skipped the
+    # substitution fails loudly instead of running on a published key.
+    #
+    # Keep the old key below the new one while rotating. Hanko encrypts with
+    # keys[0] and decrypts by trying each key in turn
+    # (backend/crypto/aes_gcm/aes_gcm.go), and GetPublicKeys decrypts EVERY
+    # stored JWK to serve /.well-known/jwks.json, returning an error on the
+    # first one it cannot read. So dropping the old key before Hanko has
+    # re-encrypted takes the whole JWKS endpoint down, and with it every app
+    # that validates a token — not just the sessions signed with it.
+    #
+    # Remove the second entry only once the jwk rows have been re-encrypted.
+    - "HANKO_SECRET_KEY_PLACEHOLDER"
+    - "abcdefghijklmnopqrstuvwxyz123456"  # previous key, kept so old JWKs still decrypt
 
 service:
   name: "HOTOSM Portal (Dev)"
