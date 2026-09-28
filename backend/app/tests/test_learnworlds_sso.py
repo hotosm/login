@@ -163,7 +163,7 @@ async def test_unverified_email_is_not_adopted(client, db, lw, signed_in):
 
 @pytest.mark.asyncio
 async def test_foreign_redirect_url_is_discarded(client, lw, signed_in):
-    """redirectUrl comes from the browser: anything off-school is dropped."""
+    """RedirectUrl comes from the browser: anything off-school is dropped."""
     response = await client.get(
         SSO_PATH,
         params={"redirectUrl": "https://evil.example.com/steal"},

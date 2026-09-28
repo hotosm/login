@@ -58,7 +58,9 @@ def _safe_redirect_url(redirect_url: str | None) -> str:
     if target_host and target_host == school_host:
         return redirect_url
 
-    logger.warning("Discarding off-school redirectUrl for %s: %s", APP_NAME, redirect_url)
+    logger.warning(
+        "Discarding off-school redirectUrl for %s: %s", APP_NAME, redirect_url
+    )
     return school_url
 
 
