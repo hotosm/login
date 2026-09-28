@@ -3,35 +3,26 @@ server:
     address: ":8000"
     cors:
       allow_origins:
-        # Local development (.hotosm.test)
-        - "https://portal.hotosm.test"
-        - "https://login.hotosm.test"
-        - "https://dronetm.hotosm.test"
-        - "https://fair.hotosm.test"
-        - "https://openaerialmap.hotosm.test"
-        - "https://chatmap.hotosm.test"
-        - "https://umap.hotosm.test"
-        - "https://export-tool.hotosm.test"
-        # Test environments (.testlogin.hotosm.org)
-        - "https://dronetm.testlogin.hotosm.org"
-        - "https://fair.testlogin.hotosm.org"
-        - "https://umap.testlogin.hotosm.org"
-        - "https://export.testlogin.hotosm.org"
-        # Production/dev domains
-        - "https://dev.portal.hotosm.org"
-        - "https://dev.login.hotosm.org"
-        - "https://portal.hotosm.org"
-        - "https://login.hotosm.org"
-        - "https://drone.hotosm.org"
-        - "https://drone-dev.hotosm.org"
-        - "https://fair.hotosm.org"
-        - "https://fair-dev.hotosm.org"
-        - "https://openaerialmap.hotosm.org"
-        - "https://chatmap.hotosm.org"
-        - "https://chatmap-dev.hotosm.org"
-        - "https://umap.hotosm.org"
-        - "https://umap-dev.hotosm.org"
-        - "https://export-tool.hotosm.org"
+        # One pattern per environment instead of one per site. Echo (which
+        # Hanko uses for CORS) turns * into the regex .*, and .* crosses dots,
+        # so this also matches multi-label hosts like dev.portal.hotosm.org.
+        #
+        # Note this is NOT how allowed_redirect_urls below behaves: that one is
+        # glob-based with "." as a separator, where * stops at a dot. Those stay
+        # listed one by one on purpose — a redirect target is where the login
+        # token is handed over, so it is worth naming each one.
+        # Written as .hotosm.test: the deploy rewrites it to .hotosm.org, the
+        # same transformation the rest of this file relies on.
+        - "https://*.hotosm.test"
+        # The wildcard needs the leading dot, so the apex is listed separately.
+        # Written as .org because the deploy's rewrite only matches ".hotosm.test"
+        # (with the leading dot), which "https://hotosm.test" does not contain.
+        - "https://hotosm.org"
+        # Local development over plain http.
+        - "http://localhost:5173"
+        - "http://127.0.0.1:5173"
+        - "http://localhost:3040"
+        - "http://127.0.0.1:3040"
       allow_credentials: true
       unsafe_wildcard_origin_allowed: false
 
@@ -119,34 +110,16 @@ session:
   lifespan: 1h
   issuer: "https://login.hotosm.test"
   audience:
-    # Local development
-    - "https://portal.hotosm.test"
+    # One value, the same as the issuer above, and it never changes when a site
+    # is added. Hanko copies this whole list into the JWT "aud" claim, and it
+    # issues ONE shared session token for every app, so listing each site there
+    # separated nothing: every token was valid everywhere regardless. An app
+    # that wants to check the claim sets JWT_AUDIENCE to this same value (the
+    # one it already uses for JWT_ISSUER); auth-libs skips the check otherwise.
+    #
+    # Per-app scoping lives in the API tokens instead, where the app is stored
+    # on the token row and checked when it is resolved.
     - "https://login.hotosm.test"
-    - "https://dronetm.hotosm.test"
-    - "https://fair.hotosm.test"
-    - "https://openaerialmap.hotosm.test"
-    - "https://chatmap.hotosm.test"
-    - "https://umap.hotosm.test"
-    - "https://export-tool.hotosm.test"
-    # Test environments
-    - "https://dronetm.testlogin.hotosm.org"
-    - "https://fair.testlogin.hotosm.org"
-    - "https://umap.testlogin.hotosm.org"
-    - "https://export.testlogin.hotosm.org"
-    # Production/dev
-    - "https://dev.portal.hotosm.org"
-    - "https://dev.login.hotosm.org"
-    - "https://portal.hotosm.org"
-    - "https://login.hotosm.org"
-    - "https://drone.hotosm.org"
-    - "https://fair.hotosm.org"
-    - "https://fair-dev.hotosm.org"
-    - "https://openaerialmap.hotosm.org"
-    - "https://chatmap.hotosm.org"
-    - "https://chatmap-dev.hotosm.org"
-    - "https://umap.hotosm.org"
-    - "https://umap-dev.hotosm.org"
-    - "https://export-tool.hotosm.org"
   cookie:
     name: "hanko"
     domain: ".hotosm.test"  # .hotosm.test with dot enables cookie sharing across all *.hotosm.test subdomains
@@ -158,34 +131,16 @@ third_party:
   redirect_url: "https://login.hotosm.test/thirdparty/callback"
   error_redirect_url: "https://login.hotosm.test/error"
   allowed_redirect_urls:
-    # Local development
-    - "https://portal.hotosm.test/**"
-    - "https://login.hotosm.test/**"
-    - "https://dronetm.hotosm.test/**"
-    - "https://fair.hotosm.test/**"
-    - "https://openaerialmap.hotosm.test/**"
-    - "https://chatmap.hotosm.test/**"
-    - "https://umap.hotosm.test/**"
-    - "https://export-tool.hotosm.test/**"
-    # Test environments
-    - "https://dronetm.testlogin.hotosm.org/**"
-    - "https://fair.testlogin.hotosm.org/**"
-    - "https://umap.testlogin.hotosm.org/**"
-    - "https://export.testlogin.hotosm.org/**"
-    # Production/dev
-    - "https://dev.portal.hotosm.org/**"
-    - "https://dev.login.hotosm.org/**"
-    - "https://portal.hotosm.org/**"
-    - "https://login.hotosm.org/**"
-    - "https://drone.hotosm.org/**"
-    - "https://fair.hotosm.org/**"
-    - "https://fair-dev.hotosm.org/**"
-    - "https://openaerialmap.hotosm.org/**"
-    - "https://chatmap.hotosm.org/**"
-    - "https://chatmap-dev.hotosm.org/**"
-    - "https://umap.hotosm.org/**"
-    - "https://umap-dev.hotosm.org/**"
-    - "https://export-tool.hotosm.org/**"
+    # Globbed with "." and "/" as separators, so a single * stops at a dot and
+    # would miss dev.portal.hotosm.org. ** crosses separators and covers every
+    # depth, which is what we want here.
+    #
+    # This is as broad as the session cookie already is: it is scoped to
+    # ".hotosm.org" (see cookie.domain below), so every subdomain receives it
+    # anyway. Listing redirect targets one by one was not buying a tighter
+    # boundary, only more places to edit when a site is added.
+    - "https://**.hotosm.test/**"
+    - "https://hotosm.org/**"
   cookie:
     domain: ".hotosm.test"  # .hotosm.test with dot enables cookie sharing across all *.hotosm.test subdomains
     http_only: true

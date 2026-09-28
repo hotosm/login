@@ -371,3 +371,42 @@ class Notification(Base):
     def __repr__(self) -> str:
         """Return short debug representation for logging."""
         return f"<Notification(user={self.hanko_user_id[:8]}..., type={self.type})>"
+
+
+class AllowedOrigin(Base):
+    """A browser origin allowed to call this backend cross-origin.
+
+    Replaces the hardcoded list this backend used to pass to CORSMiddleware, so
+    an account manager can add a site from the admin dashboard and have it take
+    effect on the next request instead of on the next deploy.
+
+    Note this governs *this* backend only. The Hanko API is a separate service
+    the browser talks to directly, and its own CORS and redirect allowlists are
+    configured in hanko-config.yaml — adding a row here does not let a new site
+    complete a login on its own.
+    """
+
+    __tablename__ = "allowed_origins"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid_str)
+    # Scheme + host + optional port, no trailing slash and no path: exactly what
+    # a browser puts in the Origin header, which is what we compare against.
+    origin: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    # Free-text reminder of which app this is, shown in the admin table.
+    note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Kept instead of deleting, so an origin can be turned off and back on
+    # without losing who added it and why.
+    enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+    created_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        """Return short debug representation for logging."""
+        return f"<AllowedOrigin({self.origin}, enabled={self.enabled})>"
