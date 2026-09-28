@@ -175,6 +175,19 @@ async def test_foreign_redirect_url_is_discarded(client, lw, signed_in):
 
 
 @pytest.mark.asyncio
+async def test_sign_in_page_redirect_goes_home(client, lw, signed_in):
+    """Coming from the LMS sign-in page, going back there shows "you are lost"."""
+    response = await client.get(
+        SSO_PATH,
+        params={"redirectUrl": f"{SCHOOL}/signin"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert lw.sso_login.await_args.kwargs["redirect_url"] == SCHOOL
+
+
+@pytest.mark.asyncio
 async def test_unknown_action_is_rejected(client, lw, signed_in):
     """Only the three actions LearnWorlds sends are accepted."""
     response = await client.get(

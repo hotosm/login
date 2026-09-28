@@ -38,6 +38,11 @@ APP_NAME = "learnworlds"
 # LearnWorlds sends one of these three; it delegates all of them to us.
 VALID_ACTIONS = ("login", "signup", "passwordreset")
 
+# LearnWorlds sends back whatever page the user was on, which for anyone who
+# clicked the sign-in button is its own login page. Returning a logged-in user
+# there lands them on "Looks like you are lost", so those paths go home instead.
+DEAD_END_PATHS = ("/signin", "/login", "/signup", "/register")
+
 
 def _safe_redirect_url(redirect_url: str | None) -> str:
     """Keep the redirect inside the school, falling back to its home page.
@@ -51,11 +56,13 @@ def _safe_redirect_url(redirect_url: str | None) -> str:
 
     school_host = urlparse(school_url).hostname
     try:
-        target_host = urlparse(redirect_url).hostname
+        target = urlparse(redirect_url)
     except ValueError:
         return school_url
 
-    if target_host and target_host == school_host:
+    if target.hostname and target.hostname == school_host:
+        if target.path.rstrip("/").lower() in DEAD_END_PATHS:
+            return school_url
         return redirect_url
 
     logger.warning(
