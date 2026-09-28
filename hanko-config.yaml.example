@@ -13,6 +13,8 @@ server:
         # token is handed over, so it is worth naming each one.
         - "https://*.hotosm.org"
         - "https://*.hotosm.test"
+        # The wildcard requires the leading dot, so the apex is listed too.
+        - "https://hotosm.org"
         # Local development over plain http.
         - "http://localhost:5173"
         - "http://127.0.0.1:5173"
