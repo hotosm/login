@@ -4,13 +4,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from hotosm_auth import AuthConfig
 from hotosm_auth_fastapi import CurrentUser, init_auth, osm_router
 
 from app.__version__ import __version__
 from app.api.routes import admin as admin_routes
+from app.api.routes import allowed_origins as allowed_origins_routes
 from app.api.routes import api_token as api_token_routes
 from app.api.routes import data_deletion as data_deletion_routes
 from app.api.routes import groups as groups_routes
@@ -21,7 +21,9 @@ from app.api.routes import profile as profile_routes
 from app.api.routes import public as public_routes
 from app.api.routes import sso as sso_routes
 from app.api.routes import users as users_routes
+from app.core.cors import DynamicCORSMiddleware
 from app.schemas.auth import UserInfoResponse
+from app.services import allowed_origins_service
 
 
 @asynccontextmanager
@@ -43,54 +45,13 @@ app = FastAPI(
 
 # CORS configuration - allow credentials for cookie-based auth
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost",
-        "http://127.0.0.1",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3040",
-        "http://127.0.0.1:3040",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        # Subdomain routing for development (HTTPS)
-        "https://portal.hotosm.test",
-        "https://login.hotosm.test",
-        "https://dronetm.hotosm.test",
-        "https://fair.hotosm.test",
-        "https://openaerialmap.hotosm.test",
-        "https://chatmap.hotosm.test",
-        "https://umap.hotosm.test",
-        "https://export-tool.hotosm.test",
-        # Production domains
-        "https://portal.hotosm.org",
-        "https://dev.portal.hotosm.org",
-        "https://dev.login.hotosm.org",
-        "https://login.hotosm.org",
-        "https://chatmap.hotosm.org",
-        "https://chatmap-dev.hotosm.org",
-        "https://dev.chatmap.hotosm.org",
-        "https://fair.hotosm.org",
-        "https://fair-dev.hotosm.org",
-        "https://ai.hotosm.org",
-        "https://stage.ai.hotosm.org",
-        "https://dev.ai.hotosm.org",
-        "https://umap.hotosm.org",
-        "https://umap-dev.hotosm.org",
-        "https://field.hotosm.org",
-        "https://fieldtm.hotosm.org",
-        "https://upload.imagery.hotosm.org",
-        "https://upload.stage.imagery.hotosm.org",
-        # Test environments
-        "https://dronetm.testlogin.hotosm.org",
-        "https://fair.testlogin.hotosm.org",
-        "https://umap.testlogin.hotosm.org",
-        "https://export.testlogin.hotosm.org",
-        "https://fieldtm.testlogin.hotosm.org",
-        "https://drone.hotosm.org",
-        "https://drone-dev.hotosm.org",
-        "https://dev.drone.hotosm.org",
-    ],
+    # Reads its allowlist from the allowed_origins table (see
+    # services/allowed_origins_service.py), so a site added in the admin
+    # dashboard is accepted on the next request rather than the next deploy.
+    # The list passed here is only the fallback for when the database cannot be
+    # reached — everything else lives in the table.
+    DynamicCORSMiddleware,
+    allow_origins=sorted(allowed_origins_service.BOOTSTRAP_ORIGINS),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -102,13 +63,19 @@ app.add_middleware(
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Add CORS headers to HTTP exceptions."""
+    # Only echo an origin the middleware would also have accepted. Reflecting
+    # any origin here used to make errors look CORS-clean while real (200)
+    # responses were blocked by the browser, so curl reported a false pass.
+    headers: dict[str, str] = {}
+    origin = request.headers.get("origin")
+    if origin and allowed_origins_service.is_allowed(origin):
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Vary"] = "Origin"
     return JSONResponse(
         status_code=exc.status_code,
         content={"code": exc.status_code, "message": exc.detail},
-        headers={
-            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
-            "Access-Control-Allow-Credentials": "true",
-        },
+        headers=headers,
     )
 
 
@@ -170,6 +137,7 @@ app.include_router(
 )
 
 app.include_router(admin_routes.router)
+app.include_router(allowed_origins_routes.router)
 app.include_router(profile_routes.router)
 app.include_router(api_token_routes.router)
 app.include_router(api_token_routes.internal_router)

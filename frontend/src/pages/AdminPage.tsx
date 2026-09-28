@@ -15,6 +15,7 @@ import {
 import hotLogo from '../assets/images/hot-logo.svg';
 import { useRoles } from '../hooks/useRoles';
 import { readError } from '../utils/api';
+import CorsOriginsPanel from '../components/CorsOriginsPanel';
 
 interface Mapping {
   hanko_user_id: string;
@@ -227,7 +228,7 @@ const ProgressRing = ({
   );
 };
 
-type AdminTab = 'dashboard' | 'mappings' | 'users';
+type AdminTab = 'dashboard' | 'mappings' | 'users' | 'cors';
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -283,6 +284,8 @@ function AdminPage() {
   const visibleTabs: AdminTab[] = [];
   if (isAdmin) visibleTabs.push('dashboard', 'mappings');
   if (isAdmin || isAccountManager) visibleTabs.push('users');
+  // CORS is a security boundary, so it stays admin-only.
+  if (isAdmin) visibleTabs.push('cors');
 
   // Once roles resolve, land on the first visible tab (honoring ?tab=).
   // An account-manager-only user starts on 'users', not 'dashboard'.
@@ -658,7 +661,18 @@ function AdminPage() {
             Users
           </button>
         )}
+        {isAdmin && (
+          <button
+            className={`admin-tab ${activeTab === 'cors' ? 'active' : ''}`}
+            onClick={() => setActiveTab('cors')}
+          >
+            Allowed Sites
+          </button>
+        )}
       </div>
+
+      {/* Allowed Sites (CORS) Tab */}
+      {activeTab === 'cors' && isAdmin && <CorsOriginsPanel backendUrl={backendUrl} />}
 
       {/* Dashboard Tab */}
       {activeTab === 'dashboard' && (
