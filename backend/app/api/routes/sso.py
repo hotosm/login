@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.db import get_db
-from app.db.models import HankoUserMapping
+from app.db.models import HankoUserMapping, UserProfile
 from app.services.learnworlds import LearnWorldsError, learnworlds_client
 
 logger = logging.getLogger(__name__)
@@ -98,6 +98,32 @@ async def _linked_user_id(db: AsyncSession, hanko_user_id: str) -> str | None:
         )
     )
     return result.scalar_one_or_none()
+
+
+async def _profile_fields(db: AsyncSession, user) -> dict[str, str]:
+    """Name and avatar for the LearnWorlds profile, taken from our own.
+
+    Without this a created account is named after the email, which reads badly
+    in the LMS. We already hold the real name in ``user_profiles``, so there is
+    nothing extra to ask the person.
+    """
+    result = await db.execute(
+        select(UserProfile).where(UserProfile.hanko_user_id == user.id)
+    )
+    profile = result.scalar_one_or_none()
+
+    first = (profile.first_name or "").strip() if profile else ""
+    last = (profile.last_name or "").strip() if profile else ""
+    full_name = " ".join(part for part in (first, last) if part)
+
+    fields = {"username": full_name or user.display_name}
+    if first:
+        fields["first_name"] = first
+    if last:
+        fields["last_name"] = last
+    if profile and profile.picture_url:
+        fields["avatar"] = profile.picture_url
+    return fields
 
 
 async def _link(db: AsyncSession, hanko_user_id: str, app_user_id: str) -> None:
@@ -178,8 +204,8 @@ async def learnworlds_sso(
         login_url, resolved_id = await learnworlds_client.sso_login(
             user_id=learnworlds_user_id,
             email=None if learnworlds_user_id else user.email,
-            username=user.display_name,
             redirect_url=target,
+            **await _profile_fields(db, user),
         )
     except LearnWorldsError as exc:
         logger.exception("LearnWorlds SSO failed for %s", user.id)

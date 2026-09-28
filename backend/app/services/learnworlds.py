@@ -139,12 +139,18 @@ class LearnWorldsClient:
         user_id: str | None = None,
         email: str | None = None,
         username: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        avatar: str | None = None,
         redirect_url: str | None = None,
     ) -> tuple[str, str]:
         """Open a LearnWorlds session and return ``(login_url, user_id)``.
 
         Pass ``user_id`` for users we have already linked; it keeps the login
         working even if their email changed on either side.
+
+        ``first_name`` and ``last_name`` only apply when LearnWorlds creates the
+        account; ``username`` and ``avatar`` also refresh an existing one.
 
         WARNING: when called with an ``email`` the school does not know,
         LearnWorlds creates the account. Resolve the user's identity before
@@ -158,10 +164,15 @@ class LearnWorldsClient:
             data["user_id"] = user_id
         else:
             data["email"] = email
-        if username:
-            data["username"] = username
-        if redirect_url:
-            data["redirectUrl"] = redirect_url
+        for key, value in (
+            ("username", username),
+            ("first_name", first_name),
+            ("last_name", last_name),
+            ("avatar", avatar),
+            ("redirectUrl", redirect_url),
+        ):
+            if value:
+                data[key] = value
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(

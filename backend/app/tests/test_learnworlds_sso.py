@@ -12,7 +12,7 @@ from hotosm_auth_fastapi import get_current_user_optional
 from sqlalchemy import select
 
 from app.api.routes import sso as sso_route
-from app.db.models import HankoUserMapping
+from app.db.models import HankoUserMapping, UserProfile
 from app.main import app
 from app.tests.conftest import USER_A, make_user
 
@@ -172,6 +172,38 @@ async def test_foreign_redirect_url_is_discarded(client, lw, signed_in):
 
     assert response.status_code == 302
     assert lw.sso_login.await_args.kwargs["redirect_url"] == SCHOOL
+
+
+@pytest.mark.asyncio
+async def test_profile_name_and_avatar_are_sent(client, db, lw, signed_in):
+    """A created account gets the real name, not the email local part."""
+    db.add(
+        UserProfile(
+            hanko_user_id=USER_A.id,
+            first_name="Ada",
+            last_name="Lovelace",
+            picture_url="https://example.org/ada.png",
+        )
+    )
+    await db.commit()
+
+    await client.get(SSO_PATH, follow_redirects=False)
+
+    sent = lw.sso_login.await_args.kwargs
+    assert sent["username"] == "Ada Lovelace"
+    assert sent["first_name"] == "Ada"
+    assert sent["last_name"] == "Lovelace"
+    assert sent["avatar"] == "https://example.org/ada.png"
+
+
+@pytest.mark.asyncio
+async def test_without_profile_falls_back_to_display_name(client, lw, signed_in):
+    """No profile row: fall back rather than sending an empty name."""
+    await client.get(SSO_PATH, follow_redirects=False)
+
+    sent = lw.sso_login.await_args.kwargs
+    assert sent["username"] == USER_A.display_name
+    assert "first_name" not in sent
 
 
 @pytest.mark.asyncio
