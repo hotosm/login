@@ -3,8 +3,8 @@
 Seeds it with the list that used to be hardcoded in app/main.py, so the
 behaviour right after this migration is identical to before it.
 
-Revision ID: 009
-Revises: 008
+Revision ID: 010
+Revises: 009
 Create Date: 2026-09-28
 
 """
@@ -15,8 +15,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "009"
-down_revision: str | None = "008"
+revision: str = "010"
+down_revision: str | None = "009"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
