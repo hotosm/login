@@ -89,6 +89,8 @@ jobs:
           SMTP_FROM_ADDRESS: ${{ secrets.SMTP_FROM_ADDRESS }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          LEARNWORLDS_CLIENT_ID: ${{ secrets.LEARNWORLDS_CLIENT_ID }}
+          LEARNWORLDS_CLIENT_SECRET: ${{ secrets.LEARNWORLDS_CLIENT_SECRET }}
         run: |
           ssh $EC2_USER@$EC2_HOST << 'EOF'
             set -e
@@ -219,6 +221,23 @@ jobs:
               sed -i 's|^SMTP_STARTTLS=.*|SMTP_STARTTLS=true|' .env
             else
               echo 'SMTP_STARTTLS=true' >> .env
+            fi
+            # LearnWorlds Custom SSO. Points at the test school; production uses
+            # its own school with a different client id and secret.
+            if grep -q '^LEARNWORLDS_SCHOOL_URL=' .env; then
+              sed -i 's|^LEARNWORLDS_SCHOOL_URL=.*|LEARNWORLDS_SCHOOL_URL=https://learn-dev.hotosm.org|' .env
+            else
+              echo 'LEARNWORLDS_SCHOOL_URL=https://learn-dev.hotosm.org' >> .env
+            fi
+            if grep -q '^LEARNWORLDS_CLIENT_ID=' .env; then
+              sed -i 's|^LEARNWORLDS_CLIENT_ID=.*|LEARNWORLDS_CLIENT_ID=${{ secrets.LEARNWORLDS_CLIENT_ID }}|' .env
+            else
+              echo 'LEARNWORLDS_CLIENT_ID=${{ secrets.LEARNWORLDS_CLIENT_ID }}' >> .env
+            fi
+            if grep -q '^LEARNWORLDS_CLIENT_SECRET=' .env; then
+              sed -i 's|^LEARNWORLDS_CLIENT_SECRET=.*|LEARNWORLDS_CLIENT_SECRET=${{ secrets.LEARNWORLDS_CLIENT_SECRET }}|' .env
+            else
+              echo 'LEARNWORLDS_CLIENT_SECRET=${{ secrets.LEARNWORLDS_CLIENT_SECRET }}' >> .env
             fi
             echo "✓ Updated secrets in .env"
 
