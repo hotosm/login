@@ -19,6 +19,7 @@ from app.api.routes import notifications as notifications_routes
 from app.api.routes import organizations_admin as organizations_admin_routes
 from app.api.routes import profile as profile_routes
 from app.api.routes import public as public_routes
+from app.api.routes import sso as sso_routes
 from app.api.routes import users as users_routes
 from app.schemas.auth import UserInfoResponse
 
@@ -180,6 +181,7 @@ app.include_router(notifications_routes.me_router)
 app.include_router(organizations_admin_routes.router)
 app.include_router(organizations_admin_routes.me_router)
 app.include_router(public_routes.router)
+app.include_router(sso_routes.router)
 app.include_router(users_routes.router)
 
 
