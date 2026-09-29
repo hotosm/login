@@ -100,6 +100,10 @@ export interface Translations {
   notifOrgRejected?: string;
   notifOrgNameApproved?: string;
   notifOrgNameRejected?: string;
+  notifOrgEdited?: string;
+  notifOrgEditApproved?: string;
+  notifOrgEditRejected?: string;
+  notifOrgDeleted?: string;
   notifTeamMemberJoined?: string;
   // {member} and {team} are replaced at runtime too.
   notifTeamMemberLeft?: string;
@@ -128,8 +132,6 @@ export interface Translations {
   submitRequest?: string;
   orgRequestSubmitted?: string;
   noOrganizations?: string;
-  myOrganizations?: string;
-  allOrganizations?: string;
 
   // Invitations
   pendingInvitations?: string;
@@ -157,6 +159,7 @@ export interface Translations {
   membersTab?: string;
   changeName?: string;
   nameChangePending?: string;
+  editChangePending?: string;
   avatarLabel?: string;
   bannerLabel?: string;
   changeBanner?: string;
@@ -237,6 +240,19 @@ export interface Translations {
   orgRejected?: string;
   orgNameApproved?: string;
   orgNameRejected?: string;
+  orgEditApproved?: string;
+  orgEditRejected?: string;
+  currentValue?: string;
+  proposedValue?: string;
+  publicProfile?: string;
+  yes?: string;
+  no?: string;
+  approveEditBtn?: string;
+  rejectEditBtn?: string;
+  editPendingApproval?: string;
+  searchOrganizationsPlaceholder?: string;
+  noSearchResults?: string;
+  viewDetailsBtn?: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -321,7 +337,7 @@ export const translations: Record<string, Translations> = {
     navTeams: 'Teams',
     navUsers: 'Users',
     navAdmin: 'Admin',
-    navOrgsToApprove: 'Organizations to approve',
+    navOrgsToApprove: 'Management organizations',
     navNotifications: 'Notifications',
     notifications: 'Notifications',
     noNotifications: 'You have no notifications.',
@@ -331,6 +347,10 @@ export const translations: Record<string, Translations> = {
     notifOrgRejected: 'Your organization {name} was not approved.',
     notifOrgNameApproved: 'Your name change to {name} was approved.',
     notifOrgNameRejected: 'Your name change to {name} was not approved.',
+    notifOrgEdited: 'Your organization {name} was edited by a manager.',
+    notifOrgEditApproved: 'Your changes to {name} were approved.',
+    notifOrgEditRejected: 'Your changes to {name} were not approved.',
+    notifOrgDeleted: 'Your organization {name} was deleted by a manager.',
     notifTeamMemberJoined: 'You were added to the team {name}.',
     notifTeamMemberLeft: '{member} left the team {team}.',
     notifMemberLeft: '{member} left {name}.',
@@ -356,8 +376,6 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted:
       'Your organization request was submitted and is pending approval.',
     noOrganizations: "You don't belong to any organizations yet.",
-    myOrganizations: 'My organizations',
-    allOrganizations: 'All organizations',
     pendingInvitations: 'Pending invitations',
     invitedToJoin: "You've been invited to join as a",
     accept: 'Accept',
@@ -379,6 +397,7 @@ export const translations: Record<string, Translations> = {
     membersTab: 'Members',
     changeName: 'Change name',
     nameChangePending: 'Name change pending approval',
+    editChangePending: 'Edit change pending approval',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Change banner',
@@ -435,7 +454,7 @@ export const translations: Record<string, Translations> = {
     rejectBtn: 'Reject',
     approveNameBtn: 'Approve name',
     rejectNameBtn: 'Reject name',
-    orgsToApprove: 'Organizations to approve',
+    orgsToApprove: 'Management organizations',
     orgsToApproveNoAccess:
       "You don't have permission to review organization requests.",
     noPendingOrgs: 'No organizations awaiting approval.',
@@ -451,6 +470,19 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organization rejected.',
     orgNameApproved: 'Name change approved.',
     orgNameRejected: 'Name change rejected.',
+    orgEditApproved: 'Changes approved.',
+    orgEditRejected: 'Changes rejected.',
+    currentValue: 'Current value',
+    proposedValue: 'Proposed value',
+    publicProfile: 'Public profile',
+    yes: 'Yes',
+    no: 'No',
+    approveEditBtn: 'Approve changes',
+    rejectEditBtn: 'Reject changes',
+    editPendingApproval: 'Your changes were submitted for review.',
+    searchOrganizationsPlaceholder: 'Search organizations by name',
+    noSearchResults: 'No organizations match your search.',
+    viewDetailsBtn: 'View details',
   },
   es: {
     welcomeTo: "Bienvenido a HOT's",
@@ -535,7 +567,7 @@ export const translations: Record<string, Translations> = {
     navTeams: 'Equipos',
     navUsers: 'Usuarios',
     navAdmin: 'Admin',
-    navOrgsToApprove: 'Organizaciones por aprobar',
+    navOrgsToApprove: 'Organizaciones de gestión',
     navNotifications: 'Notificaciones',
     notifications: 'Notificaciones',
     noNotifications: 'No tienes notificaciones.',
@@ -545,6 +577,10 @@ export const translations: Record<string, Translations> = {
     notifOrgRejected: 'Tu organización {name} no fue aprobada.',
     notifOrgNameApproved: 'Tu cambio de nombre a {name} fue aprobado.',
     notifOrgNameRejected: 'Tu cambio de nombre a {name} no fue aprobado.',
+    notifOrgEdited: 'Tu organización {name} fue editada por un gestor.',
+    notifOrgEditApproved: 'Tus cambios en {name} fueron aprobados.',
+    notifOrgEditRejected: 'Tus cambios en {name} no fueron aprobados.',
+    notifOrgDeleted: 'Tu organización {name} fue eliminada por un gestor.',
     notifTeamMemberJoined: 'Te agregaron al equipo {name}.',
     notifTeamMemberLeft: '{member} dejó el equipo {team}.',
     notifMemberLeft: '{member} salió de {name}.',
@@ -572,8 +608,6 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted:
       'Tu solicitud de organización fue enviada y está pendiente de aprobación.',
     noOrganizations: 'Todavía no perteneces a ninguna organización.',
-    myOrganizations: 'Mis organizaciones',
-    allOrganizations: 'Todas las organizaciones',
     pendingInvitations: 'Invitaciones pendientes',
     invitedToJoin: 'Te invitaron a unirte como',
     accept: 'Aceptar',
@@ -595,6 +629,7 @@ export const translations: Record<string, Translations> = {
     membersTab: 'Miembros',
     changeName: 'Cambiar nombre',
     nameChangePending: 'Cambio de nombre pendiente de aprobación',
+    editChangePending: 'Cambio de edición pendiente de aprobación',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Cambiar banner',
@@ -647,7 +682,7 @@ export const translations: Record<string, Translations> = {
     adminOrganizationsTab: 'Organizaciones',
     makeAccountManager: 'Hacer gestor de cuentas',
     removeAccountManager: 'Quitar gestor de cuentas',
-    orgsToApprove: 'Organizaciones por aprobar',
+    orgsToApprove: 'Organizaciones de gestión',
     orgsToApproveNoAccess:
       'No tienes permiso para revisar solicitudes de organizaciones.',
     noPendingOrgs: 'No hay organizaciones pendientes de aprobación.',
@@ -663,6 +698,19 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organización rechazada.',
     orgNameApproved: 'Cambio de nombre aprobado.',
     orgNameRejected: 'Cambio de nombre rechazado.',
+    orgEditApproved: 'Cambios aprobados.',
+    orgEditRejected: 'Cambios rechazados.',
+    currentValue: 'Valor actual',
+    proposedValue: 'Valor propuesto',
+    publicProfile: 'Perfil público',
+    yes: 'Sí',
+    no: 'No',
+    approveEditBtn: 'Aprobar cambios',
+    rejectEditBtn: 'Rechazar cambios',
+    editPendingApproval: 'Tus cambios fueron enviados a revisión.',
+    searchOrganizationsPlaceholder: 'Buscar organizaciones por nombre',
+    noSearchResults: 'Ninguna organización coincide con tu búsqueda.',
+    viewDetailsBtn: 'Ver detalles',
     approveBtn: 'Aprobar',
     rejectBtn: 'Rechazar',
     approveNameBtn: 'Aprobar nombre',
@@ -749,7 +797,7 @@ export const translations: Record<string, Translations> = {
     navTeams: 'Équipes',
     navUsers: 'Utilisateurs',
     navAdmin: 'Admin',
-    navOrgsToApprove: 'Organisations à approuver',
+    navOrgsToApprove: 'Organisations de gestion',
     navNotifications: 'Notifications',
     notifications: 'Notifications',
     noNotifications: "Vous n'avez aucune notification.",
@@ -760,6 +808,13 @@ export const translations: Record<string, Translations> = {
     notifOrgNameApproved: 'Votre changement de nom en {name} a été approuvé.',
     notifOrgNameRejected:
       "Votre changement de nom en {name} n'a pas été approuvé.",
+    notifOrgEdited:
+      'Votre organisation {name} a été modifiée par un gestionnaire.',
+    notifOrgEditApproved: 'Vos modifications à {name} ont été approuvées.',
+    notifOrgEditRejected:
+      "Vos modifications à {name} n'ont pas été approuvées.",
+    notifOrgDeleted:
+      'Votre organisation {name} a été supprimée par un gestionnaire.',
     notifTeamMemberJoined: "Vous avez été ajouté à l'équipe {name}.",
     notifTeamMemberLeft: "{member} a quitté l'équipe {team}.",
     notifMemberLeft: '{member} a quitté {name}.',
@@ -788,8 +843,6 @@ export const translations: Record<string, Translations> = {
       "Votre demande d'organisation a été envoyée et est en attente d'approbation.",
     noOrganizations:
       "Vous ne faites partie d'aucune organisation pour l'instant.",
-    myOrganizations: 'Mes organisations',
-    allOrganizations: 'Toutes les organisations',
     pendingInvitations: 'Invitations en attente',
     invitedToJoin: 'Vous avez été invité à rejoindre en tant que',
     accept: 'Accepter',
@@ -811,6 +864,7 @@ export const translations: Record<string, Translations> = {
     membersTab: 'Membres',
     changeName: 'Changer le nom',
     nameChangePending: "Changement de nom en attente d'approbation",
+    editChangePending: "Modification en attente d'approbation",
     avatarLabel: 'Avatar',
     bannerLabel: 'Bannière',
     changeBanner: 'Changer la bannière',
@@ -867,7 +921,7 @@ export const translations: Record<string, Translations> = {
     rejectBtn: 'Rejeter',
     approveNameBtn: 'Approuver le nom',
     rejectNameBtn: 'Rejeter le nom',
-    orgsToApprove: 'Organisations à approuver',
+    orgsToApprove: 'Organisations de gestion',
     orgsToApproveNoAccess:
       "Vous n'avez pas la permission d'examiner les demandes d'organisation.",
     noPendingOrgs: "Aucune organisation en attente d'approbation.",
@@ -883,6 +937,19 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organisation rejetée.',
     orgNameApproved: 'Changement de nom approuvé.',
     orgNameRejected: 'Changement de nom rejeté.',
+    orgEditApproved: 'Modifications approuvées.',
+    orgEditRejected: 'Modifications rejetées.',
+    currentValue: 'Valeur actuelle',
+    proposedValue: 'Valeur proposée',
+    publicProfile: 'Profil public',
+    yes: 'Oui',
+    no: 'Non',
+    approveEditBtn: 'Approuver les modifications',
+    rejectEditBtn: 'Rejeter les modifications',
+    editPendingApproval: 'Vos modifications ont été soumises pour examen.',
+    searchOrganizationsPlaceholder: 'Rechercher des organisations par nom',
+    noSearchResults: 'Aucune organisation ne correspond à votre recherche.',
+    viewDetailsBtn: 'Voir les détails',
   },
   pt: {
     welcomeTo: "Bem-vindo ao HOT's",
@@ -965,7 +1032,7 @@ export const translations: Record<string, Translations> = {
     navTeams: 'Equipes',
     navUsers: 'Usuários',
     navAdmin: 'Admin',
-    navOrgsToApprove: 'Organizações para aprovar',
+    navOrgsToApprove: 'Organizações de gestão',
     navNotifications: 'Notificações',
     notifications: 'Notificações',
     noNotifications: 'Você não tem notificações.',
@@ -975,6 +1042,10 @@ export const translations: Record<string, Translations> = {
     notifOrgRejected: 'Sua organização {name} não foi aprovada.',
     notifOrgNameApproved: 'Sua alteração de nome para {name} foi aprovada.',
     notifOrgNameRejected: 'Sua alteração de nome para {name} não foi aprovada.',
+    notifOrgEdited: 'Sua organização {name} foi editada por um gestor.',
+    notifOrgEditApproved: 'Suas alterações em {name} foram aprovadas.',
+    notifOrgEditRejected: 'Suas alterações em {name} não foram aprovadas.',
+    notifOrgDeleted: 'Sua organização {name} foi excluída por um gestor.',
     notifTeamMemberJoined: 'Você foi adicionado à equipe {name}.',
     notifTeamMemberLeft: '{member} saiu da equipe {team}.',
     notifMemberLeft: '{member} saiu de {name}.',
@@ -1000,8 +1071,6 @@ export const translations: Record<string, Translations> = {
     orgRequestSubmitted:
       'Sua solicitação de organização foi enviada e está pendente de aprovação.',
     noOrganizations: 'Você ainda não pertence a nenhuma organização.',
-    myOrganizations: 'Minhas organizações',
-    allOrganizations: 'Todas as organizações',
     pendingInvitations: 'Convites pendentes',
     invitedToJoin: 'Você foi convidado para entrar como',
     accept: 'Aceitar',
@@ -1023,6 +1092,7 @@ export const translations: Record<string, Translations> = {
     membersTab: 'Membros',
     changeName: 'Alterar nome',
     nameChangePending: 'Alteração de nome pendente de aprovação',
+    editChangePending: 'Alteração de edição pendente de aprovação',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Alterar banner',
@@ -1079,7 +1149,7 @@ export const translations: Record<string, Translations> = {
     rejectBtn: 'Rejeitar',
     approveNameBtn: 'Aprovar nome',
     rejectNameBtn: 'Rejeitar nome',
-    orgsToApprove: 'Organizações para aprovar',
+    orgsToApprove: 'Organizações de gestão',
     orgsToApproveNoAccess:
       'Você não tem permissão para revisar solicitações de organizações.',
     noPendingOrgs: 'Nenhuma organização aguardando aprovação.',
@@ -1095,6 +1165,19 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organização rejeitada.',
     orgNameApproved: 'Alteração de nome aprovada.',
     orgNameRejected: 'Alteração de nome rejeitada.',
+    orgEditApproved: 'Alterações aprovadas.',
+    orgEditRejected: 'Alterações rejeitadas.',
+    currentValue: 'Valor atual',
+    proposedValue: 'Valor proposto',
+    publicProfile: 'Perfil público',
+    yes: 'Sim',
+    no: 'Não',
+    approveEditBtn: 'Aprovar alterações',
+    rejectEditBtn: 'Rejeitar alterações',
+    editPendingApproval: 'Suas alterações foram enviadas para revisão.',
+    searchOrganizationsPlaceholder: 'Buscar organizações por nome',
+    noSearchResults: 'Nenhuma organização corresponde à sua busca.',
+    viewDetailsBtn: 'Ver detalhes',
   },
 };
 

@@ -1,18 +1,22 @@
-import Button from '@/components/shared/Button';
+import OrgEditChangeReviewForm from '@/components/OrgEditChangeReviewForm';
 import OrgNameChangeReviewForm from '@/components/OrgNameChangeReviewForm';
 import OrgReviewForm from '@/components/OrgReviewForm';
 import PanelHeader from '@/components/PanelHeader';
-import { useEffect, useState } from 'react';
+import Button from '@/components/shared/Button';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import StatusBadge from '../components/shared/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
-import { usePendingOrgs } from '../hooks/usePendingOrgs';
+import { useManagedOrganizations } from '../hooks/useManagedOrganizations';
 import { useRoles } from '../hooks/useRoles';
+import type { GroupResponse } from '../types/groups';
 
-// Organization requests awaiting moderation. Same capability as the admin
-// console's Organizations tab, but inside the account area: one panel, and each
-// org is reviewed in a block that expands under its own row (no modals).
+// Organization requests awaiting moderation, plus every other organization for
+// account managers/admins to search, view and manage. Same capability as the
+// admin console's Organizations tab, but inside the account area: one panel,
+// and each pending org is reviewed in a block that expands under its own row
+// (no modals).
 function OrgsToApprovePage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -20,7 +24,7 @@ function OrgsToApprovePage() {
   const canModerate = isAdmin || isAccountManager;
 
   const {
-    pendingOrgs,
+    organizations,
     loading,
     error,
     unauthorized,
@@ -28,10 +32,13 @@ function OrgsToApprovePage() {
     reject,
     approveName,
     rejectName,
-  } = usePendingOrgs(canModerate);
+    approveEdit,
+    rejectEdit,
+  } = useManagedOrganizations(canModerate);
 
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (unauthorized) {
@@ -43,6 +50,17 @@ function OrgsToApprovePage() {
   useEffect(() => {
     if (error) toast.error(error);
   }, [error]);
+
+  const visibleOrgs = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return organizations;
+    return organizations.filter((org) =>
+      org.name.toLowerCase().includes(query),
+    );
+  }, [organizations, search]);
+
+  const needsReview = (org: GroupResponse) =>
+    org.status === 'pending' || !!org.pending_name || !!org.pending_edit;
 
   // Every action closes the review block and reports through a toast
   const runAction = async (action: () => Promise<void>, message: string) => {
@@ -85,13 +103,21 @@ function OrgsToApprovePage() {
       <div className="bg-white rounded-xl shadow-xl p-6 flex flex-col gap-lg">
         <PanelHeader sectionName={t('orgsToApprove')} />
 
-        {pendingOrgs.length === 0 ? (
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t('searchOrganizationsPlaceholder')}
+          className="px-3 py-2 text-sm border border-hot-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 focus:border-hot-red-400"
+        />
+
+        {visibleOrgs.length === 0 ? (
           <p className="text-sm text-hot-gray-500 py-6 text-center">
-            {t('noPendingOrgs')}
+            {search ? t('noSearchResults') : t('noPendingOrgs')}
           </p>
         ) : (
           <div className="divide-y divide-hot-gray-200">
-            {pendingOrgs.map((org) => (
+            {visibleOrgs.map((org) => (
               <div key={org.id}>
                 <div className="flex items-center justify-between py-3 gap-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -109,19 +135,36 @@ function OrgsToApprovePage() {
                           {t('nameChangePending')}: {org.pending_name}
                         </p>
                       )}
+                      {org.pending_edit && (
+                        <p className="text-xs text-hot-gray-500 truncate">
+                          {t('editChangePending')}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <StatusBadge status={org.status} />
-                    <Button
-                      appearance="outlined"
-                      type="button"
-                      onClick={() =>
-                        setReviewingId((id) => (id === org.id ? null : org.id))
-                      }
-                    >
-                      {reviewingId === org.id ? t('close') : t('review')}
-                    </Button>
+                    {needsReview(org) ? (
+                      <Button
+                        appearance="outlined"
+                        type="button"
+                        onClick={() =>
+                          setReviewingId((id) =>
+                            id === org.id ? null : org.id,
+                          )
+                        }
+                      >
+                        {reviewingId === org.id ? t('close') : t('review')}
+                      </Button>
+                    ) : (
+                      <Button
+                        appearance="outlined"
+                        type="button"
+                        onClick={() => navigate(`/organizations/${org.id}`)}
+                      >
+                        {t('viewDetailsBtn')}
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -143,6 +186,24 @@ function OrgsToApprovePage() {
                           runAction(
                             () => rejectName(org.id),
                             t('orgNameRejected'),
+                          )
+                        }
+                      />
+                    ) : org.pending_edit ? (
+                      <OrgEditChangeReviewForm
+                        org={org}
+                        submitting={submitting}
+                        onCancel={() => setReviewingId(null)}
+                        onApproveEdit={() =>
+                          runAction(
+                            () => approveEdit(org.id),
+                            t('orgEditApproved'),
+                          )
+                        }
+                        onRejectEdit={() =>
+                          runAction(
+                            () => rejectEdit(org.id),
+                            t('orgEditRejected'),
                           )
                         }
                       />

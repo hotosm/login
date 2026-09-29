@@ -22,6 +22,7 @@ from hotosm_auth_fastapi import get_current_user
 from PIL import Image, ImageOps
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.authz import is_account_manager
 from app.db import get_db
 from app.db.models import Group, GroupMembership
 from app.schemas.groups import (
@@ -190,15 +191,31 @@ async def update_group(
 ) -> GroupResponse:
     """Update group details (owner/manager, or account manager for organizations).
 
-    The name is not editable here.
+    The name is not editable here. For an *approved* organization, an edit from
+    its own owner/manager (not an account manager) is staged in ``pending_edit``
+    for account-manager approval instead of applying immediately — account
+    managers, who are the approvers, keep editing directly.
     """
     group = await _load_group_or_404(db, group_id)
     role = await _require_manage_access(db, group, user, "manager")
-
     data = payload.model_dump(exclude_unset=True)
-    for field in ("description", "contact_email", "website", "is_public"):
-        if field in data:
-            setattr(group, field, data[field])
+
+    acting_as_manager = await is_account_manager(user, db)
+    if not acting_as_manager and group.type == "organization" and group.status == "approved":
+        group.pending_edit = data
+    else:
+        for field in ("description", "contact_email", "website", "is_public"):
+            if field in data:
+                setattr(group, field, data[field])
+        if acting_as_manager and group.type == "organization":
+            owner_id = await groups_service.get_owner_id(db, group)
+            if owner_id != user.id:
+                await notifications_service.create(
+                    db,
+                    recipient_id=owner_id,
+                    type="org_edited",
+                    data={"group_id": group.id, "group_name": group.name},
+                )
     await db.commit()
     await db.refresh(group)
     members_count = await groups_service.count_members(db, group.id)
@@ -238,7 +255,21 @@ async def delete_group(group_id: str, user: CurrentUser, db: DB) -> Response:
     """
     group = await _load_group_or_404(db, group_id)
     await _require_manage_access(db, group, user, "owner")
+
+    notify_org_deletion = group.type == "organization"
+    if notify_org_deletion:
+        owner_id = await groups_service.get_owner_id(db, group)
+        group_id_for_notice, group_name = group.id, group.name
+
     await db.delete(group)
+
+    if notify_org_deletion and owner_id != user.id:
+        await notifications_service.create(
+            db,
+            recipient_id=owner_id,
+            type="org_deleted",
+            data={"group_id": group_id_for_notice, "group_name": group_name},
+        )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

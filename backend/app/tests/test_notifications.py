@@ -127,6 +127,81 @@ async def test_reject_name_change_notifies_owner(client, auth):
     }
 
 
+async def test_account_manager_edit_notifies_owner(client, auth):
+    org = await _create_org(client)  # owner = USER_A
+    auth["user"] = ADMIN
+    with patch("app.api.routes.organizations_admin.send_email", new=AsyncMock()):
+        await client.post(f"/api/admin/organizations/{org['id']}/approve")
+    resp = await client.patch(
+        f"/api/groups/{org['id']}", json={"website": "https://adf.ht"}
+    )
+    assert resp.status_code == 200
+
+    auth["user"] = USER_A
+    items = await _my_notifications(client)
+    assert items[0]["type"] == "org_edited"
+    assert items[0]["data"] == {"group_id": org["id"], "group_name": "ADF Haiti"}
+
+
+async def test_approve_edit_notifies_owner(client, auth):
+    org = await _create_org(client)
+    auth["user"] = ADMIN
+    with patch("app.api.routes.organizations_admin.send_email", new=AsyncMock()):
+        await client.post(f"/api/admin/organizations/{org['id']}/approve")
+    auth["user"] = USER_A
+    await client.patch(f"/api/groups/{org['id']}", json={"website": "https://adf.ht"})
+
+    auth["user"] = ADMIN
+    resp = await client.post(f"/api/admin/organizations/{org['id']}/approve-edit")
+    assert resp.status_code == 204
+
+    auth["user"] = USER_A
+    items = await _my_notifications(client)
+    assert items[0]["type"] == "org_edit_approved"
+    assert items[0]["data"] == {"group_id": org["id"], "group_name": "ADF Haiti"}
+
+
+async def test_reject_edit_notifies_owner(client, auth):
+    org = await _create_org(client)
+    auth["user"] = ADMIN
+    with patch("app.api.routes.organizations_admin.send_email", new=AsyncMock()):
+        await client.post(f"/api/admin/organizations/{org['id']}/approve")
+    auth["user"] = USER_A
+    await client.patch(f"/api/groups/{org['id']}", json={"website": "https://adf.ht"})
+
+    auth["user"] = ADMIN
+    resp = await client.post(f"/api/admin/organizations/{org['id']}/reject-edit")
+    assert resp.status_code == 204
+
+    auth["user"] = USER_A
+    items = await _my_notifications(client)
+    assert items[0]["type"] == "org_edit_rejected"
+    assert items[0]["data"] == {"group_id": org["id"], "group_name": "ADF Haiti"}
+
+
+async def test_account_manager_delete_notifies_owner(client, auth):
+    org = await _create_org(client)  # owner = USER_A
+    auth["user"] = ADMIN
+    with patch("app.api.routes.organizations_admin.send_email", new=AsyncMock()):
+        await client.post(f"/api/admin/organizations/{org['id']}/approve")
+    resp = await client.delete(f"/api/groups/{org['id']}")
+    assert resp.status_code == 204
+
+    auth["user"] = USER_A
+    items = await _my_notifications(client)
+    assert items[0]["type"] == "org_deleted"
+    assert items[0]["data"] == {"group_id": org["id"], "group_name": "ADF Haiti"}
+
+
+async def test_self_delete_does_not_notify(client, auth):
+    org = await _create_org(client)  # USER_A owns and deletes it
+    resp = await client.delete(f"/api/groups/{org['id']}")
+    assert resp.status_code == 204
+
+    items = await _my_notifications(client)
+    assert not any(item["type"] == "org_deleted" for item in items)
+
+
 async def test_notifications_are_listed_newest_first(client, auth):
     org = await _create_org(client)
     await _stage_name_change(client, auth, org["id"])

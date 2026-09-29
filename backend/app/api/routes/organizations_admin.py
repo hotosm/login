@@ -32,7 +32,7 @@ from app.core.authz import (
     CurrentUser as _CurrentUser,
 )
 from app.core.config import settings
-from app.db.models import AccountManager, Group, GroupMembership
+from app.db.models import AccountManager, Group
 from app.schemas.groups import GroupListResponse
 from app.services import groups_service, hanko_lookup, notifications_service
 from app.services.email import send_email
@@ -86,17 +86,6 @@ async def _notify_owner(
     )
 
 
-async def _current_owner_id(db: AsyncSession, group: Group) -> str:
-    """Return the group's owner, falling back to whoever created it."""
-    result = await db.execute(
-        select(GroupMembership.hanko_user_id).where(
-            GroupMembership.group_id == group.id,
-            GroupMembership.role == "owner",
-        )
-    )
-    return result.scalars().first() or group.created_by
-
-
 class RejectRequest(BaseModel):
     """Optional reason when rejecting an organization."""
 
@@ -138,9 +127,13 @@ async def list_organizations(
     conditions = [Group.type == "organization"]
     if pending_action:
         # Everything awaiting a moderator: new requests plus approved orgs
-        # whose name change is still staged in ``pending_name``.
+        # whose name change or field edits are still staged.
         conditions.append(
-            or_(Group.status == "pending", Group.pending_name.isnot(None))
+            or_(
+                Group.status == "pending",
+                Group.pending_name.isnot(None),
+                Group.pending_edit.isnot(None),
+            )
         )
     elif status_filter:
         conditions.append(Group.status == status_filter)
@@ -246,7 +239,7 @@ async def approve_name_change(
     group.pending_name = None
     await notifications_service.create(
         db,
-        recipient_id=await _current_owner_id(db, group),
+        recipient_id=await groups_service.get_owner_id(db, group),
         type="org_name_approved",
         data={
             "group_id": group.id,
@@ -275,13 +268,59 @@ async def reject_name_change(
     group.pending_name = None
     await notifications_service.create(
         db,
-        recipient_id=await _current_owner_id(db, group),
+        recipient_id=await groups_service.get_owner_id(db, group),
         type="org_name_rejected",
         data={
             "group_id": group.id,
             "group_name": group.name,
             "rejected_name": rejected_name,
         },
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/organizations/{group_id}/approve-edit", status_code=status.HTTP_204_NO_CONTENT
+)
+async def approve_edit(group_id: str, admin: AccountManagerUser, db: DB) -> Response:
+    """Apply an organization's staged field edits."""
+    group = await _load_org_or_404(db, group_id)
+    if not group.pending_edit:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No pending edit",
+        )
+    for field, value in group.pending_edit.items():
+        setattr(group, field, value)
+    group.pending_edit = None
+    await notifications_service.create(
+        db,
+        recipient_id=await groups_service.get_owner_id(db, group),
+        type="org_edit_approved",
+        data={"group_id": group.id, "group_name": group.name},
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/organizations/{group_id}/reject-edit", status_code=status.HTTP_204_NO_CONTENT
+)
+async def reject_edit(group_id: str, admin: AccountManagerUser, db: DB) -> Response:
+    """Discard an organization's staged field edits."""
+    group = await _load_org_or_404(db, group_id)
+    if not group.pending_edit:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No pending edit",
+        )
+    group.pending_edit = None
+    await notifications_service.create(
+        db,
+        recipient_id=await groups_service.get_owner_id(db, group),
+        type="org_edit_rejected",
+        data={"group_id": group.id, "group_name": group.name},
     )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

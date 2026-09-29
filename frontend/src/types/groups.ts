@@ -27,6 +27,7 @@ export interface GroupResponse {
   banner_url: string | null;
   status: string;
   pending_name: string | null;
+  pending_edit: Record<string, unknown> | null;
   is_public: boolean;
   created_by: string;
   // Resolved by the moderation endpoints only; may be null when unknown

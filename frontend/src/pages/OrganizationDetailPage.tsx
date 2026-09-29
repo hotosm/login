@@ -79,7 +79,11 @@ function OrganizationDetailPage() {
         website: website || null,
         is_public: isPublic,
       });
-      if (updated) toast.success(t('detailsSaved'));
+      if (updated) {
+        toast.success(
+          updated.pending_edit ? t('editPendingApproval') : t('detailsSaved'),
+        );
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -219,6 +223,12 @@ function OrganizationDetailPage() {
               {org.pending_name && (
                 <p className="text-xs text-hot-gray-500 mt-1">
                   {t('nameChangePending')}: {org.pending_name}
+                </p>
+              )}
+              {org.pending_edit && (
+                <p className="text-xs text-hot-gray-500 mt-1">
+                  {t('editChangePending')}:{' '}
+                  {Object.keys(org.pending_edit).join(', ')}
                 </p>
               )}
             </div>

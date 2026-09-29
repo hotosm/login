@@ -63,6 +63,7 @@ class GroupResponse(BaseModel):
     banner_url: str | None = None
     status: GroupStatus
     pending_name: str | None = None
+    pending_edit: dict | None = None
     is_public: bool
     created_by: str
     # Resolved requester identity, when the endpoint looks it up (moderation

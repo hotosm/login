@@ -107,6 +107,17 @@ async def get_user_role(db: AsyncSession, group_id: str, user_id: str) -> str | 
     return membership.role if membership else None
 
 
+async def get_owner_id(db: AsyncSession, group: Group) -> str:
+    """Return the group's owner, falling back to whoever created it."""
+    result = await db.execute(
+        select(GroupMembership.hanko_user_id).where(
+            GroupMembership.group_id == group.id,
+            GroupMembership.role == "owner",
+        )
+    )
+    return result.scalars().first() or group.created_by
+
+
 async def load_group_or_404(db: AsyncSession, group_id: str) -> Group:
     """Load a group or raise 404."""
     group = await get_group(db, group_id)
@@ -278,6 +289,7 @@ def serialize_group(
         ),
         status=group.status,
         pending_name=group.pending_name,
+        pending_edit=group.pending_edit,
         is_public=group.is_public,
         created_by=group.created_by,
         created_by_name=creator.name,

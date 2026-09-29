@@ -140,6 +140,9 @@ class Group(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="approved")
     # Proposed name change awaiting account-manager approval (orgs only).
     pending_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # Proposed field edits (description/contact_email/website/is_public)
+    # awaiting account-manager approval on an approved organization.
+    pending_edit: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # Whether the group exposes a public profile in portal (opt-in).
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
