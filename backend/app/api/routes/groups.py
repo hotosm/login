@@ -201,7 +201,11 @@ async def update_group(
     data = payload.model_dump(exclude_unset=True)
 
     acting_as_manager = await is_account_manager(user, db)
-    if not acting_as_manager and group.type == "organization" and group.status == "approved":
+    if (
+        not acting_as_manager
+        and group.type == "organization"
+        and group.status == "approved"
+    ):
         group.pending_edit = data
     else:
         for field in ("description", "contact_email", "website", "is_public"):
