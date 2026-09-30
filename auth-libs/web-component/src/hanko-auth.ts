@@ -461,26 +461,16 @@ export class HankoAuth extends LitElement {
 
   // styles injected to ensure global availability
   private injectHotStyles() {
-    const stylesheets = [
-      {
-        id: "hot-design-system",
-        href: "https://cdn.jsdelivr.net/npm/@hotosm/ui-design@latest/dist/hot.css",
-      },
-      {
-        id: "google-font-archivo",
-        href: "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap",
-      },
-    ];
+    const id = "hot-design-system";
+    if (document.getElementById(id)) return;
 
-    stylesheets.forEach(({ id, href }) => {
-      if (!document.getElementById(id)) {
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = href;
-        link.id = id;
-        document.head.appendChild(link);
-      }
-    });
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.jsdelivr.net/npm/@hotosm/ui-design@latest/dist/hot.css";
+    link.id = id;
+    // Prepend so the host app's own stylesheets take precedence
+    document.head.prepend(link);
   }
 
   private async init() {
