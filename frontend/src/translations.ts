@@ -255,6 +255,9 @@ export interface Translations {
   linkDoneCourses: string;
   linkDoneGeneric: string;
   linkEmailAlreadyYours: string;
+  linkEmailTaken: string;
+  linkEmailTakenTitle: string;
+  linkSignInWithThatAccount: string;
   linkCodeSendFailed: string;
   linkCodeWrong: string;
   linkNoCoursesForEmail: string;
@@ -489,6 +492,9 @@ export const translations: Record<string, Translations> = {
     linkDoneCourses: 'We recovered your progress: {count} courses.',
     linkDoneGeneric: 'Your account is linked. From now on you sign in with your HOT account.',
     linkEmailAlreadyYours: 'That address is already on your account and verified.',
+    linkEmailTaken: 'An email address can only belong to one HOT account. Sign in with that one and your courses will be waiting.',
+    linkEmailTakenTitle: '{email} already has a HOT account',
+    linkSignInWithThatAccount: 'Sign in with that account',
     linkCodeSendFailed: 'We could not send the code. Check the address and try again.',
     linkCodeWrong: 'That code is not right, or it has expired.',
     linkNoCoursesForEmail: 'We verified that address, but it has no courses associated.',
@@ -725,6 +731,9 @@ export const translations: Record<string, Translations> = {
     linkDoneCourses: 'Recuperamos tu progreso: {count} cursos.',
     linkDoneGeneric: 'Tu cuenta quedó vinculada. A partir de ahora entras con tu cuenta HOT.',
     linkEmailAlreadyYours: 'Ese correo ya está en tu cuenta y verificado.',
+    linkEmailTaken: 'Un correo solo puede pertenecer a una cuenta HOT. Entra con esa y tus cursos van a estar ahí.',
+    linkEmailTakenTitle: '{email} ya tiene una cuenta HOT',
+    linkSignInWithThatAccount: 'Iniciar sesión con esa cuenta',
     linkCodeSendFailed: 'No pudimos enviar el código. Revisa la dirección e inténtalo de nuevo.',
     linkCodeWrong: 'El código no es correcto, o ya venció.',
     linkNoCoursesForEmail: 'Verificamos ese correo, pero no tiene cursos asociados.',
@@ -961,6 +970,9 @@ export const translations: Record<string, Translations> = {
     linkDoneCourses: 'Nous avons retrouvé votre progression : {count} cours.',
     linkDoneGeneric: 'Votre compte est lié. Désormais, connectez-vous avec votre compte HOT.',
     linkEmailAlreadyYours: 'Cette adresse est déjà sur votre compte et vérifiée.',
+    linkEmailTaken: 'Une adresse ne peut appartenir qu\'à un seul compte HOT. Connectez-vous avec celui-là et vos cours vous y attendent.',
+    linkEmailTakenTitle: '{email} a déjà un compte HOT',
+    linkSignInWithThatAccount: 'Se connecter avec ce compte',
     linkCodeSendFailed: 'Nous n\'avons pas pu envoyer le code. Vérifiez l\'adresse et réessayez.',
     linkCodeWrong: 'Ce code est incorrect ou a expiré.',
     linkNoCoursesForEmail: 'Nous avons vérifié cette adresse, mais aucun cours n\'y est associé.',
@@ -1193,6 +1205,9 @@ export const translations: Record<string, Translations> = {
     linkDoneCourses: 'Recuperamos seu progresso: {count} cursos.',
     linkDoneGeneric: 'Sua conta foi vinculada. A partir de agora você entra com sua conta HOT.',
     linkEmailAlreadyYours: 'Esse e-mail já está na sua conta e verificado.',
+    linkEmailTaken: 'Um e-mail só pode pertencer a uma conta HOT. Entre com essa e seus cursos estarão lá.',
+    linkEmailTakenTitle: '{email} já tem uma conta HOT',
+    linkSignInWithThatAccount: 'Entrar com essa conta',
     linkCodeSendFailed: 'Não foi possível enviar o código. Confira o endereço e tente de novo.',
     linkCodeWrong: 'O código não está correto ou expirou.',
     linkNoCoursesForEmail: 'Verificamos esse e-mail, mas ele não tem cursos associados.',

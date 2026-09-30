@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import hotLogo from '../assets/images/hot-logo.svg';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
 import { backendUrl, readError } from '../utils/api';
-import {
-  FlowState,
-  sendVerificationCode,
-  submitCode,
-} from '../utils/hankoFlow';
+import { FlowState, sendVerificationCode, submitCode } from '../utils/hankoFlow';
 
 // Shown when someone arrives from learn.hotosm.org and we cannot tell which
 // LearnWorlds account is theirs: no link stored, and none of their verified
@@ -14,9 +12,14 @@ import {
 //
 // Nothing has been created at this point, and nothing will be until they
 // answer. That is the whole reason this page exists: LearnWorlds makes a new,
-// empty account for an unknown address, and their old courses would then sit
-// out of reach behind the address they no longer use.
+// empty account for an unknown address, and the courses they already have
+// would then sit out of reach behind the address they no longer use.
 type Step = 'ask' | 'code' | 'done';
+
+// The address belongs to a different HOT account. Hanko refuses to move it,
+// which is right, and the way out is to sign in with that account instead —
+// so this error gets its own button rather than a line of red text.
+const EMAIL_TAKEN = 'email_taken';
 
 function LinkLearnWorldsPage() {
   const { t } = useLanguage();
@@ -32,6 +35,15 @@ function LinkLearnWorldsPage() {
   const [courses, setCourses] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [takenEmail, setTakenEmail] = useState<string | null>(null);
+
+  // Back to the SSO endpoint: with a link stored it now knows who they are.
+  // `new=1` tells it to go ahead and let LearnWorlds create the account.
+  const continueToLms = (startFresh = false) => {
+    const params = new URLSearchParams({ redirectUrl });
+    if (startFresh) params.set('new', '1');
+    window.location.href = `${backendUrl}/sso/learnworlds?${params}`;
+  };
 
   // Show which address came up empty, so the question makes sense.
   useEffect(() => {
@@ -57,16 +69,23 @@ function LinkLearnWorldsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Back to the SSO endpoint: with a link stored it now knows who they are.
-  // `new=1` tells it to go ahead and let LearnWorlds create the account.
-  const continueToLms = (startFresh = false) => {
-    const params = new URLSearchParams({ redirectUrl });
-    if (startFresh) params.set('new', '1');
-    window.location.href = `${backendUrl}/sso/learnworlds?${params}`;
+  // End this session and come back to the SSO entry point, which will ask them
+  // to sign in — with the account that owns the address they typed.
+  const signInWithThatAccount = async () => {
+    try {
+      await fetch(`${import.meta.env.VITE_HANKO_URL || ''}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // Even if the call fails, sending them on is better than staying here.
+    }
+    continueToLms();
   };
 
   const askForCode = async () => {
     setError(null);
+    setTakenEmail(null);
     setBusy(true);
     try {
       // The code is sent by Hanko, as part of adding the address to their HOT
@@ -76,11 +95,16 @@ function LinkLearnWorldsPage() {
       setFlow(await sendVerificationCode(otherEmail.trim()));
       setStep('code');
     } catch (err) {
-      setError(
-        err instanceof Error && err.message === 'already_verified'
-          ? t('linkEmailAlreadyYours')
-          : t('linkCodeSendFailed'),
-      );
+      const reason = err instanceof Error ? err.message : '';
+      if (reason === EMAIL_TAKEN) {
+        setTakenEmail(otherEmail.trim());
+      } else {
+        setError(
+          reason === 'already_verified'
+            ? t('linkEmailAlreadyYours')
+            : t('linkCodeSendFailed'),
+        );
+      }
     } finally {
       setBusy(false);
     }
@@ -125,108 +149,154 @@ function LinkLearnWorldsPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-hot-gray-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8">
-        {step === 'ask' && (
-          <>
-            <h1 className="text-xl font-semibold text-hot-gray-900 mb-2">
-              {t('linkTitle')}
-            </h1>
-            <p className="text-hot-gray-600 mb-1">
-              {currentEmail
-                ? t('linkNoCoursesFor').replace('{email}', currentEmail)
-                : t('linkNoCoursesGeneric')}
-            </p>
-            <p className="text-hot-gray-600 mb-6">{t('linkAskOtherEmail')}</p>
-
-            <input
-              type="email"
-              value={otherEmail}
-              onChange={(e) => setOtherEmail(e.target.value)}
-              placeholder={t('linkOtherEmailPlaceholder')}
-              className="w-full border border-hot-gray-300 rounded-lg px-4 py-3 mb-4"
+    <div className="flex items-center justify-center min-h-screen bg-hot-gray-50 p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-xl shadow-xl px-2 xl:px-8 py-8">
+          <LanguageSwitcher />
+          <div className="text-center mb-8">
+            <img
+              src={hotLogo}
+              alt="Humanitarian OpenStreetMap Team"
+              className="h-12 mx-auto"
             />
-            <button
-              onClick={askForCode}
-              disabled={busy || !otherEmail.trim()}
-              className="w-full bg-hot-red-600 text-white rounded-lg px-4 py-3 font-medium disabled:opacity-50"
-            >
-              {busy ? t('linkSearching') : t('linkFindMyProgress')}
-            </button>
+          </div>
 
-            {/* Always visible: most people who see this page really are new. */}
-            <button
-              onClick={() => continueToLms(true)}
-              className="w-full text-hot-gray-600 underline mt-4 py-2"
-            >
-              {t('linkIAmNew')}
-            </button>
-            <p className="text-xs text-hot-gray-500 text-center mt-4">
-              {t('linkOnlyOnce')}
-            </p>
-          </>
-        )}
+          <div className="max-w-[360px] mx-auto">
+            {step === 'ask' && (
+              <>
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-semibold text-hot-gray-900 mb-2">
+                    {t('linkTitle')}
+                  </h2>
+                  <p className="text-sm text-hot-gray-600">
+                    {currentEmail
+                      ? t('linkNoCoursesFor').replace('{email}', currentEmail)
+                      : t('linkNoCoursesGeneric')}
+                  </p>
+                </div>
 
-        {step === 'code' && (
-          <>
-            <h1 className="text-xl font-semibold text-hot-gray-900 mb-2">
-              {t('linkCodeTitle')}
-            </h1>
-            <p className="text-hot-gray-600 mb-6">
-              {t('linkCodeSentTo').replace('{email}', otherEmail)}
-            </p>
+                {takenEmail ? (
+                  // Not a dead end: that address has its own HOT account, and
+                  // signing in with it finds the courses without any linking.
+                  <div className="bg-amber-50 border border-amber-200 p-5 mb-6">
+                    <p className="text-center text-hot-gray-900 font-bold mb-3">
+                      {t('linkEmailTakenTitle').replace('{email}', takenEmail)}
+                    </p>
+                    <p className="text-center text-sm text-hot-gray-600 mb-4">
+                      {t('linkEmailTaken')}
+                    </p>
+                    <button
+                      onClick={signInWithThatAccount}
+                      className="btn-primary-hot"
+                    >
+                      {t('linkSignInWithThatAccount')}
+                    </button>
+                    <button
+                      onClick={() => setTakenEmail(null)}
+                      className="btn-back mt-2"
+                    >
+                      {t('linkUseAnotherEmail')}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-center text-sm text-hot-gray-700 mb-4">
+                      {t('linkAskOtherEmail')}
+                    </p>
+                    <input
+                      type="email"
+                      value={otherEmail}
+                      onChange={(e) => setOtherEmail(e.target.value)}
+                      placeholder={t('linkOtherEmailPlaceholder')}
+                      className="w-full py-3 px-4 mb-4 text-[15px] border border-hot-gray-300 rounded-md focus:outline-none focus:border-hot-red-600"
+                    />
+                    <button
+                      onClick={askForCode}
+                      disabled={busy || !otherEmail.trim()}
+                      className="btn-primary-hot disabled:opacity-50"
+                    >
+                      {busy ? t('linkSearching') : t('linkFindMyProgress')}
+                    </button>
 
-            <input
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="······"
-              className="w-full border border-hot-gray-300 rounded-lg px-4 py-3 mb-4 text-center tracking-[0.5em] text-lg"
-            />
-            <button
-              onClick={confirmCode}
-              disabled={busy || code.trim().length < 6}
-              className="w-full bg-hot-red-600 text-white rounded-lg px-4 py-3 font-medium disabled:opacity-50"
-            >
-              {busy ? t('linkVerifying') : t('linkVerify')}
-            </button>
-            <button
-              onClick={() => {
-                setStep('ask');
-                setCode('');
-                setError(null);
-              }}
-              className="w-full text-hot-gray-600 underline mt-4 py-2"
-            >
-              {t('linkUseAnotherEmail')}
-            </button>
-          </>
-        )}
+                    {/* Always visible: most people here really are new. */}
+                    <button
+                      onClick={() => continueToLms(true)}
+                      className="btn-back mt-3"
+                    >
+                      {t('linkIAmNew')}
+                    </button>
+                    <p className="text-xs text-hot-gray-500 text-center mt-4">
+                      {t('linkOnlyOnce')}
+                    </p>
+                  </>
+                )}
+              </>
+            )}
 
-        {step === 'done' && (
-          <>
-            <h1 className="text-xl font-semibold text-hot-gray-900 mb-2">
-              {t('linkDoneTitle')}
-            </h1>
-            <p className="text-hot-gray-600 mb-6">
-              {/* Concrete numbers are what convince someone nothing was lost. */}
-              {courses
-                ? t('linkDoneCourses').replace('{count}', String(courses))
-                : t('linkDoneGeneric')}
-            </p>
-            <button
-              onClick={() => continueToLms()}
-              className="w-full bg-hot-red-600 text-white rounded-lg px-4 py-3 font-medium"
-            >
-              {t('continue')}
-            </button>
-          </>
-        )}
+            {step === 'code' && (
+              <>
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-semibold text-hot-gray-900 mb-2">
+                    {t('linkCodeTitle')}
+                  </h2>
+                  <p className="text-sm text-hot-gray-600">
+                    {t('linkCodeSentTo').replace('{email}', otherEmail)}
+                  </p>
+                </div>
 
-        {error && (
-          <p className="text-sm text-hot-red-600 mt-4 text-center">{error}</p>
-        )}
+                <input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="······"
+                  className="w-full py-3 px-4 mb-4 text-lg text-center tracking-[0.5em] border border-hot-gray-300 rounded-md focus:outline-none focus:border-hot-red-600"
+                />
+                <button
+                  onClick={confirmCode}
+                  disabled={busy || code.trim().length < 6}
+                  className="btn-primary-hot disabled:opacity-50"
+                >
+                  {busy ? t('linkVerifying') : t('linkVerify')}
+                </button>
+                <button
+                  onClick={() => {
+                    setStep('ask');
+                    setCode('');
+                    setError(null);
+                  }}
+                  className="btn-back mt-3"
+                >
+                  {t('linkUseAnotherEmail')}
+                </button>
+              </>
+            )}
+
+            {step === 'done' && (
+              <>
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-semibold text-hot-gray-900 mb-2">
+                    {t('linkDoneTitle')}
+                  </h2>
+                  <p className="text-sm text-hot-gray-600">
+                    {/* Concrete numbers are what convince someone that
+                        nothing was lost. */}
+                    {courses
+                      ? t('linkDoneCourses').replace('{count}', String(courses))
+                      : t('linkDoneGeneric')}
+                  </p>
+                </div>
+                <button onClick={() => continueToLms()} className="btn-primary-hot">
+                  {t('continue')}
+                </button>
+              </>
+            )}
+
+            {error && (
+              <p className="text-sm text-hot-red-600 mt-4 text-center">{error}</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

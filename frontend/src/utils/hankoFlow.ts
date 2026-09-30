@@ -16,14 +16,37 @@ const hankoUrl = import.meta.env.VITE_HANKO_URL || '';
 export interface FlowState {
   name: string;
   csrf_token: string;
-  actions: Record<string, { href: string } | undefined>;
+  actions: Record<
+    string,
+    | {
+        href: string;
+        inputs?: Record<string, { error?: { message?: string } } | undefined>;
+      }
+    | undefined
+  >;
   payload?: {
     user?: { emails?: { id: string; address: string; is_verified?: boolean }[] };
   };
-  error?: { message?: string };
+  error?: { code?: string; message?: string };
 }
 
-class FlowError extends Error {}
+export class FlowError extends Error {}
+
+/**
+ * Whatever Hanko says went wrong, from the state or from the field itself.
+ *
+ * A rejected value comes back as HTTP 200 with the complaint attached to the
+ * input, not as an error response, so this looks in both places.
+ */
+function errorIn(state: FlowState, action?: string): string | null {
+  const fromState = state.error?.message || state.error?.code;
+  if (fromState) return fromState;
+  const inputs = action ? state.actions?.[action]?.inputs : undefined;
+  for (const input of Object.values(inputs || {})) {
+    if (input?.error?.message) return input.error.message;
+  }
+  return null;
+}
 
 async function post(path: string, body: unknown): Promise<FlowState> {
   const response = await fetch(`${hankoUrl}${path}`, {
@@ -86,11 +109,21 @@ export async function sendVerificationCode(address: string): Promise<FlowState> 
 
   let email = findEmail(state, address);
   if (!email) {
-    state = await runAction(state, 'email_create', { email: address });
-    if (state.error?.message) throw new FlowError(state.error.message);
-    email = findEmail(state, address);
+    const created = await runAction(state, 'email_create', { email: address });
+    const complaint = errorIn(created, 'email_create');
+    email = findEmail(created, address);
+    if (!email) {
+      // By far the most common reason: the address is on another HOT account.
+      // Hanko refuses to move it, and rightly so — but the person is not
+      // stuck, they can sign in with that account instead.
+      throw new FlowError(
+        complaint && !/exist|taken|already|in use/i.test(complaint)
+          ? 'rejected'
+          : 'email_taken',
+      );
+    }
+    state = created;
   }
-  if (!email) throw new FlowError('Hanko did not return the new address');
   if (email.is_verified) throw new FlowError('already_verified');
 
   // `email_verify` only shows up once an unverified address exists, which is
