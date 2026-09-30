@@ -133,6 +133,23 @@ class LearnWorldsClient:
                 return None
             return self._payload(response)
 
+    async def count_courses(self, user_id: str) -> int:
+        """How many courses a user is enrolled in.
+
+        Only used to reassure someone who just linked their account that their
+        progress is still there, so "none" and "the school has no courses" both
+        answer 0 rather than failing.
+        """
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.get(
+                f"{self.school_url}/admin/api/v2/users/{user_id}/courses",
+                headers=await self._headers(client),
+            )
+            if response.status_code == 404:
+                return 0
+            payload = self._payload(response)
+        return int((payload.get("meta") or {}).get("totalItems") or 0)
+
     async def sso_login(
         self,
         *,

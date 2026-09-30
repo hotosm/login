@@ -235,6 +235,30 @@ export interface Translations {
   orgRejected?: string;
   orgNameApproved?: string;
   orgNameRejected?: string;
+
+  // LearnWorlds account linking
+  linkTitle: string;
+  linkNoCoursesFor: string;
+  linkNoCoursesGeneric: string;
+  linkAskOtherEmail: string;
+  linkOtherEmailPlaceholder: string;
+  linkFindMyProgress: string;
+  linkSearching: string;
+  linkIAmNew: string;
+  linkOnlyOnce: string;
+  linkCodeTitle: string;
+  linkCodeSentTo: string;
+  linkVerify: string;
+  linkVerifying: string;
+  linkUseAnotherEmail: string;
+  linkDoneTitle: string;
+  linkDoneCourses: string;
+  linkDoneGeneric: string;
+  linkEmailAlreadyYours: string;
+  linkCodeSendFailed: string;
+  linkCodeWrong: string;
+  linkNoCoursesForEmail: string;
+  linkFailed: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -447,6 +471,28 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organization rejected.',
     orgNameApproved: 'Name change approved.',
     orgNameRejected: 'Name change rejected.',
+    linkTitle: 'Welcome to the HOT Learning Center',
+    linkNoCoursesFor: 'We could not find courses associated with {email}.',
+    linkNoCoursesGeneric: 'We could not find courses associated with your account.',
+    linkAskOtherEmail: 'Did you take courses with a different email address?',
+    linkOtherEmailPlaceholder: 'your-other-email@example.com',
+    linkFindMyProgress: 'Find my progress',
+    linkSearching: 'Searching...',
+    linkIAmNew: 'I\'m new here, start from scratch',
+    linkOnlyOnce: 'We only ask this once.',
+    linkCodeTitle: 'Check your inbox',
+    linkCodeSentTo: 'We sent a code to {email}',
+    linkVerify: 'Verify',
+    linkVerifying: 'Verifying...',
+    linkUseAnotherEmail: 'Use another email address',
+    linkDoneTitle: 'All set',
+    linkDoneCourses: 'We recovered your progress: {count} courses.',
+    linkDoneGeneric: 'Your account is linked. From now on you sign in with your HOT account.',
+    linkEmailAlreadyYours: 'That address is already on your account and verified.',
+    linkCodeSendFailed: 'We could not send the code. Check the address and try again.',
+    linkCodeWrong: 'That code is not right, or it has expired.',
+    linkNoCoursesForEmail: 'We verified that address, but it has no courses associated.',
+    linkFailed: 'Something went wrong. Please try again.',
   },
   es: {
     welcomeTo: "Bienvenido a HOT's",
@@ -661,6 +707,28 @@ export const translations: Record<string, Translations> = {
     rejectBtn: 'Rechazar',
     approveNameBtn: 'Aprobar nombre',
     rejectNameBtn: 'Rechazar nombre',
+    linkTitle: 'Bienvenido al HOT Learning Center',
+    linkNoCoursesFor: 'No encontramos cursos asociados a {email}.',
+    linkNoCoursesGeneric: 'No encontramos cursos asociados a tu cuenta.',
+    linkAskOtherEmail: '¿Hiciste cursos con otro correo electrónico?',
+    linkOtherEmailPlaceholder: 'tu-otro-correo@ejemplo.com',
+    linkFindMyProgress: 'Buscar mi progreso',
+    linkSearching: 'Buscando...',
+    linkIAmNew: 'Soy nuevo, empezar de cero',
+    linkOnlyOnce: 'Te lo preguntamos una sola vez.',
+    linkCodeTitle: 'Revisa tu correo',
+    linkCodeSentTo: 'Te enviamos un código a {email}',
+    linkVerify: 'Verificar',
+    linkVerifying: 'Verificando...',
+    linkUseAnotherEmail: 'Usar otro correo',
+    linkDoneTitle: 'Listo',
+    linkDoneCourses: 'Recuperamos tu progreso: {count} cursos.',
+    linkDoneGeneric: 'Tu cuenta quedó vinculada. A partir de ahora entras con tu cuenta HOT.',
+    linkEmailAlreadyYours: 'Ese correo ya está en tu cuenta y verificado.',
+    linkCodeSendFailed: 'No pudimos enviar el código. Revisa la dirección e inténtalo de nuevo.',
+    linkCodeWrong: 'El código no es correcto, o ya venció.',
+    linkNoCoursesForEmail: 'Verificamos ese correo, pero no tiene cursos asociados.',
+    linkFailed: 'Algo salió mal. Inténtalo de nuevo.',
   },
   fr: {
     welcomeTo: "Bienvenue sur HOT's",
@@ -875,6 +943,28 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organisation rejetée.',
     orgNameApproved: 'Changement de nom approuvé.',
     orgNameRejected: 'Changement de nom rejeté.',
+    linkTitle: 'Bienvenue au HOT Learning Center',
+    linkNoCoursesFor: 'Nous n\'avons pas trouvé de cours associés à {email}.',
+    linkNoCoursesGeneric: 'Nous n\'avons pas trouvé de cours associés à votre compte.',
+    linkAskOtherEmail: 'Avez-vous suivi des cours avec une autre adresse e-mail ?',
+    linkOtherEmailPlaceholder: 'votre-autre-email@exemple.com',
+    linkFindMyProgress: 'Retrouver ma progression',
+    linkSearching: 'Recherche...',
+    linkIAmNew: 'Je suis nouveau, commencer de zéro',
+    linkOnlyOnce: 'Nous ne le demandons qu\'une seule fois.',
+    linkCodeTitle: 'Consultez votre boîte mail',
+    linkCodeSentTo: 'Nous avons envoyé un code à {email}',
+    linkVerify: 'Vérifier',
+    linkVerifying: 'Vérification...',
+    linkUseAnotherEmail: 'Utiliser une autre adresse',
+    linkDoneTitle: 'C\'est fait',
+    linkDoneCourses: 'Nous avons retrouvé votre progression : {count} cours.',
+    linkDoneGeneric: 'Votre compte est lié. Désormais, connectez-vous avec votre compte HOT.',
+    linkEmailAlreadyYours: 'Cette adresse est déjà sur votre compte et vérifiée.',
+    linkCodeSendFailed: 'Nous n\'avons pas pu envoyer le code. Vérifiez l\'adresse et réessayez.',
+    linkCodeWrong: 'Ce code est incorrect ou a expiré.',
+    linkNoCoursesForEmail: 'Nous avons vérifié cette adresse, mais aucun cours n\'y est associé.',
+    linkFailed: 'Une erreur s\'est produite. Veuillez réessayer.',
   },
   pt: {
     welcomeTo: "Bem-vindo ao HOT's",
@@ -1085,6 +1175,28 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organização rejeitada.',
     orgNameApproved: 'Alteração de nome aprovada.',
     orgNameRejected: 'Alteração de nome rejeitada.',
+    linkTitle: 'Bem-vindo ao HOT Learning Center',
+    linkNoCoursesFor: 'Não encontramos cursos associados a {email}.',
+    linkNoCoursesGeneric: 'Não encontramos cursos associados à sua conta.',
+    linkAskOtherEmail: 'Você fez cursos com outro e-mail?',
+    linkOtherEmailPlaceholder: 'seu-outro-email@exemplo.com',
+    linkFindMyProgress: 'Encontrar meu progresso',
+    linkSearching: 'Procurando...',
+    linkIAmNew: 'Sou novo, começar do zero',
+    linkOnlyOnce: 'Perguntamos isso apenas uma vez.',
+    linkCodeTitle: 'Verifique seu e-mail',
+    linkCodeSentTo: 'Enviamos um código para {email}',
+    linkVerify: 'Verificar',
+    linkVerifying: 'Verificando...',
+    linkUseAnotherEmail: 'Usar outro e-mail',
+    linkDoneTitle: 'Pronto',
+    linkDoneCourses: 'Recuperamos seu progresso: {count} cursos.',
+    linkDoneGeneric: 'Sua conta foi vinculada. A partir de agora você entra com sua conta HOT.',
+    linkEmailAlreadyYours: 'Esse e-mail já está na sua conta e verificado.',
+    linkCodeSendFailed: 'Não foi possível enviar o código. Confira o endereço e tente de novo.',
+    linkCodeWrong: 'O código não está correto ou expirou.',
+    linkNoCoursesForEmail: 'Verificamos esse e-mail, mas ele não tem cursos associados.',
+    linkFailed: 'Algo deu errado. Tente novamente.',
   },
 };
 

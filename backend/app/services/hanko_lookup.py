@@ -99,3 +99,29 @@ async def email_has_account(email: str) -> bool | None:
             await conn.close()
     except Exception:
         return None
+
+
+async def verified_emails(user_id: str) -> list[str]:
+    """Every verified email address on a Hanko account, lowercased.
+
+    A Hanko user can hold several addresses, and the JWT only carries the
+    primary one. Anything that decides "is this person the owner of that
+    account elsewhere" has to consider all of them — and only the verified
+    ones, since an unverified address proves nothing.
+
+    Returns an empty list when Hanko can't be reached, which callers must treat
+    as "no proof", never as "no emails".
+    """
+    try:
+        conn = await asyncpg.connect(settings.hanko_db_url)
+        try:
+            rows = await conn.fetch(
+                "SELECT lower(address) FROM emails "
+                "WHERE user_id = $1::uuid AND verified = true",
+                user_id,
+            )
+            return [row[0] for row in rows]
+        finally:
+            await conn.close()
+    except Exception:
+        return []

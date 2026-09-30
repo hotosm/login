@@ -134,9 +134,24 @@ async def test_second_login_uses_the_mapping(client, db, lw, signed_in):
 
 
 @pytest.mark.asyncio
-async def test_unknown_email_creates_and_links(client, db, lw, signed_in):
-    """No match anywhere: LearnWorlds creates the account and we link it."""
+async def test_no_match_asks_before_creating(client, db, lw, signed_in):
+    """Nothing matched: ask, instead of quietly making a second account."""
     response = await client.get(SSO_PATH, follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/app/link/learnworlds" in response.headers["location"]
+
+    # Nothing was created: the person can still claim their old account.
+    lw.sso_login.assert_not_awaited()
+    assert await _mappings(db) == []
+
+
+@pytest.mark.asyncio
+async def test_i_am_new_creates_and_links(client, db, lw, signed_in):
+    """"I'm new" on that screen comes back here and goes ahead."""
+    response = await client.get(
+        SSO_PATH, params={"new": "1"}, follow_redirects=False
+    )
 
     assert response.status_code == 302
     assert lw.sso_login.await_args.kwargs["user_id"] is None
@@ -158,7 +173,7 @@ async def test_unverified_email_is_not_adopted(client, db, lw, signed_in):
 
     assert response.status_code == 302
     lw.get_user_by_email.assert_not_awaited()
-    assert lw.sso_login.await_args.kwargs["user_id"] is None
+    assert "/app/link/learnworlds" in response.headers["location"]
 
 
 @pytest.mark.asyncio
@@ -166,7 +181,7 @@ async def test_foreign_redirect_url_is_discarded(client, lw, signed_in):
     """RedirectUrl comes from the browser: anything off-school is dropped."""
     response = await client.get(
         SSO_PATH,
-        params={"redirectUrl": "https://evil.example.com/steal"},
+        params={"redirectUrl": "https://evil.example.com/steal", "new": "1"},
         follow_redirects=False,
     )
 
@@ -187,7 +202,7 @@ async def test_profile_name_and_avatar_are_sent(client, db, lw, signed_in):
     )
     await db.commit()
 
-    await client.get(SSO_PATH, follow_redirects=False)
+    await client.get(SSO_PATH, params={"new": "1"}, follow_redirects=False)
 
     sent = lw.sso_login.await_args.kwargs
     assert sent["username"] == "Ada Lovelace"
@@ -199,7 +214,7 @@ async def test_profile_name_and_avatar_are_sent(client, db, lw, signed_in):
 @pytest.mark.asyncio
 async def test_without_profile_falls_back_to_display_name(client, lw, signed_in):
     """No profile row: fall back rather than sending an empty name."""
-    await client.get(SSO_PATH, follow_redirects=False)
+    await client.get(SSO_PATH, params={"new": "1"}, follow_redirects=False)
 
     sent = lw.sso_login.await_args.kwargs
     assert sent["username"] == USER_A.display_name
@@ -211,7 +226,7 @@ async def test_sign_in_page_redirect_goes_home(client, lw, signed_in):
     """Coming from the LMS sign-in page, going back there shows "you are lost"."""
     response = await client.get(
         SSO_PATH,
-        params={"redirectUrl": f"{SCHOOL}/signin"},
+        params={"redirectUrl": f"{SCHOOL}/signin", "new": "1"},
         follow_redirects=False,
     )
 
@@ -240,3 +255,108 @@ async def test_missing_credentials_answer_503(client, signed_in):
         response = await client.get(SSO_PATH, follow_redirects=False)
 
     assert response.status_code == 503
+
+
+# --- linking screen -------------------------------------------------------
+#
+# The browser adds and verifies the address through Hanko's own flow; these
+# cover what happens afterwards, when the screen asks us to link.
+
+LINK_PATH = "/api/sso/learnworlds/link"
+
+
+@pytest.fixture
+def verified():
+    """Control which addresses Hanko considers verified for the user."""
+    with patch.object(
+        sso_route.hanko_lookup, "verified_emails", new=AsyncMock(return_value=[])
+    ) as mock:
+        yield mock
+
+
+@pytest.mark.asyncio
+async def test_link_adopts_the_account_behind_a_verified_email(
+    client, db, lw, signed_in, verified
+):
+    """The whole point: recover the courses sitting under another address."""
+    verified.return_value = [USER_A.email, "old@work.org"]
+    lw.get_user_by_email.return_value = {"id": "lw-old", "email": "old@work.org"}
+    lw.count_courses = AsyncMock(return_value=4)
+
+    response = await client.post(LINK_PATH, json={"email": "old@work.org"})
+
+    assert response.status_code == 200
+    assert response.json() == {"linked": True, "courses": 4}
+    assert [r.app_user_id for r in await _mappings(db)] == ["lw-old"]
+
+
+@pytest.mark.asyncio
+async def test_link_refuses_an_address_the_person_has_not_verified(
+    client, db, lw, signed_in, verified
+):
+    """Otherwise anyone could claim someone else's courses by typing their email."""
+    verified.return_value = [USER_A.email]
+    lw.get_user_by_email.return_value = {"id": "lw-someone-else"}
+
+    response = await client.post(LINK_PATH, json={"email": "victim@example.org"})
+
+    assert response.status_code == 403
+    lw.get_user_by_email.assert_not_awaited()
+    assert await _mappings(db) == []
+
+
+@pytest.mark.asyncio
+async def test_link_reports_when_the_address_has_no_courses(
+    client, db, lw, signed_in, verified
+):
+    """Verified, but nothing there: say so instead of linking nothing."""
+    verified.return_value = ["spare@example.org"]
+
+    response = await client.post(LINK_PATH, json={"email": "spare@example.org"})
+
+    assert response.status_code == 404
+    assert await _mappings(db) == []
+
+
+@pytest.mark.asyncio
+async def test_link_refuses_when_already_linked(client, db, lw, signed_in, verified):
+    """A second link would silently move someone to a different account."""
+    db.add(
+        HankoUserMapping(
+            hanko_user_id=USER_A.id, app_name="learnworlds", app_user_id="lw-linked"
+        )
+    )
+    await db.commit()
+    verified.return_value = ["other@example.org"]
+
+    response = await client.post(LINK_PATH, json={"email": "other@example.org"})
+
+    assert response.status_code == 409
+    assert [r.app_user_id for r in await _mappings(db)] == ["lw-linked"]
+
+
+@pytest.mark.asyncio
+async def test_link_survives_a_failing_course_count(
+    client, db, lw, signed_in, verified
+):
+    """The link is what matters; the count is only there to reassure."""
+    verified.return_value = ["old@work.org"]
+    lw.get_user_by_email.return_value = {"id": "lw-old"}
+    lw.count_courses = AsyncMock(side_effect=sso_route.LearnWorldsError("boom"))
+
+    response = await client.post(LINK_PATH, json={"email": "old@work.org"})
+
+    assert response.status_code == 200
+    assert response.json() == {"linked": True, "courses": None}
+    assert [r.app_user_id for r in await _mappings(db)] == ["lw-old"]
+
+
+@pytest.mark.asyncio
+async def test_status_lists_the_addresses_to_try(client, lw, signed_in, verified):
+    """The screen shows which address came up empty."""
+    verified.return_value = [USER_A.email]
+
+    response = await client.get("/api/sso/learnworlds/status")
+
+    assert response.status_code == 200
+    assert response.json() == {"linked": False, "emails": [USER_A.email]}
