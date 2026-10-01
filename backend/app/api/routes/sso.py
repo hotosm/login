@@ -15,13 +15,15 @@ from urllib.parse import urlencode, urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
-from hotosm_auth_fastapi import CurrentUserOptional
+from hotosm_auth_fastapi import CurrentUser, CurrentUserOptional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.db import get_db
 from app.db.models import HankoUserMapping, UserProfile
+from app.schemas.sso import LinkRequest
+from app.services import hanko_lookup
 from app.services.learnworlds import LearnWorldsError, learnworlds_client
 
 logger = logging.getLogger(__name__)
@@ -100,6 +102,39 @@ async def _linked_user_id(db: AsyncSession, hanko_user_id: str) -> str | None:
     return result.scalar_one_or_none()
 
 
+async def _match_by_email(user) -> str | None:
+    """Find the person's LearnWorlds account by any of their verified emails.
+
+    Only verified addresses count: an unverified one proves nothing, and
+    matching on it would hand someone else's courses to whoever signed up with
+    their address.
+    """
+    addresses = await hanko_lookup.verified_emails(user.id)
+    if not addresses and user.email and user.email_verified:
+        # Hanko unreachable: fall back to the address in the validated JWT.
+        addresses = [user.email]
+
+    for address in addresses:
+        try:
+            existing = await learnworlds_client.get_user_by_email(address)
+        except LearnWorldsError as exc:
+            logger.exception("LearnWorlds lookup failed for %s", user.id)
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="LearnWorlds is not responding",
+            ) from exc
+        if existing and existing.get("id"):
+            return existing["id"]
+    return None
+
+
+def _linking_page_redirect(request: Request, redirect_url: str) -> RedirectResponse:
+    """Send the person to the screen that looks for their existing courses."""
+    origin = (settings.frontend_url or str(request.base_url)).rstrip("/")
+    page = f"{origin}/app/link/learnworlds?" + urlencode({"redirectUrl": redirect_url})
+    return RedirectResponse(page, status_code=status.HTTP_302_FOUND)
+
+
 async def _profile_fields(db: AsyncSession, user) -> dict[str, str]:
     """Name and avatar for the LearnWorlds profile, taken from our own.
 
@@ -146,14 +181,19 @@ async def learnworlds_sso(
     user: CurrentUserOptional,
     action: str = Query("login"),
     redirect_url: str | None = Query(None, alias="redirectUrl"),
+    start_fresh: bool = Query(False, alias="new"),
 ) -> RedirectResponse:
     """Log a HOT user into LearnWorlds and bounce them back to the LMS.
 
     **Authentication**: a Hanko session is optional here — without one the
     visitor is sent to the login page and returns to this same URL.
 
+    ``new=1`` is what the linking screen sends back when the person says they
+    are new: it skips the screen and lets LearnWorlds create the account.
+
     **Returns**:
-    - 302: to the LearnWorlds one-time login URL, or to our login page
+    - 302: to the LearnWorlds one-time login URL, to our login page, or to the
+      linking screen
     - 400: unknown ``action``
     - 502/503: LearnWorlds unreachable or credentials not configured
     """
@@ -180,26 +220,17 @@ async def learnworlds_sso(
     learnworlds_user_id = await _linked_user_id(db, user.id)
     matched_by_email = False
 
-    # Not linked yet: try to adopt an existing LearnWorlds account with the same
-    # email. Only a verified email proves the person owns it — without that
-    # check anyone could claim someone else's courses by signing up with their
-    # address.
-    if not learnworlds_user_id and user.email and user.email_verified:
-        try:
-            existing = await learnworlds_client.get_user_by_email(user.email)
-        except LearnWorldsError as exc:
-            logger.exception("LearnWorlds lookup failed for %s", user.id)
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="LearnWorlds is not responding",
-            ) from exc
-        if existing and existing.get("id"):
-            learnworlds_user_id = existing["id"]
-            matched_by_email = True
+    if not learnworlds_user_id:
+        learnworlds_user_id = await _match_by_email(user)
+        matched_by_email = learnworlds_user_id is not None
 
-    # TODO (phase 3): when nothing matched, the user may still own an account
-    # under a different email. The linking screens go here, before the call
-    # below — which creates an account as a side effect.
+    # Nothing matched: the person may still own an account under an address
+    # they have not added to their HOT account yet. Ask before creating
+    # anything — the call below would make a second, empty account, and the
+    # courses on the old one would be out of their reach.
+    if not learnworlds_user_id and not start_fresh:
+        return _linking_page_redirect(request, target)
+
     try:
         login_url, resolved_id = await learnworlds_client.sso_login(
             user_id=learnworlds_user_id,
@@ -223,3 +254,74 @@ async def learnworlds_sso(
         )
 
     return RedirectResponse(login_url, status_code=status.HTTP_302_FOUND)
+
+
+@router.get("/learnworlds/status")
+async def learnworlds_status(db: DB, user: CurrentUser) -> dict:
+    """What the linking screen needs to know before showing anything.
+
+    **Authentication**: requires a Hanko session.
+    """
+    linked = await _linked_user_id(db, user.id)
+    return {
+        "linked": linked is not None,
+        "emails": await hanko_lookup.verified_emails(user.id)
+        or ([user.email] if user.email else []),
+    }
+
+
+@router.post("/learnworlds/link")
+async def learnworlds_link(db: DB, user: CurrentUser, payload: LinkRequest) -> dict:
+    """Link the account that owns ``email`` to this HOT user.
+
+    The address must already be a **verified** email on their HOT account: the
+    browser adds and verifies it through Hanko's own flow, and this only acts
+    on the result. Checking it here rather than trusting the request is what
+    stops anyone from claiming another person's courses.
+
+    **Authentication**: requires a Hanko session.
+
+    **Returns**:
+    - 200: linked, with how many courses came back
+    - 403: the address is not a verified email on this account
+    - 404: no LearnWorlds account uses that address
+    - 409: this HOT account is already linked
+    """
+    if await _linked_user_id(db, user.id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This account is already linked",
+        )
+
+    address = payload.email.strip().lower()
+    if address not in await hanko_lookup.verified_emails(user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="That address is not a verified email on your account",
+        )
+
+    try:
+        existing = await learnworlds_client.get_user_by_email(address)
+    except LearnWorldsError as exc:
+        logger.exception("LearnWorlds lookup failed while linking %s", user.id)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="LearnWorlds is not responding",
+        ) from exc
+
+    if not existing or not existing.get("id"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No courses are associated with that address",
+        )
+
+    await _link(db, user.id, existing["id"])
+
+    try:
+        courses = await learnworlds_client.count_courses(existing["id"])
+    except LearnWorldsError:
+        # The link is what matters; the count is only there to reassure.
+        logger.warning("Could not count courses for %s", existing["id"])
+        courses = None
+
+    return {"linked": True, "courses": courses}

@@ -27,10 +27,6 @@ const messageFor = (n: AppNotification, t: Translate): string => {
       return t('notifOrgNameRejected', { name: d.rejected_name ?? '' });
     case 'org_edited':
       return t('notifOrgEdited', { name: d.group_name ?? '' });
-    case 'org_edit_approved':
-      return t('notifOrgEditApproved', { name: d.group_name ?? '' });
-    case 'org_edit_rejected':
-      return t('notifOrgEditRejected', { name: d.group_name ?? '' });
     case 'org_deleted':
       return t('notifOrgDeleted', { name: d.group_name ?? '' });
     case 'team_member_joined':

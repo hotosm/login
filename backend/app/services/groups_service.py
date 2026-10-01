@@ -289,7 +289,6 @@ def serialize_group(
         ),
         status=group.status,
         pending_name=group.pending_name,
-        pending_edit=group.pending_edit,
         is_public=group.is_public,
         created_by=group.created_by,
         created_by_name=creator.name,

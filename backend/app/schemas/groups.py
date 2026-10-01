@@ -63,7 +63,6 @@ class GroupResponse(BaseModel):
     banner_url: str | None = None
     status: GroupStatus
     pending_name: str | None = None
-    pending_edit: dict | None = None
     is_public: bool
     created_by: str
     # Resolved requester identity, when the endpoint looks it up (moderation
@@ -211,6 +210,15 @@ class PublicUserResponse(BaseModel):
     """Public-facing user profile."""
 
     slug: str
+    # Internal cross-service join key (e.g. for Portal's own per-user tables).
+    # Not a secret — login's own by-id profile lookup is already unauthenticated.
+    hanko_user_id: str
     first_name: str | None = None
     last_name: str | None = None
     picture_url: str | None = None
+
+
+class PublicUserGroupsResponse(BaseModel):
+    """Public organizations/teams a user owns."""
+
+    items: list[PublicGroupResponse]

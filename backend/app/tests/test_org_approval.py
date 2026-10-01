@@ -93,7 +93,7 @@ async def test_name_change_requires_approval_when_approved(client, auth):
     assert body["slug"] == "adf-new"
 
 
-async def test_owner_edit_on_approved_org_is_staged_not_applied(client, auth):
+async def test_owner_can_edit_details_but_not_name(client, auth):
     org = await _create_org(client)
     auth["user"] = ADMIN
     await client.post(f"/api/admin/organizations/{org['id']}/approve")
@@ -104,21 +104,8 @@ async def test_owner_edit_on_approved_org_is_staged_not_applied(client, auth):
         json={"website": "https://adf.ht", "name": "Hacked"},
     )
     assert resp.status_code == 200
-    body = resp.json()
-    assert body["name"] == "ADF Haiti"
-    assert body["website"] is None  # not applied yet
-    assert body["pending_edit"] == {"website": "https://adf.ht"}
-
-
-async def test_owner_edit_on_pending_org_applies_immediately(client, auth):
-    org = await _create_org(client)  # still pending, not approved
-    resp = await client.patch(
-        f"/api/groups/{org['id']}", json={"website": "https://adf.ht"}
-    )
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["website"] == "https://adf.ht"
-    assert body["pending_edit"] is None
+    assert resp.json()["name"] == "ADF Haiti"
+    assert resp.json()["website"] == "https://adf.ht"
 
 
 async def test_account_manager_edit_applies_immediately(client, auth):
@@ -129,65 +116,7 @@ async def test_account_manager_edit_applies_immediately(client, auth):
         f"/api/groups/{org['id']}", json={"website": "https://adf.ht"}
     )
     assert resp.status_code == 200
-    body = resp.json()
-    assert body["website"] == "https://adf.ht"
-    assert body["pending_edit"] is None
-
-
-async def test_approve_edit_applies_pending_changes(client, auth):
-    org = await _create_org(client)
-    auth["user"] = ADMIN
-    await client.post(f"/api/admin/organizations/{org['id']}/approve")
-    auth["user"] = USER_A
-    await client.patch(f"/api/groups/{org['id']}", json={"website": "https://adf.ht"})
-
-    auth["user"] = ADMIN
-    resp = await client.post(f"/api/admin/organizations/{org['id']}/approve-edit")
-    assert resp.status_code == 204
-
-    resp = await client.get(f"/api/groups/{org['id']}")
-    body = resp.json()
-    assert body["website"] == "https://adf.ht"
-    assert body["pending_edit"] is None
-
-
-async def test_reject_edit_discards_pending_changes(client, auth):
-    org = await _create_org(client)
-    auth["user"] = ADMIN
-    await client.post(f"/api/admin/organizations/{org['id']}/approve")
-    auth["user"] = USER_A
-    await client.patch(f"/api/groups/{org['id']}", json={"website": "https://adf.ht"})
-
-    auth["user"] = ADMIN
-    resp = await client.post(f"/api/admin/organizations/{org['id']}/reject-edit")
-    assert resp.status_code == 204
-
-    auth["user"] = USER_A
-    resp = await client.get(f"/api/groups/{org['id']}")
-    body = resp.json()
-    assert body["website"] is None
-    assert body["pending_edit"] is None
-
-
-async def test_approve_edit_without_pending_edit_404s(client, auth):
-    org = await _create_org(client)
-    auth["user"] = ADMIN
-    await client.post(f"/api/admin/organizations/{org['id']}/approve")
-    resp = await client.post(f"/api/admin/organizations/{org['id']}/approve-edit")
-    assert resp.status_code == 400
-
-
-async def test_pending_action_lists_pending_edits(client, auth):
-    org = await _create_org(client)
-    auth["user"] = ADMIN
-    await client.post(f"/api/admin/organizations/{org['id']}/approve")
-    auth["user"] = USER_A
-    await client.patch(f"/api/groups/{org['id']}", json={"website": "https://adf.ht"})
-
-    auth["user"] = ADMIN
-    resp = await client.get("/api/admin/organizations?pending_action=true")
-    ids = [item["id"] for item in resp.json()["items"]]
-    assert org["id"] in ids
+    assert resp.json()["website"] == "https://adf.ht"
 
 
 async def test_am_role_via_allowlist_and_table(client, auth, db):
@@ -270,6 +199,17 @@ async def test_pending_action_excludes_settled_orgs(client, auth):
     resp = await client.get("/api/admin/organizations?status=approved")
     ids = [item["id"] for item in resp.json()["items"]]
     assert org["id"] in ids
+
+
+async def test_list_organizations_filters_by_name_search(client, auth):
+    adf = await _create_org(client, name="ADF Haiti")
+    hot = await _create_org(client, name="HOT Tech Team")
+    auth["user"] = ADMIN
+
+    resp = await client.get("/api/admin/organizations?search=adf")
+    ids = [item["id"] for item in resp.json()["items"]]
+    assert adf["id"] in ids
+    assert hot["id"] not in ids
 
 
 async def test_reject_name_change_clears_pending_name(client, auth):

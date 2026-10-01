@@ -96,7 +96,10 @@ email:
   use_for_authentication: false
 
 passcode:
-  enabled: false
+  # Needed to verify an address someone adds to their account, which is
+  # how the LearnWorlds linking screen proves a second email is theirs.
+  # Not a login method here: email.use_for_authentication stays false.
+  enabled: true
   ttl: 300  # 5 minutes
 
 password:

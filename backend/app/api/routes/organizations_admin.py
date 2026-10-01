@@ -120,23 +120,22 @@ async def list_organizations(
     db: DB,
     status_filter: Annotated[str | None, Query(alias="status")] = None,
     pending_action: Annotated[bool, Query()] = False,
+    search: Annotated[str | None, Query()] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> GroupListResponse:
-    """List organizations for moderation (optionally filtered by status)."""
+    """List organizations for moderation (optionally filtered by status/name)."""
     conditions = [Group.type == "organization"]
     if pending_action:
         # Everything awaiting a moderator: new requests plus approved orgs
-        # whose name change or field edits are still staged.
+        # whose name change is still staged.
         conditions.append(
-            or_(
-                Group.status == "pending",
-                Group.pending_name.isnot(None),
-                Group.pending_edit.isnot(None),
-            )
+            or_(Group.status == "pending", Group.pending_name.isnot(None))
         )
     elif status_filter:
         conditions.append(Group.status == status_filter)
+    if search:
+        conditions.append(Group.name.ilike(f"%{search}%"))
 
     total_result = await db.execute(
         select(func.count()).select_from(Group).where(*conditions)
@@ -275,52 +274,6 @@ async def reject_name_change(
             "group_name": group.name,
             "rejected_name": rejected_name,
         },
-    )
-    await db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.post(
-    "/organizations/{group_id}/approve-edit", status_code=status.HTTP_204_NO_CONTENT
-)
-async def approve_edit(group_id: str, admin: AccountManagerUser, db: DB) -> Response:
-    """Apply an organization's staged field edits."""
-    group = await _load_org_or_404(db, group_id)
-    if not group.pending_edit:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No pending edit",
-        )
-    for field, value in group.pending_edit.items():
-        setattr(group, field, value)
-    group.pending_edit = None
-    await notifications_service.create(
-        db,
-        recipient_id=await groups_service.get_owner_id(db, group),
-        type="org_edit_approved",
-        data={"group_id": group.id, "group_name": group.name},
-    )
-    await db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.post(
-    "/organizations/{group_id}/reject-edit", status_code=status.HTTP_204_NO_CONTENT
-)
-async def reject_edit(group_id: str, admin: AccountManagerUser, db: DB) -> Response:
-    """Discard an organization's staged field edits."""
-    group = await _load_org_or_404(db, group_id)
-    if not group.pending_edit:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No pending edit",
-        )
-    group.pending_edit = None
-    await notifications_service.create(
-        db,
-        recipient_id=await groups_service.get_owner_id(db, group),
-        type="org_edit_rejected",
-        data={"group_id": group.id, "group_name": group.name},
     )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

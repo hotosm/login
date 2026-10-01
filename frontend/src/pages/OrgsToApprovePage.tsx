@@ -1,9 +1,8 @@
-import OrgEditChangeReviewForm from '@/components/OrgEditChangeReviewForm';
 import OrgNameChangeReviewForm from '@/components/OrgNameChangeReviewForm';
 import OrgReviewForm from '@/components/OrgReviewForm';
 import PanelHeader from '@/components/PanelHeader';
 import Button from '@/components/shared/Button';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import StatusBadge from '../components/shared/StatusBadge';
@@ -25,6 +24,11 @@ function OrgsToApprovePage() {
 
   const {
     organizations,
+    totalPages,
+    page,
+    goToPage,
+    search,
+    runSearch,
     loading,
     error,
     unauthorized,
@@ -32,13 +36,11 @@ function OrgsToApprovePage() {
     reject,
     approveName,
     rejectName,
-    approveEdit,
-    rejectEdit,
   } = useManagedOrganizations(canModerate);
 
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
     if (unauthorized) {
@@ -51,16 +53,8 @@ function OrgsToApprovePage() {
     if (error) toast.error(error);
   }, [error]);
 
-  const visibleOrgs = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return organizations;
-    return organizations.filter((org) =>
-      org.name.toLowerCase().includes(query),
-    );
-  }, [organizations, search]);
-
   const needsReview = (org: GroupResponse) =>
-    org.status === 'pending' || !!org.pending_name || !!org.pending_edit;
+    org.status === 'pending' || !!org.pending_name;
 
   // Every action closes the review block and reports through a toast
   const runAction = async (action: () => Promise<void>, message: string) => {
@@ -103,21 +97,31 @@ function OrgsToApprovePage() {
       <div className="bg-white rounded-xl shadow-xl p-6 flex flex-col gap-lg">
         <PanelHeader sectionName={t('orgsToApprove')} />
 
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('searchOrganizationsPlaceholder')}
-          className="px-3 py-2 text-sm border border-hot-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 focus:border-hot-red-400"
-        />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder={t('searchOrganizationsPlaceholder')}
+            className="flex-1 px-3 py-2 text-sm border border-hot-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 focus:border-hot-red-400"
+          />
+          <Button
+            appearance="outlined"
+            type="button"
+            disabled={loading}
+            onClick={() => runSearch(searchInput)}
+          >
+            {t('searchBtn')}
+          </Button>
+        </div>
 
-        {visibleOrgs.length === 0 ? (
+        {organizations.length === 0 ? (
           <p className="text-sm text-hot-gray-500 py-6 text-center">
             {search ? t('noSearchResults') : t('noPendingOrgs')}
           </p>
         ) : (
           <div className="divide-y divide-hot-gray-200">
-            {visibleOrgs.map((org) => (
+            {organizations.map((org) => (
               <div key={org.id}>
                 <div className="flex items-center justify-between py-3 gap-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -133,11 +137,6 @@ function OrgsToApprovePage() {
                       {org.pending_name && (
                         <p className="text-xs text-hot-gray-500 truncate">
                           {t('nameChangePending')}: {org.pending_name}
-                        </p>
-                      )}
-                      {org.pending_edit && (
-                        <p className="text-xs text-hot-gray-500 truncate">
-                          {t('editChangePending')}
                         </p>
                       )}
                     </div>
@@ -189,24 +188,6 @@ function OrgsToApprovePage() {
                           )
                         }
                       />
-                    ) : org.pending_edit ? (
-                      <OrgEditChangeReviewForm
-                        org={org}
-                        submitting={submitting}
-                        onCancel={() => setReviewingId(null)}
-                        onApproveEdit={() =>
-                          runAction(
-                            () => approveEdit(org.id),
-                            t('orgEditApproved'),
-                          )
-                        }
-                        onRejectEdit={() =>
-                          runAction(
-                            () => rejectEdit(org.id),
-                            t('orgEditRejected'),
-                          )
-                        }
-                      />
                     ) : (
                       <OrgReviewForm
                         org={org}
@@ -227,6 +208,30 @@ function OrgsToApprovePage() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 pt-2">
+            <button
+              type="button"
+              onClick={() => goToPage(page - 1)}
+              disabled={page === 1}
+              className="btn-secondary-small disabled:opacity-50"
+            >
+              {t('previous')}
+            </button>
+            <span className="text-sm text-hot-gray-500">
+              {page} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => goToPage(page + 1)}
+              disabled={page === totalPages}
+              className="btn-secondary-small disabled:opacity-50"
+            >
+              {t('next')}
+            </button>
           </div>
         )}
       </div>

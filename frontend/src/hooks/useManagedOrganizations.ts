@@ -2,21 +2,34 @@ import { useCallback, useEffect, useState } from 'react';
 import type { GroupResponse } from '../types/groups';
 import { backendUrl, readError } from '../utils/api';
 
+export const ORGS_PAGE_SIZE = 20;
+
 // Every organization plus the moderation actions on them
 // (GET/POST /admin/organizations*, admin or account manager only).
 // Actions throw on failure so each screen can pick its own error surface.
 export function useManagedOrganizations(enabled: boolean) {
   const [organizations, setOrganizations] = useState<GroupResponse[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
 
-  const refresh = useCallback(async () => {
+  // Fetches one page, with an explicit page/search rather than reading state,
+  // so the caller controls exactly when a request fires — the search box only
+  // searches on submit, not on every keystroke.
+  const load = useCallback(async (loadPage: number, loadSearch: string) => {
     setLoading(true);
     setError(null);
     try {
+      const params = new URLSearchParams({
+        page: String(loadPage),
+        page_size: String(ORGS_PAGE_SIZE),
+      });
+      if (loadSearch.trim()) params.set('search', loadSearch.trim());
       const response = await fetch(
-        `${backendUrl}/admin/organizations?page=1&page_size=100`,
+        `${backendUrl}/admin/organizations?${params}`,
         { credentials: 'include' },
       );
       // Session expired — the caller sends the user back to login
@@ -27,6 +40,9 @@ export function useManagedOrganizations(enabled: boolean) {
       if (!response.ok) throw new Error(await readError(response));
       const data = await response.json();
       setOrganizations(data.items || []);
+      setTotal(data.total || 0);
+      setPage(loadPage);
+      setSearch(loadSearch);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to load organizations',
@@ -37,8 +53,20 @@ export function useManagedOrganizations(enabled: boolean) {
   }, []);
 
   useEffect(() => {
-    if (enabled) refresh();
-  }, [enabled, refresh]);
+    if (enabled) load(1, '');
+    // `load` is stable (empty dep array below), so this only fires when the
+    // panel becomes enabled, never on search/page changes.
+  }, [enabled, load]);
+
+  const goToPage = useCallback(
+    (newPage: number) => load(newPage, search),
+    [load, search],
+  );
+
+  // Runs a search from page 1 — called on submit, not as-you-type.
+  const runSearch = useCallback((term: string) => load(1, term), [load]);
+
+  const refresh = useCallback(() => load(page, search), [load, page, search]);
 
   const post = useCallback(
     async (path: string, body?: unknown) => {
@@ -79,18 +107,13 @@ export function useManagedOrganizations(enabled: boolean) {
     [post],
   );
 
-  const approveEdit = useCallback(
-    (orgId: string) => post(`/admin/organizations/${orgId}/approve-edit`),
-    [post],
-  );
-
-  const rejectEdit = useCallback(
-    (orgId: string) => post(`/admin/organizations/${orgId}/reject-edit`),
-    [post],
-  );
-
   return {
     organizations,
+    totalPages: Math.ceil(total / ORGS_PAGE_SIZE),
+    page,
+    goToPage,
+    search,
+    runSearch,
     loading,
     error,
     unauthorized,
@@ -99,7 +122,5 @@ export function useManagedOrganizations(enabled: boolean) {
     reject,
     approveName,
     rejectName,
-    approveEdit,
-    rejectEdit,
   };
 }

@@ -44,6 +44,35 @@ export interface Translations {
   accountDeleted: string;
   profileUpdated: string;
 
+  // Public profile on Portal
+  publicProfileTitle: string;
+  publicProfileDescription: string;
+  createPublicProfile: string;
+  slugLabel: string;
+  // {url} is filled in with the resulting public profile address.
+  slugUrlPreview: string;
+  publicProfileSubmit: string;
+  publicProfileCreating: string;
+  viewEditPublicProfile: string;
+  redirectingToPortal: string;
+  // {suggestion} is filled in with the alternative the backend proposes.
+  slugTaken: string;
+  useSuggestedSlug: string;
+  publicProfileValidationError: string;
+  publicProfileCooldown: string;
+  publicProfileError: string;
+  editUrl: string;
+  // {date} is filled in with the localized date the cooldown ends.
+  slugCooldownUntil: string;
+  slugChangeBreaksLinks: string;
+  slugUpdated: string;
+  slugUpdateError: string;
+  unpublishProfile: string;
+  unpublishConfirmTitle: string;
+  unpublishConfirmBody: string;
+  unpublish: string;
+  unpublishError: string;
+
   // Developer Settings
   developerSettings: string;
   apiAccessTokens: string;
@@ -101,8 +130,6 @@ export interface Translations {
   notifOrgNameApproved?: string;
   notifOrgNameRejected?: string;
   notifOrgEdited?: string;
-  notifOrgEditApproved?: string;
-  notifOrgEditRejected?: string;
   notifOrgDeleted?: string;
   notifTeamMemberJoined?: string;
   // {member} and {team} are replaced at runtime too.
@@ -159,7 +186,6 @@ export interface Translations {
   membersTab?: string;
   changeName?: string;
   nameChangePending?: string;
-  editChangePending?: string;
   avatarLabel?: string;
   bannerLabel?: string;
   changeBanner?: string;
@@ -240,19 +266,37 @@ export interface Translations {
   orgRejected?: string;
   orgNameApproved?: string;
   orgNameRejected?: string;
-  orgEditApproved?: string;
-  orgEditRejected?: string;
-  currentValue?: string;
-  proposedValue?: string;
-  publicProfile?: string;
-  yes?: string;
-  no?: string;
-  approveEditBtn?: string;
-  rejectEditBtn?: string;
-  editPendingApproval?: string;
   searchOrganizationsPlaceholder?: string;
+  searchBtn?: string;
   noSearchResults?: string;
   viewDetailsBtn?: string;
+
+  // LearnWorlds account linking
+  linkTitle: string;
+  linkNoCoursesFor: string;
+  linkNoCoursesGeneric: string;
+  linkAskOtherEmail: string;
+  linkOtherEmailPlaceholder: string;
+  linkFindMyProgress: string;
+  linkSearching: string;
+  linkIAmNew: string;
+  linkOnlyOnce: string;
+  linkCodeTitle: string;
+  linkCodeSentTo: string;
+  linkVerify: string;
+  linkVerifying: string;
+  linkUseAnotherEmail: string;
+  linkDoneTitle: string;
+  linkDoneCourses: string;
+  linkDoneGeneric: string;
+  linkEmailAlreadyYours: string;
+  linkEmailTaken: string;
+  linkEmailTakenTitle: string;
+  linkSignInWithThatAccount: string;
+  linkCodeSendFailed: string;
+  linkCodeWrong: string;
+  linkNoCoursesForEmail: string;
+  linkFailed: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -296,6 +340,35 @@ export const translations: Record<string, Translations> = {
     accountCreated: 'Account created',
     accountDeleted: 'Your account has been deleted successfully.',
     profileUpdated: 'Profile updated successfully',
+    publicProfileTitle: 'Public profile',
+    publicProfileDescription:
+      'Share who you are with the HOT community. Your public profile shows your name and your work across HOT tools.',
+    createPublicProfile: 'Create public profile',
+    slugLabel: 'Profile URL',
+    slugUrlPreview: 'Your profile will be at {url}',
+    publicProfileSubmit: 'Create public profile',
+    publicProfileCreating: 'Creating...',
+    viewEditPublicProfile: 'View / edit my public profile',
+    redirectingToPortal: 'Redirecting to Portal…',
+    slugTaken: 'That URL is already taken, try: {suggestion}',
+    useSuggestedSlug: 'Use this one',
+    publicProfileValidationError:
+      'First name, last name and profile URL are all required.',
+    publicProfileCooldown:
+      'Your profile URL was changed recently. Try again later.',
+    publicProfileError: 'Could not create your public profile',
+    editUrl: 'Edit URL',
+    slugCooldownUntil: 'You can change your profile URL again on {date}.',
+    slugChangeBreaksLinks:
+      'Changing your URL breaks every link to your old address — we do not redirect it.',
+    slugUpdated: 'Profile URL updated',
+    slugUpdateError: 'Could not update your profile URL',
+    unpublishProfile: 'Unpublish profile',
+    unpublishConfirmTitle: 'Unpublish your public profile?',
+    unpublishConfirmBody:
+      'Your public page stops being available to anyone. Your URL stays reserved for you, so you can publish again whenever you want.',
+    unpublish: 'Unpublish',
+    unpublishError: 'Could not unpublish your profile',
     developerSettings: 'Developer Settings',
     apiAccessTokens: 'API Access Tokens',
     apiTokenWarning:
@@ -348,8 +421,6 @@ export const translations: Record<string, Translations> = {
     notifOrgNameApproved: 'Your name change to {name} was approved.',
     notifOrgNameRejected: 'Your name change to {name} was not approved.',
     notifOrgEdited: 'Your organization {name} was edited by a manager.',
-    notifOrgEditApproved: 'Your changes to {name} were approved.',
-    notifOrgEditRejected: 'Your changes to {name} were not approved.',
     notifOrgDeleted: 'Your organization {name} was deleted by a manager.',
     notifTeamMemberJoined: 'You were added to the team {name}.',
     notifTeamMemberLeft: '{member} left the team {team}.',
@@ -397,7 +468,6 @@ export const translations: Record<string, Translations> = {
     membersTab: 'Members',
     changeName: 'Change name',
     nameChangePending: 'Name change pending approval',
-    editChangePending: 'Edit change pending approval',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Change banner',
@@ -470,19 +540,35 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organization rejected.',
     orgNameApproved: 'Name change approved.',
     orgNameRejected: 'Name change rejected.',
-    orgEditApproved: 'Changes approved.',
-    orgEditRejected: 'Changes rejected.',
-    currentValue: 'Current value',
-    proposedValue: 'Proposed value',
-    publicProfile: 'Public profile',
-    yes: 'Yes',
-    no: 'No',
-    approveEditBtn: 'Approve changes',
-    rejectEditBtn: 'Reject changes',
-    editPendingApproval: 'Your changes were submitted for review.',
     searchOrganizationsPlaceholder: 'Search organizations by name',
+    searchBtn: 'Search',
     noSearchResults: 'No organizations match your search.',
     viewDetailsBtn: 'View details',
+    linkTitle: 'Welcome to the HOT Learning Center',
+    linkNoCoursesFor: 'We could not find courses associated with {email}.',
+    linkNoCoursesGeneric: 'We could not find courses associated with your account.',
+    linkAskOtherEmail: 'Did you take courses with a different email address?',
+    linkOtherEmailPlaceholder: 'your-other-email@example.com',
+    linkFindMyProgress: 'Find my progress',
+    linkSearching: 'Searching...',
+    linkIAmNew: 'I\'m new here, start from scratch',
+    linkOnlyOnce: 'We only ask this once.',
+    linkCodeTitle: 'Check your inbox',
+    linkCodeSentTo: 'We sent a code to {email}',
+    linkVerify: 'Verify',
+    linkVerifying: 'Verifying...',
+    linkUseAnotherEmail: 'Use another email address',
+    linkDoneTitle: 'All set',
+    linkDoneCourses: 'We recovered your progress: {count} courses.',
+    linkDoneGeneric: 'Your account is linked. From now on you sign in with your HOT account.',
+    linkEmailAlreadyYours: 'That address is already on your account and verified.',
+    linkEmailTaken: 'An email address can only belong to one HOT account. Sign in with that one and your courses will be waiting.',
+    linkEmailTakenTitle: '{email} already has a HOT account',
+    linkSignInWithThatAccount: 'Sign in with that account',
+    linkCodeSendFailed: 'We could not send the code. Check the address and try again.',
+    linkCodeWrong: 'That code is not right, or it has expired.',
+    linkNoCoursesForEmail: 'We verified that address, but it has no courses associated.',
+    linkFailed: 'Something went wrong. Please try again.',
   },
   es: {
     welcomeTo: "Bienvenido a HOT's",
@@ -525,6 +611,35 @@ export const translations: Record<string, Translations> = {
     accountCreated: 'Cuenta creada',
     accountDeleted: 'Tu cuenta ha sido eliminada exitosamente.',
     profileUpdated: 'Perfil actualizado exitosamente',
+    publicProfileTitle: 'Perfil público',
+    publicProfileDescription:
+      'Contá quién sos a la comunidad de HOT. Tu perfil público muestra tu nombre y tu trabajo en las herramientas de HOT.',
+    createPublicProfile: 'Crear perfil público',
+    slugLabel: 'URL del perfil',
+    slugUrlPreview: 'Tu perfil va a estar en {url}',
+    publicProfileSubmit: 'Crear perfil público',
+    publicProfileCreating: 'Creando...',
+    viewEditPublicProfile: 'Ver / editar mi perfil público',
+    redirectingToPortal: 'Redirigiendo a Portal…',
+    slugTaken: 'Esa URL ya está en uso, probá: {suggestion}',
+    useSuggestedSlug: 'Usar esta',
+    publicProfileValidationError:
+      'Nombre, apellido y URL del perfil son obligatorios.',
+    publicProfileCooldown:
+      'Cambiaste la URL de tu perfil hace poco. Probá de nuevo más adelante.',
+    publicProfileError: 'No pudimos crear tu perfil público',
+    editUrl: 'Editar URL',
+    slugCooldownUntil: 'Vas a poder cambiar la URL de tu perfil el {date}.',
+    slugChangeBreaksLinks:
+      'Cambiar la URL rompe todos los links a tu dirección anterior: no la redirigimos.',
+    slugUpdated: 'URL del perfil actualizada',
+    slugUpdateError: 'No pudimos actualizar la URL de tu perfil',
+    unpublishProfile: 'Despublicar perfil',
+    unpublishConfirmTitle: '¿Despublicar tu perfil público?',
+    unpublishConfirmBody:
+      'Tu página pública deja de estar disponible para todo el mundo. Tu URL queda reservada, así que podés volver a publicarla cuando quieras.',
+    unpublish: 'Despublicar',
+    unpublishError: 'No pudimos despublicar tu perfil',
     developerSettings: 'Configuración de Desarrollador',
     apiAccessTokens: 'Tokens de acceso API',
     apiTokenWarning:
@@ -578,8 +693,6 @@ export const translations: Record<string, Translations> = {
     notifOrgNameApproved: 'Tu cambio de nombre a {name} fue aprobado.',
     notifOrgNameRejected: 'Tu cambio de nombre a {name} no fue aprobado.',
     notifOrgEdited: 'Tu organización {name} fue editada por un gestor.',
-    notifOrgEditApproved: 'Tus cambios en {name} fueron aprobados.',
-    notifOrgEditRejected: 'Tus cambios en {name} no fueron aprobados.',
     notifOrgDeleted: 'Tu organización {name} fue eliminada por un gestor.',
     notifTeamMemberJoined: 'Te agregaron al equipo {name}.',
     notifTeamMemberLeft: '{member} dejó el equipo {team}.',
@@ -629,7 +742,6 @@ export const translations: Record<string, Translations> = {
     membersTab: 'Miembros',
     changeName: 'Cambiar nombre',
     nameChangePending: 'Cambio de nombre pendiente de aprobación',
-    editChangePending: 'Cambio de edición pendiente de aprobación',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Cambiar banner',
@@ -698,23 +810,39 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organización rechazada.',
     orgNameApproved: 'Cambio de nombre aprobado.',
     orgNameRejected: 'Cambio de nombre rechazado.',
-    orgEditApproved: 'Cambios aprobados.',
-    orgEditRejected: 'Cambios rechazados.',
-    currentValue: 'Valor actual',
-    proposedValue: 'Valor propuesto',
-    publicProfile: 'Perfil público',
-    yes: 'Sí',
-    no: 'No',
-    approveEditBtn: 'Aprobar cambios',
-    rejectEditBtn: 'Rechazar cambios',
-    editPendingApproval: 'Tus cambios fueron enviados a revisión.',
     searchOrganizationsPlaceholder: 'Buscar organizaciones por nombre',
+    searchBtn: 'Buscar',
     noSearchResults: 'Ninguna organización coincide con tu búsqueda.',
     viewDetailsBtn: 'Ver detalles',
     approveBtn: 'Aprobar',
     rejectBtn: 'Rechazar',
     approveNameBtn: 'Aprobar nombre',
     rejectNameBtn: 'Rechazar nombre',
+    linkTitle: 'Bienvenido al HOT Learning Center',
+    linkNoCoursesFor: 'No encontramos cursos asociados a {email}.',
+    linkNoCoursesGeneric: 'No encontramos cursos asociados a tu cuenta.',
+    linkAskOtherEmail: '¿Hiciste cursos con otro correo electrónico?',
+    linkOtherEmailPlaceholder: 'tu-otro-correo@ejemplo.com',
+    linkFindMyProgress: 'Buscar mi progreso',
+    linkSearching: 'Buscando...',
+    linkIAmNew: 'Soy nuevo, empezar de cero',
+    linkOnlyOnce: 'Te lo preguntamos una sola vez.',
+    linkCodeTitle: 'Revisa tu correo',
+    linkCodeSentTo: 'Te enviamos un código a {email}',
+    linkVerify: 'Verificar',
+    linkVerifying: 'Verificando...',
+    linkUseAnotherEmail: 'Usar otro correo',
+    linkDoneTitle: 'Listo',
+    linkDoneCourses: 'Recuperamos tu progreso: {count} cursos.',
+    linkDoneGeneric: 'Tu cuenta quedó vinculada. A partir de ahora entras con tu cuenta HOT.',
+    linkEmailAlreadyYours: 'Ese correo ya está en tu cuenta y verificado.',
+    linkEmailTaken: 'Un correo solo puede pertenecer a una cuenta HOT. Entra con esa y tus cursos van a estar ahí.',
+    linkEmailTakenTitle: '{email} ya tiene una cuenta HOT',
+    linkSignInWithThatAccount: 'Iniciar sesión con esa cuenta',
+    linkCodeSendFailed: 'No pudimos enviar el código. Revisa la dirección e inténtalo de nuevo.',
+    linkCodeWrong: 'El código no es correcto, o ya venció.',
+    linkNoCoursesForEmail: 'Verificamos ese correo, pero no tiene cursos asociados.',
+    linkFailed: 'Algo salió mal. Inténtalo de nuevo.',
   },
   fr: {
     welcomeTo: "Bienvenue sur HOT's",
@@ -756,6 +884,36 @@ export const translations: Record<string, Translations> = {
     accountCreated: 'Compte créé',
     accountDeleted: 'Votre compte a été supprimé avec succès.',
     profileUpdated: 'Profil mis à jour avec succès',
+    publicProfileTitle: 'Profil public',
+    publicProfileDescription:
+      'Présentez-vous à la communauté HOT. Votre profil public affiche votre nom et votre travail sur les outils HOT.',
+    createPublicProfile: 'Créer un profil public',
+    slugLabel: 'URL du profil',
+    slugUrlPreview: 'Votre profil sera à {url}',
+    publicProfileSubmit: 'Créer un profil public',
+    publicProfileCreating: 'Création...',
+    viewEditPublicProfile: 'Voir / modifier mon profil public',
+    redirectingToPortal: 'Redirection vers Portal…',
+    slugTaken: 'Cette URL est déjà prise, essayez : {suggestion}',
+    useSuggestedSlug: 'Utiliser celle-ci',
+    publicProfileValidationError:
+      'Le prénom, le nom et l’URL du profil sont obligatoires.',
+    publicProfileCooldown:
+      'Vous avez changé l’URL de votre profil récemment. Réessayez plus tard.',
+    publicProfileError: 'Impossible de créer votre profil public',
+    editUrl: 'Modifier l’URL',
+    slugCooldownUntil:
+      'Vous pourrez changer l’URL de votre profil à nouveau le {date}.',
+    slugChangeBreaksLinks:
+      'Changer votre URL casse tous les liens vers votre ancienne adresse : nous ne la redirigeons pas.',
+    slugUpdated: 'URL du profil mise à jour',
+    slugUpdateError: 'Impossible de mettre à jour l’URL de votre profil',
+    unpublishProfile: 'Dépublier le profil',
+    unpublishConfirmTitle: 'Dépublier votre profil public ?',
+    unpublishConfirmBody:
+      'Votre page publique ne sera plus accessible à personne. Votre URL reste réservée, vous pourrez donc republier quand vous le souhaitez.',
+    unpublish: 'Dépublier',
+    unpublishError: 'Impossible de dépublier votre profil',
     developerSettings: 'Paramètres Développeur',
     apiAccessTokens: "Tokens d'accès API",
     apiTokenWarning:
@@ -810,9 +968,6 @@ export const translations: Record<string, Translations> = {
       "Votre changement de nom en {name} n'a pas été approuvé.",
     notifOrgEdited:
       'Votre organisation {name} a été modifiée par un gestionnaire.',
-    notifOrgEditApproved: 'Vos modifications à {name} ont été approuvées.',
-    notifOrgEditRejected:
-      "Vos modifications à {name} n'ont pas été approuvées.",
     notifOrgDeleted:
       'Votre organisation {name} a été supprimée par un gestionnaire.',
     notifTeamMemberJoined: "Vous avez été ajouté à l'équipe {name}.",
@@ -864,7 +1019,6 @@ export const translations: Record<string, Translations> = {
     membersTab: 'Membres',
     changeName: 'Changer le nom',
     nameChangePending: "Changement de nom en attente d'approbation",
-    editChangePending: "Modification en attente d'approbation",
     avatarLabel: 'Avatar',
     bannerLabel: 'Bannière',
     changeBanner: 'Changer la bannière',
@@ -937,19 +1091,35 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organisation rejetée.',
     orgNameApproved: 'Changement de nom approuvé.',
     orgNameRejected: 'Changement de nom rejeté.',
-    orgEditApproved: 'Modifications approuvées.',
-    orgEditRejected: 'Modifications rejetées.',
-    currentValue: 'Valeur actuelle',
-    proposedValue: 'Valeur proposée',
-    publicProfile: 'Profil public',
-    yes: 'Oui',
-    no: 'Non',
-    approveEditBtn: 'Approuver les modifications',
-    rejectEditBtn: 'Rejeter les modifications',
-    editPendingApproval: 'Vos modifications ont été soumises pour examen.',
     searchOrganizationsPlaceholder: 'Rechercher des organisations par nom',
+    searchBtn: 'Rechercher',
     noSearchResults: 'Aucune organisation ne correspond à votre recherche.',
     viewDetailsBtn: 'Voir les détails',
+    linkTitle: 'Bienvenue au HOT Learning Center',
+    linkNoCoursesFor: 'Nous n\'avons pas trouvé de cours associés à {email}.',
+    linkNoCoursesGeneric: 'Nous n\'avons pas trouvé de cours associés à votre compte.',
+    linkAskOtherEmail: 'Avez-vous suivi des cours avec une autre adresse e-mail ?',
+    linkOtherEmailPlaceholder: 'votre-autre-email@exemple.com',
+    linkFindMyProgress: 'Retrouver ma progression',
+    linkSearching: 'Recherche...',
+    linkIAmNew: 'Je suis nouveau, commencer de zéro',
+    linkOnlyOnce: 'Nous ne le demandons qu\'une seule fois.',
+    linkCodeTitle: 'Consultez votre boîte mail',
+    linkCodeSentTo: 'Nous avons envoyé un code à {email}',
+    linkVerify: 'Vérifier',
+    linkVerifying: 'Vérification...',
+    linkUseAnotherEmail: 'Utiliser une autre adresse',
+    linkDoneTitle: 'C\'est fait',
+    linkDoneCourses: 'Nous avons retrouvé votre progression : {count} cours.',
+    linkDoneGeneric: 'Votre compte est lié. Désormais, connectez-vous avec votre compte HOT.',
+    linkEmailAlreadyYours: 'Cette adresse est déjà sur votre compte et vérifiée.',
+    linkEmailTaken: 'Une adresse ne peut appartenir qu\'à un seul compte HOT. Connectez-vous avec celui-là et vos cours vous y attendent.',
+    linkEmailTakenTitle: '{email} a déjà un compte HOT',
+    linkSignInWithThatAccount: 'Se connecter avec ce compte',
+    linkCodeSendFailed: 'Nous n\'avons pas pu envoyer le code. Vérifiez l\'adresse et réessayez.',
+    linkCodeWrong: 'Ce code est incorrect ou a expiré.',
+    linkNoCoursesForEmail: 'Nous avons vérifié cette adresse, mais aucun cours n\'y est associé.',
+    linkFailed: 'Une erreur s\'est produite. Veuillez réessayer.',
   },
   pt: {
     welcomeTo: "Bem-vindo ao HOT's",
@@ -990,6 +1160,35 @@ export const translations: Record<string, Translations> = {
     accountCreated: 'Conta criada',
     accountDeleted: 'Sua conta foi excluída com sucesso.',
     profileUpdated: 'Perfil atualizado com sucesso',
+    publicProfileTitle: 'Perfil público',
+    publicProfileDescription:
+      'Mostre quem você é para a comunidade HOT. Seu perfil público exibe seu nome e seu trabalho nas ferramentas da HOT.',
+    createPublicProfile: 'Criar perfil público',
+    slugLabel: 'URL do perfil',
+    slugUrlPreview: 'Seu perfil ficará em {url}',
+    publicProfileSubmit: 'Criar perfil público',
+    publicProfileCreating: 'Criando...',
+    viewEditPublicProfile: 'Ver / editar meu perfil público',
+    redirectingToPortal: 'Redirecionando para o Portal…',
+    slugTaken: 'Essa URL já está em uso, tente: {suggestion}',
+    useSuggestedSlug: 'Usar esta',
+    publicProfileValidationError:
+      'Nome, sobrenome e URL do perfil são obrigatórios.',
+    publicProfileCooldown:
+      'Você mudou a URL do seu perfil recentemente. Tente mais tarde.',
+    publicProfileError: 'Não foi possível criar seu perfil público',
+    editUrl: 'Editar URL',
+    slugCooldownUntil: 'Você poderá mudar a URL do seu perfil de novo em {date}.',
+    slugChangeBreaksLinks:
+      'Mudar a URL quebra todos os links para o seu endereço anterior: não fazemos redirecionamento.',
+    slugUpdated: 'URL do perfil atualizada',
+    slugUpdateError: 'Não foi possível atualizar a URL do seu perfil',
+    unpublishProfile: 'Despublicar perfil',
+    unpublishConfirmTitle: 'Despublicar seu perfil público?',
+    unpublishConfirmBody:
+      'Sua página pública deixa de ficar disponível para qualquer pessoa. Sua URL continua reservada, então você pode publicar de novo quando quiser.',
+    unpublish: 'Despublicar',
+    unpublishError: 'Não foi possível despublicar seu perfil',
     developerSettings: 'Configurações de Desenvolvedor',
     apiAccessTokens: 'Tokens de acesso API',
     apiTokenWarning:
@@ -1043,8 +1242,6 @@ export const translations: Record<string, Translations> = {
     notifOrgNameApproved: 'Sua alteração de nome para {name} foi aprovada.',
     notifOrgNameRejected: 'Sua alteração de nome para {name} não foi aprovada.',
     notifOrgEdited: 'Sua organização {name} foi editada por um gestor.',
-    notifOrgEditApproved: 'Suas alterações em {name} foram aprovadas.',
-    notifOrgEditRejected: 'Suas alterações em {name} não foram aprovadas.',
     notifOrgDeleted: 'Sua organização {name} foi excluída por um gestor.',
     notifTeamMemberJoined: 'Você foi adicionado à equipe {name}.',
     notifTeamMemberLeft: '{member} saiu da equipe {team}.',
@@ -1092,7 +1289,6 @@ export const translations: Record<string, Translations> = {
     membersTab: 'Membros',
     changeName: 'Alterar nome',
     nameChangePending: 'Alteração de nome pendente de aprovação',
-    editChangePending: 'Alteração de edição pendente de aprovação',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Alterar banner',
@@ -1165,19 +1361,35 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organização rejeitada.',
     orgNameApproved: 'Alteração de nome aprovada.',
     orgNameRejected: 'Alteração de nome rejeitada.',
-    orgEditApproved: 'Alterações aprovadas.',
-    orgEditRejected: 'Alterações rejeitadas.',
-    currentValue: 'Valor atual',
-    proposedValue: 'Valor proposto',
-    publicProfile: 'Perfil público',
-    yes: 'Sim',
-    no: 'Não',
-    approveEditBtn: 'Aprovar alterações',
-    rejectEditBtn: 'Rejeitar alterações',
-    editPendingApproval: 'Suas alterações foram enviadas para revisão.',
     searchOrganizationsPlaceholder: 'Buscar organizações por nome',
+    searchBtn: 'Buscar',
     noSearchResults: 'Nenhuma organização corresponde à sua busca.',
     viewDetailsBtn: 'Ver detalhes',
+    linkTitle: 'Bem-vindo ao HOT Learning Center',
+    linkNoCoursesFor: 'Não encontramos cursos associados a {email}.',
+    linkNoCoursesGeneric: 'Não encontramos cursos associados à sua conta.',
+    linkAskOtherEmail: 'Você fez cursos com outro e-mail?',
+    linkOtherEmailPlaceholder: 'seu-outro-email@exemplo.com',
+    linkFindMyProgress: 'Encontrar meu progresso',
+    linkSearching: 'Procurando...',
+    linkIAmNew: 'Sou novo, começar do zero',
+    linkOnlyOnce: 'Perguntamos isso apenas uma vez.',
+    linkCodeTitle: 'Verifique seu e-mail',
+    linkCodeSentTo: 'Enviamos um código para {email}',
+    linkVerify: 'Verificar',
+    linkVerifying: 'Verificando...',
+    linkUseAnotherEmail: 'Usar outro e-mail',
+    linkDoneTitle: 'Pronto',
+    linkDoneCourses: 'Recuperamos seu progresso: {count} cursos.',
+    linkDoneGeneric: 'Sua conta foi vinculada. A partir de agora você entra com sua conta HOT.',
+    linkEmailAlreadyYours: 'Esse e-mail já está na sua conta e verificado.',
+    linkEmailTaken: 'Um e-mail só pode pertencer a uma conta HOT. Entre com essa e seus cursos estarão lá.',
+    linkEmailTakenTitle: '{email} já tem uma conta HOT',
+    linkSignInWithThatAccount: 'Entrar com essa conta',
+    linkCodeSendFailed: 'Não foi possível enviar o código. Confira o endereço e tente de novo.',
+    linkCodeWrong: 'O código não está correto ou expirou.',
+    linkNoCoursesForEmail: 'Verificamos esse e-mail, mas ele não tem cursos associados.',
+    linkFailed: 'Algo deu errado. Tente novamente.',
   },
 };
 
