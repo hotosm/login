@@ -231,12 +231,18 @@ async def learnworlds_sso(
     if not learnworlds_user_id and not start_fresh:
         return _linking_page_redirect(request, target)
 
+    # Name and avatar only when LearnWorlds is about to create the account.
+    # An account that already exists has its own profile, and ours is often
+    # worse: with no name on file it is the local part of an email, which
+    # would overwrite a real name with something like "jane.doe+lms".
+    profile = {} if learnworlds_user_id else await _profile_fields(db, user)
+
     try:
         login_url, resolved_id = await learnworlds_client.sso_login(
             user_id=learnworlds_user_id,
             email=None if learnworlds_user_id else user.email,
             redirect_url=target,
-            **await _profile_fields(db, user),
+            **profile,
         )
     except LearnWorldsError as exc:
         logger.exception("LearnWorlds SSO failed for %s", user.id)
