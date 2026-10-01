@@ -54,6 +54,7 @@ export interface Translations {
   publicProfileSubmit: string;
   publicProfileCreating: string;
   viewEditPublicProfile: string;
+  redirectingToPortal: string;
   // {suggestion} is filled in with the alternative the backend proposes.
   slugTaken: string;
   useSuggestedSlug: string;
@@ -342,6 +343,7 @@ export const translations: Record<string, Translations> = {
     publicProfileSubmit: 'Create public profile',
     publicProfileCreating: 'Creating...',
     viewEditPublicProfile: 'View / edit my public profile',
+    redirectingToPortal: 'Redirecting to Portal…',
     slugTaken: 'That URL is already taken, try: {suggestion}',
     useSuggestedSlug: 'Use this one',
     publicProfileValidationError:
@@ -606,6 +608,7 @@ export const translations: Record<string, Translations> = {
     publicProfileSubmit: 'Crear perfil público',
     publicProfileCreating: 'Creando...',
     viewEditPublicProfile: 'Ver / editar mi perfil público',
+    redirectingToPortal: 'Redirigiendo a Portal…',
     slugTaken: 'Esa URL ya está en uso, probá: {suggestion}',
     useSuggestedSlug: 'Usar esta',
     publicProfileValidationError:
@@ -872,6 +875,7 @@ export const translations: Record<string, Translations> = {
     publicProfileSubmit: 'Créer un profil public',
     publicProfileCreating: 'Création...',
     viewEditPublicProfile: 'Voir / modifier mon profil public',
+    redirectingToPortal: 'Redirection vers Portal…',
     slugTaken: 'Cette URL est déjà prise, essayez : {suggestion}',
     useSuggestedSlug: 'Utiliser celle-ci',
     publicProfileValidationError:
@@ -1139,6 +1143,7 @@ export const translations: Record<string, Translations> = {
     publicProfileSubmit: 'Criar perfil público',
     publicProfileCreating: 'Criando...',
     viewEditPublicProfile: 'Ver / editar meu perfil público',
+    redirectingToPortal: 'Redirecionando para o Portal…',
     slugTaken: 'Essa URL já está em uso, tente: {suggestion}',
     useSuggestedSlug: 'Usar esta',
     publicProfileValidationError:

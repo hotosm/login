@@ -88,6 +88,7 @@ function ProfilePage() {
     null,
   );
   const [slugSuggestion, setSlugSuggestion] = useState<string | null>(null);
+  const [redirectingToPortal, setRedirectingToPortal] = useState(false);
 
   // Published-profile management: slug edit and unpublish
   const [editingSlug, setEditingSlug] = useState(false);
@@ -201,6 +202,23 @@ function ProfilePage() {
       document.removeEventListener("hanko-user-deleted", handleUserDeleted);
     };
   }, [t, returnTo]);
+
+  // Coming back with the browser's back button can restore the page from the
+  // bfcache with the redirect spinner still showing.
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setRedirectingToPortal(false);
+        setPublicProfileSaving(false);
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, []);
 
   const fetchProfile = async () => {
     try {
@@ -346,6 +364,11 @@ function ProfilePage() {
     setShowPublicProfileForm(true);
   };
 
+  const goToPortal = (url: string) => {
+    setRedirectingToPortal(true);
+    window.location.href = url;
+  };
+
   const handleCreatePublicProfile = async () => {
     const slug = slugify(publicSlug);
     setPublicProfileSaving(true);
@@ -368,7 +391,7 @@ function ProfilePage() {
       });
 
       if (response.ok) {
-        window.location.href = publicProfileUrl(slug);
+        goToPortal(publicProfileUrl(slug));
         return;
       }
 
@@ -383,24 +406,27 @@ function ProfilePage() {
         setPublicProfileError(
           suggestion ? t("slugTaken", { suggestion }) : t("publicProfileError"),
         );
+        setPublicProfileSaving(false);
         return;
       }
 
       // Missing name or slug (400), or a slug that normalizes to nothing (422).
       if (response.status === 400 || response.status === 422) {
         setPublicProfileError(t("publicProfileValidationError"));
+        setPublicProfileSaving(false);
         return;
       }
 
       if (response.status === 429) {
         setPublicProfileError(t("publicProfileCooldown"));
+        setPublicProfileSaving(false);
         return;
       }
 
       toast.error(t("publicProfileError"));
+      setPublicProfileSaving(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("publicProfileError"));
-    } finally {
       setPublicProfileSaving(false);
     }
   };
@@ -771,11 +797,13 @@ function ProfilePage() {
                     <Button
                       type="button"
                       appearance="outlined"
-                      onClick={() => {
-                        window.location.href = publicProfileUrl(publishedSlug);
-                      }}
+                      loading={redirectingToPortal}
+                      disabled={redirectingToPortal}
+                      onClick={() => goToPortal(publicProfileUrl(publishedSlug))}
                     >
-                      {t("viewEditPublicProfile")}
+                      {redirectingToPortal
+                        ? t("redirectingToPortal")
+                        : t("viewEditPublicProfile")}
                     </Button>
                     <Button
                       type="button"
@@ -882,12 +910,19 @@ function ProfilePage() {
 
                   <Button
                     type="button"
-                    disabled={!canCreatePublicProfile || publicProfileSaving}
+                    loading={publicProfileSaving || redirectingToPortal}
+                    disabled={
+                      !canCreatePublicProfile ||
+                      publicProfileSaving ||
+                      redirectingToPortal
+                    }
                     onClick={handleCreatePublicProfile}
                   >
-                    {publicProfileSaving
-                      ? t("publicProfileCreating")
-                      : t("publicProfileSubmit")}
+                    {redirectingToPortal
+                      ? t("redirectingToPortal")
+                      : publicProfileSaving
+                        ? t("publicProfileCreating")
+                        : t("publicProfileSubmit")}
                   </Button>
                 </div>
               )}
