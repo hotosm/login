@@ -111,6 +111,53 @@ class UserApiToken(Base):
         return f"<UserApiToken(user={self.hanko_user_id[:8]}..., app={self.app})>"
 
 
+class HankoUserMapping(Base):
+    """Link between a Hanko user and their account in an external app.
+
+    Same shape as the ``hanko_user_mappings`` table auth-libs creates in the
+    apps that own a database (fAIr, for one). It lives here because LearnWorlds
+    is a third-party SaaS: there is no database of ours on the other side, so
+    login keeps the link.
+
+    Once a row exists the login flow stops depending on the email, which may
+    change on either side.
+    """
+
+    __tablename__ = "hanko_user_mappings"
+    __table_args__ = (
+        UniqueConstraint("hanko_user_id", "app_name", name="uq_hanko_app"),
+        Index("idx_app_user_id", "app_user_id", "app_name"),
+    )
+
+    # Columns match the table auth-libs creates elsewhere, so its raw-SQL
+    # helpers keep working. One deviation: there the primary key is
+    # hanko_user_id alone, which allows a single mapping per user. Login may end
+    # up holding mappings for more than one external app, so the key is
+    # (hanko_user_id, app_name) — the pair auth-libs already treats as unique.
+    hanko_user_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    app_name: Mapped[str] = mapped_column(
+        String(255), primary_key=True, server_default="default"
+    )
+    app_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        nullable=True,
+    )
+
+    def __repr__(self) -> str:
+        """Return short debug representation for logging."""
+        return (
+            f"<HankoUserMapping({self.hanko_user_id[:8]}... -> "
+            f"{self.app_user_id} @ {self.app_name})>"
+        )
+
+
 # --- Teams & Organizations -------------------------------------------------
 #
 # A single ``groups`` table models both informal teams and official

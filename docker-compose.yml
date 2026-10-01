@@ -161,6 +161,10 @@ services:
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SMTP_FROM_ADDRESS=${SMTP_FROM_ADDRESS:-}
+      # LearnWorlds Custom SSO. Unset => the endpoint answers 503.
+      - LEARNWORLDS_SCHOOL_URL=${LEARNWORLDS_SCHOOL_URL:-https://learn-dev.hotosm.org}
+      - LEARNWORLDS_CLIENT_ID=${LEARNWORLDS_CLIENT_ID:-}
+      - LEARNWORLDS_CLIENT_SECRET=${LEARNWORLDS_CLIENT_SECRET:-}
       - ADMIN_EMAILS=hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org,dakota.benjamin@hotosm.org,sam.woodcock@hotosm.org,elenaficher.di@gmail.com
       # App URLs for admin proxy (public URLs, not internal Docker)
       - DRONETM_BACKEND_URL=https://dev.drone.hotosm.org
