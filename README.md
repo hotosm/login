@@ -235,6 +235,7 @@ docker image prune -af
 
 - `VITE_HANKO_URL`: Hanko API URL for frontend
 - `VITE_BACKEND_URL`: Backend API URL
+- `VITE_PORTAL_URL`: Portal URL (public profiles)
 
 ### Database
 

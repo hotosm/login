@@ -108,7 +108,7 @@ function ProfilePage() {
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
   const hankoUrl = import.meta.env.VITE_HANKO_URL || "";
-  const portalUrl = import.meta.env.VITE_PORTAL_URL || "http://portal.localhost";
+  const portalUrl = import.meta.env.VITE_PORTAL_URL || "https://portal.hotosm.org";
 
   const locale =
     profile && PORTAL_LOCALES.includes(profile.language)
