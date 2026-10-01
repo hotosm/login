@@ -265,9 +265,8 @@ async def learnworlds_status(db: DB, user: CurrentUser) -> dict:
     linked = await _linked_user_id(db, user.id)
     return {
         "linked": linked is not None,
-        "emails": await hanko_lookup.verified_emails(user.id) or (
-            [user.email] if user.email else []
-        ),
+        "emails": await hanko_lookup.verified_emails(user.id)
+        or ([user.email] if user.email else []),
     }
 
 

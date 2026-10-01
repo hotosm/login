@@ -148,10 +148,8 @@ async def test_no_match_asks_before_creating(client, db, lw, signed_in):
 
 @pytest.mark.asyncio
 async def test_i_am_new_creates_and_links(client, db, lw, signed_in):
-    """"I'm new" on that screen comes back here and goes ahead."""
-    response = await client.get(
-        SSO_PATH, params={"new": "1"}, follow_redirects=False
-    )
+    """ "I'm new" on that screen comes back here and goes ahead."""
+    response = await client.get(SSO_PATH, params={"new": "1"}, follow_redirects=False)
 
     assert response.status_code == 302
     assert lw.sso_login.await_args.kwargs["user_id"] is None
