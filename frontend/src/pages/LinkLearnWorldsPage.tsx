@@ -98,10 +98,14 @@ function LinkLearnWorldsPage() {
       const reason = err instanceof Error ? err.message : '';
       if (reason === EMAIL_TAKEN) {
         setTakenEmail(otherEmail.trim());
+      } else if (reason === 'already_verified') {
+        setError(t('linkEmailAlreadyYours'));
       } else {
+        // Anything else is ours to look at, so keep what Hanko said rather
+        // than flattening every failure into the same sentence.
         setError(
-          reason === 'already_verified'
-            ? t('linkEmailAlreadyYours')
+          reason && reason !== 'rejected'
+            ? `${t('linkCodeSendFailed')} (${reason})`
             : t('linkCodeSendFailed'),
         );
       }

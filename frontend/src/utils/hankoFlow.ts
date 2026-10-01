@@ -113,13 +113,15 @@ export async function sendVerificationCode(address: string): Promise<FlowState> 
     const complaint = errorIn(created, 'email_create');
     email = findEmail(created, address);
     if (!email) {
-      // By far the most common reason: the address is on another HOT account.
-      // Hanko refuses to move it, and rightly so — but the person is not
-      // stuck, they can sign in with that account instead.
+      // Only claim the address belongs to someone else when Hanko actually
+      // says so. Anything else — a server that cannot send codes, a rejected
+      // value — gets the neutral message plus whatever Hanko complained
+      // about, which beats sending the person off to a sign-in that will not
+      // help them.
       throw new FlowError(
-        complaint && !/exist|taken|already|in use/i.test(complaint)
-          ? 'rejected'
-          : 'email_taken',
+        complaint && /exist|taken|already|in use/i.test(complaint)
+          ? 'email_taken'
+          : complaint || 'rejected',
       );
     }
     state = created;
