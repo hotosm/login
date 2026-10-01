@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 # that starts just before expiry does not fail mid-flight.
 _TOKEN_EXPIRY_MARGIN = 60
 
+_HTTP_BAD_REQUEST = 400
+_HTTP_NOT_FOUND = 404
+
 
 class LearnWorldsError(Exception):
     """The LearnWorlds API rejected a request or answered unexpectedly."""
@@ -44,6 +47,7 @@ class LearnWorldsClient:
         client_secret: str | None = None,
         timeout: float = 10.0,
     ) -> None:
+        """Build a client, defaulting to the school configured for this deploy."""
         self.school_url = (school_url or settings.learnworlds_school_url).rstrip("/")
         self.client_id = client_id or settings.learnworlds_client_id
         self.client_secret = client_secret or settings.learnworlds_client_secret
@@ -109,7 +113,7 @@ class LearnWorldsClient:
                 f"Non-JSON response from LearnWorlds (HTTP {response.status_code})"
             ) from exc
 
-        if response.status_code >= 400 or payload.get("success") is False:
+        if response.status_code >= _HTTP_BAD_REQUEST or payload.get("success") is False:
             errors = payload.get("errors") or payload.get("error") or payload
             raise LearnWorldsError(
                 f"LearnWorlds error (HTTP {response.status_code}): {errors}"
@@ -129,7 +133,7 @@ class LearnWorldsClient:
                 f"{self.school_url}/admin/api/v2/users/{quote(email, safe='')}",
                 headers=await self._headers(client),
             )
-            if response.status_code == 404:
+            if response.status_code == _HTTP_NOT_FOUND:
                 return None
             return self._payload(response)
 
@@ -145,7 +149,7 @@ class LearnWorldsClient:
                 f"{self.school_url}/admin/api/v2/users/{user_id}/courses",
                 headers=await self._headers(client),
             )
-            if response.status_code == 404:
+            if response.status_code == _HTTP_NOT_FOUND:
                 return 0
             payload = self._payload(response)
         return int((payload.get("meta") or {}).get("totalItems") or 0)
@@ -181,15 +185,19 @@ class LearnWorldsClient:
             data["user_id"] = user_id
         else:
             data["email"] = email
-        for key, value in (
-            ("username", username),
-            ("first_name", first_name),
-            ("last_name", last_name),
-            ("avatar", avatar),
-            ("redirectUrl", redirect_url),
-        ):
-            if value:
-                data[key] = value
+        data.update(
+            {
+                key: value
+                for key, value in (
+                    ("username", username),
+                    ("first_name", first_name),
+                    ("last_name", last_name),
+                    ("avatar", avatar),
+                    ("redirectUrl", redirect_url),
+                )
+                if value
+            }
+        )
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
