@@ -280,6 +280,7 @@ export interface Translations {
   linkVerify: string;
   linkVerifying: string;
   linkUseAnotherEmail: string;
+  linkResendCode: string;
   linkDoneTitle: string;
   linkDoneCourses: string;
   linkDoneGeneric: string;
@@ -546,6 +547,7 @@ export const translations: Record<string, Translations> = {
     linkVerify: 'Verify',
     linkVerifying: 'Verifying...',
     linkUseAnotherEmail: 'Use another email address',
+    linkResendCode: 'Send the code again',
     linkDoneTitle: 'All set',
     linkDoneCourses: 'We recovered your progress: {count} courses.',
     linkDoneGeneric: 'Your account is linked. From now on you sign in with your HOT account.',
@@ -814,6 +816,7 @@ export const translations: Record<string, Translations> = {
     linkVerify: 'Verificar',
     linkVerifying: 'Verificando...',
     linkUseAnotherEmail: 'Usar otro correo',
+    linkResendCode: 'Reenviar el código',
     linkDoneTitle: 'Listo',
     linkDoneCourses: 'Recuperamos tu progreso: {count} cursos.',
     linkDoneGeneric: 'Tu cuenta quedó vinculada. A partir de ahora entras con tu cuenta HOT.',
@@ -1083,6 +1086,7 @@ export const translations: Record<string, Translations> = {
     linkVerify: 'Vérifier',
     linkVerifying: 'Vérification...',
     linkUseAnotherEmail: 'Utiliser une autre adresse',
+    linkResendCode: 'Renvoyer le code',
     linkDoneTitle: 'C\'est fait',
     linkDoneCourses: 'Nous avons retrouvé votre progression : {count} cours.',
     linkDoneGeneric: 'Votre compte est lié. Désormais, connectez-vous avec votre compte HOT.',
@@ -1347,6 +1351,7 @@ export const translations: Record<string, Translations> = {
     linkVerify: 'Verificar',
     linkVerifying: 'Verificando...',
     linkUseAnotherEmail: 'Usar outro e-mail',
+    linkResendCode: 'Reenviar o código',
     linkDoneTitle: 'Pronto',
     linkDoneCourses: 'Recuperamos seu progresso: {count} cursos.',
     linkDoneGeneric: 'Sua conta foi vinculada. A partir de agora você entra com sua conta HOT.',

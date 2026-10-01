@@ -4,7 +4,12 @@ import hotLogo from '../assets/images/hot-logo.svg';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
 import { backendUrl, readError } from '../utils/api';
-import { FlowState, sendVerificationCode, submitCode } from '../utils/hankoFlow';
+import {
+  FlowState,
+  resendCode,
+  sendVerificationCode,
+  submitCode,
+} from '../utils/hankoFlow';
 
 // Shown when someone arrives from learn.hotosm.org and we cannot tell which
 // LearnWorlds account is theirs: no link stored, and none of their verified
@@ -264,12 +269,28 @@ function LinkLearnWorldsPage() {
                   {busy ? t('linkVerifying') : t('linkVerify')}
                 </button>
                 <button
+                  onClick={async () => {
+                    // Codes expire in five minutes, so asking for another one
+                    // has to be possible without starting over.
+                    if (!flow) return;
+                    setError(null);
+                    try {
+                      setFlow(await resendCode(flow));
+                    } catch {
+                      setError(t('linkCodeSendFailed'));
+                    }
+                  }}
+                  className="btn-back mt-3"
+                >
+                  {t('linkResendCode')}
+                </button>
+                <button
                   onClick={() => {
                     setStep('ask');
                     setCode('');
                     setError(null);
                   }}
-                  className="btn-back mt-3"
+                  className="btn-back"
                 >
                   {t('linkUseAnotherEmail')}
                 </button>
