@@ -229,6 +229,7 @@ export interface Translations {
 
   // Group statuses
   statusPending?: string;
+  statusPendingNameApproval?: string;
   statusApproved?: string;
   statusActive?: string;
   statusRejected?: string;
@@ -266,10 +267,11 @@ export interface Translations {
   orgRejected?: string;
   orgNameApproved?: string;
   orgNameRejected?: string;
+  searchOrganizationsLabel?: string;
   searchOrganizationsPlaceholder?: string;
-  searchBtn?: string;
   noSearchResults?: string;
-  viewDetailsBtn?: string;
+  noManagedOrganizations?: string;
+  editBtn?: string;
 
   // LearnWorlds account linking
   linkTitle: string;
@@ -518,6 +520,7 @@ export const translations: Record<string, Translations> = {
     roleManager: 'Manager',
     roleMember: 'Member',
     statusPending: 'Pending',
+    statusPendingNameApproval: 'Pending name approval',
     statusApproved: 'Approved',
     statusActive: 'Active',
     statusRejected: 'Rejected',
@@ -550,10 +553,11 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organization rejected.',
     orgNameApproved: 'Name change approved.',
     orgNameRejected: 'Name change rejected.',
+    searchOrganizationsLabel: 'Search organizations',
     searchOrganizationsPlaceholder: 'Search organizations by name',
-    searchBtn: 'Search',
-    noSearchResults: 'No organizations match your search.',
-    viewDetailsBtn: 'View details',
+    noSearchResults: 'No organizations match "{query}".',
+    noManagedOrganizations: 'There are no organizations yet.',
+    editBtn: 'Edit',
     linkTitle: 'Recover your courses',
     linkNoCoursesFor: 'We found no courses under this address:',
     linkNoCoursesGeneric: 'We found no courses under your account.',
@@ -802,6 +806,7 @@ export const translations: Record<string, Translations> = {
     roleManager: 'Gestor',
     roleMember: 'Miembro',
     statusPending: 'Pendiente',
+    statusPendingNameApproval: 'Cambio de nombre pendiente',
     statusApproved: 'Aprobada',
     statusActive: 'Activa',
     statusRejected: 'Rechazada',
@@ -830,10 +835,11 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organización rechazada.',
     orgNameApproved: 'Cambio de nombre aprobado.',
     orgNameRejected: 'Cambio de nombre rechazado.',
+    searchOrganizationsLabel: 'Buscar organizaciones',
     searchOrganizationsPlaceholder: 'Buscar organizaciones por nombre',
-    searchBtn: 'Buscar',
-    noSearchResults: 'Ninguna organización coincide con tu búsqueda.',
-    viewDetailsBtn: 'Ver detalles',
+    noSearchResults: 'Ninguna organización coincide con "{query}".',
+    noManagedOrganizations: 'Todavía no hay organizaciones.',
+    editBtn: 'Editar',
     approveBtn: 'Aprobar',
     rejectBtn: 'Rechazar',
     approveNameBtn: 'Aprobar nombre',
@@ -1089,6 +1095,7 @@ export const translations: Record<string, Translations> = {
     roleManager: 'Gestionnaire',
     roleMember: 'Membre',
     statusPending: 'En attente',
+    statusPendingNameApproval: "Nom en attente d'approbation",
     statusApproved: 'Approuvée',
     statusActive: 'Active',
     statusRejected: 'Rejetée',
@@ -1121,10 +1128,11 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organisation rejetée.',
     orgNameApproved: 'Changement de nom approuvé.',
     orgNameRejected: 'Changement de nom rejeté.',
+    searchOrganizationsLabel: 'Rechercher des organisations',
     searchOrganizationsPlaceholder: 'Rechercher des organisations par nom',
-    searchBtn: 'Rechercher',
-    noSearchResults: 'Aucune organisation ne correspond à votre recherche.',
-    viewDetailsBtn: 'Voir les détails',
+    noSearchResults: 'Aucune organisation ne correspond à « {query} ».',
+    noManagedOrganizations: "Il n'y a encore aucune organisation.",
+    editBtn: 'Modifier',
     linkTitle: 'Récupérez vos cours',
     linkNoCoursesFor: 'Aucun cours trouvé avec cette adresse :',
     linkNoCoursesGeneric: 'Aucun cours trouvé pour votre compte.',
@@ -1369,6 +1377,7 @@ export const translations: Record<string, Translations> = {
     roleManager: 'Gerente',
     roleMember: 'Membro',
     statusPending: 'Pendente',
+    statusPendingNameApproval: 'Nome pendente de aprovação',
     statusApproved: 'Aprovada',
     statusActive: 'Ativa',
     statusRejected: 'Rejeitada',
@@ -1401,10 +1410,11 @@ export const translations: Record<string, Translations> = {
     orgRejected: 'Organização rejeitada.',
     orgNameApproved: 'Alteração de nome aprovada.',
     orgNameRejected: 'Alteração de nome rejeitada.',
+    searchOrganizationsLabel: 'Buscar organizações',
     searchOrganizationsPlaceholder: 'Buscar organizações por nome',
-    searchBtn: 'Buscar',
-    noSearchResults: 'Nenhuma organização corresponde à sua busca.',
-    viewDetailsBtn: 'Ver detalhes',
+    noSearchResults: 'Nenhuma organização corresponde a "{query}".',
+    noManagedOrganizations: 'Ainda não há organizações.',
+    editBtn: 'Editar',
     linkTitle: 'Recupere seus cursos',
     linkNoCoursesFor: 'Não encontramos cursos com este e-mail:',
     linkNoCoursesGeneric: 'Não encontramos cursos associados à sua conta.',

@@ -1,7 +1,9 @@
 import OrgNameChangeReviewForm from '@/components/OrgNameChangeReviewForm';
 import OrgReviewForm from '@/components/OrgReviewForm';
 import PanelHeader from '@/components/PanelHeader';
+import Input from '@/components/forms/Input';
 import Button from '@/components/shared/Button';
+import Pagination from '@/components/shared/Pagination';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -26,9 +28,11 @@ function OrgsToApprovePage() {
     organizations,
     totalPages,
     page,
-    goToPage,
-    search,
-    runSearch,
+    setPage,
+    query,
+    setQuery,
+    searchNow,
+    debouncedQuery,
     loading,
     error,
     unauthorized,
@@ -40,7 +44,6 @@ function OrgsToApprovePage() {
 
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
     if (unauthorized) {
@@ -70,7 +73,14 @@ function OrgsToApprovePage() {
     }
   };
 
-  if (rolesLoading || (canModerate && loading)) {
+  const searchTerm = debouncedQuery.trim();
+
+  // Full-page spinner only for the first load; later searches and page changes
+  // keep the current list on screen and just mark it busy.
+  if (
+    rolesLoading ||
+    (canModerate && loading && organizations.length === 0 && !searchTerm)
+  ) {
     return (
       <div className="flex items-center justify-center py-24">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-600 border-t-transparent"></div>
@@ -97,30 +107,32 @@ function OrgsToApprovePage() {
       <div className="bg-white rounded-xl shadow-xl p-6 flex flex-col gap-lg">
         <PanelHeader sectionName={t('orgsToApprove')} />
 
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder={t('searchOrganizationsPlaceholder')}
-            className="flex-1 px-3 py-2 text-sm border border-hot-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 focus:border-hot-red-400"
-          />
-          <Button
-            appearance="outlined"
-            type="button"
-            disabled={loading}
-            onClick={() => runSearch(searchInput)}
-          >
-            {t('searchBtn')}
-          </Button>
-        </div>
+        <Input
+          type="search"
+          label={t('searchOrganizationsLabel')}
+          placeholder={t('searchOrganizationsPlaceholder')}
+          withClear
+          value={query}
+          onValueChange={setQuery}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              searchNow();
+            }
+          }}
+        />
 
         {organizations.length === 0 ? (
           <p className="text-sm text-hot-gray-500 py-6 text-center">
-            {search ? t('noSearchResults') : t('noPendingOrgs')}
+            {searchTerm
+              ? t('noSearchResults', { query: searchTerm })
+              : t('noManagedOrganizations')}
           </p>
         ) : (
-          <div className="divide-y divide-hot-gray-200">
+          <div
+            aria-busy={loading}
+            className={`divide-y divide-hot-gray-200 transition-opacity ${loading ? 'opacity-60' : ''}`}
+          >
             {organizations.map((org) => (
               <div key={org.id}>
                 <div className="flex items-center justify-between py-3 gap-3">
@@ -136,14 +148,17 @@ function OrgsToApprovePage() {
                       </p>
                       {org.pending_name && (
                         <p className="text-xs text-hot-gray-500 truncate">
-                          {t('nameChangePending')}: {org.pending_name}
+                          {t('proposedName')}: {org.pending_name}
                         </p>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <StatusBadge status={org.status} />
-                    {needsReview(org) ? (
+                    {org.status === 'approved' && org.pending_name && (
+                      <StatusBadge status="pending_name" />
+                    )}
+                    {needsReview(org) && (
                       <Button
                         appearance="outlined"
                         type="button"
@@ -155,15 +170,14 @@ function OrgsToApprovePage() {
                       >
                         {reviewingId === org.id ? t('close') : t('review')}
                       </Button>
-                    ) : (
-                      <Button
-                        appearance="outlined"
-                        type="button"
-                        onClick={() => navigate(`/organizations/${org.id}`)}
-                      >
-                        {t('viewDetailsBtn')}
-                      </Button>
                     )}
+                    <Button
+                      appearance="outlined"
+                      type="button"
+                      onClick={() => navigate(`/organizations/${org.id}`)}
+                    >
+                      {t('editBtn')}
+                    </Button>
                   </div>
                 </div>
 
@@ -212,26 +226,12 @@ function OrgsToApprovePage() {
         )}
 
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 pt-2">
-            <button
-              type="button"
-              onClick={() => goToPage(page - 1)}
-              disabled={page === 1}
-              className="btn-secondary-small disabled:opacity-50"
-            >
-              {t('previous')}
-            </button>
-            <span className="text-sm text-hot-gray-500">
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() => goToPage(page + 1)}
-              disabled={page === totalPages}
-              className="btn-secondary-small disabled:opacity-50"
-            >
-              {t('next')}
-            </button>
+          <div className="flex justify-center pt-2">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
       </div>
