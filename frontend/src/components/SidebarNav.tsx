@@ -27,12 +27,14 @@ function linkClass(elevated: boolean) {
   return ({ isActive }: { isActive: boolean }) => {
     if (elevated) {
       return `${baseClass} font-semibold ${
-        isActive ? 'text-hot-gray-800' : 'hover:bg-hot-gray-50'
+        isActive
+          ? 'text-hot-gray-800'
+          : 'text-hot-gray-700 hover:bg-hot-gray-50'
       }`;
     }
     return `${baseClass} font-medium ${
       isActive
-        ? 'bg-hot-gray-50'
+        ? 'bg-hot-gray-50 text-hot-gray-900'
         : 'text-hot-gray-700 hover:bg-hot-gray-50'
     }`;
   };
