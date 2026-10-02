@@ -13,7 +13,7 @@ import logging
 from typing import Annotated
 from urllib.parse import urlencode, urlparse
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
 from hotosm_auth_fastapi import CurrentUser, CurrentUserOptional
 from sqlalchemy import select
@@ -22,7 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db import get_db
 from app.db.models import HankoUserMapping, UserProfile
-from app.schemas.sso import LinkRequest
+from app.schemas.sso import LinkRequest, MappingResponse
 from app.services import hanko_lookup
 from app.services.learnworlds import LearnWorldsError, learnworlds_client
 
@@ -32,6 +32,10 @@ logger = logging.getLogger(__name__)
 # production ingress already route to this service. A bare /sso would 404 before
 # reaching the app.
 router = APIRouter(prefix="/api/sso", tags=["SSO"])
+
+# Service-to-service, same shared secret the PAT resolver uses. Separate router
+# because this is not part of the browser-facing SSO flow.
+internal_router = APIRouter(prefix="/api/internal", tags=["Internal"])
 
 DB = Annotated[AsyncSession, Depends(get_db)]
 
@@ -331,3 +335,53 @@ async def learnworlds_link(db: DB, user: CurrentUser, payload: LinkRequest) -> d
         courses = None
 
     return {"linked": True, "courses": courses}
+
+
+@internal_router.get(
+    "/mappings/{app_name}/{hanko_user_id}", response_model=MappingResponse
+)
+async def resolve_mapping(
+    app_name: str,
+    hanko_user_id: str,
+    db: DB,
+    x_internal_key: Annotated[str, Header()],
+) -> MappingResponse:
+    """Resolve a Hanko user to their account in an external app.
+
+    Login owns this mapping because LearnWorlds is a SaaS with no database of
+    ours behind it. Other HOTOSM services ask here rather than keeping their
+    own copy, and then talk to that app themselves.
+
+    Works for any user, not just the caller: a public profile shows data about
+    the person being looked at, and there is no session for them. That is why
+    this is behind the shared secret and not the cookie.
+
+    **Authentication**: ``X-Internal-Key`` (LOGIN_INTERNAL_API_KEY).
+
+    **Returns**:
+    - 200: the mapping, with ``app_user_id`` null when there is none
+    - 401: wrong key
+    - 503: no internal key configured on this deployment
+    """
+    if not settings.login_internal_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Internal mapping resolution is not configured",
+        )
+    if x_internal_key != settings.login_internal_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid internal key",
+        )
+
+    result = await db.execute(
+        select(HankoUserMapping.app_user_id).where(
+            HankoUserMapping.hanko_user_id == hanko_user_id,
+            HankoUserMapping.app_name == app_name,
+        )
+    )
+    return MappingResponse(
+        hanko_user_id=hanko_user_id,
+        app_name=app_name,
+        app_user_id=result.scalar_one_or_none(),
+    )

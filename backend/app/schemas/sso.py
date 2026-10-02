@@ -12,3 +12,13 @@ class LinkRequest(BaseModel):
     """
 
     email: str = Field(min_length=3, max_length=320)
+
+
+class MappingResponse(BaseModel):
+    """The account a Hanko user has in an external app, if any."""
+
+    hanko_user_id: str
+    app_name: str
+    app_user_id: str | None = Field(
+        default=None, description="None when the person has never used that app"
+    )

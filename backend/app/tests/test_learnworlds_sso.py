@@ -374,3 +374,61 @@ async def test_existing_account_keeps_its_own_profile(client, db, lw, signed_in)
     assert "username" not in sent
     assert "first_name" not in sent
     assert "avatar" not in sent
+
+
+# --- mapping for other services -------------------------------------------
+#
+# Portal asks login which LearnWorlds account belongs to a person, then talks
+# to LearnWorlds itself. Public profiles show data about whoever is being
+# looked at, so this answers for any user, not only the caller.
+
+MAPPING_PATH = "/api/internal/mappings/learnworlds"
+KEY = {"X-Internal-Key": "test-internal-key"}
+
+
+@pytest.fixture
+def internal_key():
+    """Configure the shared secret these endpoints check."""
+    with patch.object(
+        sso_route.settings, "login_internal_api_key", "test-internal-key"
+    ):
+        yield
+
+
+@pytest.mark.asyncio
+async def test_mapping_is_resolved_for_any_user(client, db, internal_key):
+    """Someone else's mapping, which is the public-profile case."""
+    db.add(
+        HankoUserMapping(
+            hanko_user_id="someone-else", app_name="learnworlds", app_user_id="lw-42"
+        )
+    )
+    await db.commit()
+
+    response = await client.get(f"{MAPPING_PATH}/someone-else", headers=KEY)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "hanko_user_id": "someone-else",
+        "app_name": "learnworlds",
+        "app_user_id": "lw-42",
+    }
+
+
+@pytest.mark.asyncio
+async def test_mapping_is_null_when_there_is_none(client, internal_key):
+    """Never used the LMS: say so plainly instead of 404ing."""
+    response = await client.get(f"{MAPPING_PATH}/nobody", headers=KEY)
+
+    assert response.status_code == 200
+    assert response.json()["app_user_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_mapping_needs_the_internal_key(client, db, internal_key):
+    """Without the shared secret this would hand out account ids to anyone."""
+    response = await client.get(
+        f"{MAPPING_PATH}/someone-else", headers={"X-Internal-Key": "wrong"}
+    )
+
+    assert response.status_code == 401

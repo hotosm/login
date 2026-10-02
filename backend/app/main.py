@@ -182,6 +182,7 @@ app.include_router(organizations_admin_routes.router)
 app.include_router(organizations_admin_routes.me_router)
 app.include_router(public_routes.router)
 app.include_router(sso_routes.router)
+app.include_router(sso_routes.internal_router)
 app.include_router(users_routes.router)
 
 
