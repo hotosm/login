@@ -17,7 +17,7 @@ from fastapi import (
     status,
 )
 from pydantic import BaseModel
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import (
@@ -124,7 +124,11 @@ async def list_organizations(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> GroupListResponse:
-    """List organizations for moderation (optionally filtered by status/name)."""
+    """List organizations for moderation (optionally filtered by status/name).
+
+    Ordered by: needs review (pending or staged name change), approved,
+    rejected; newest first within each group.
+    """
     conditions = [Group.type == "organization"]
     if pending_action:
         # Everything awaiting a moderator: new requests plus approved orgs
@@ -135,17 +139,24 @@ async def list_organizations(
     elif status_filter:
         conditions.append(Group.status == status_filter)
     if search:
-        conditions.append(Group.name.ilike(f"%{search}%"))
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        conditions.append(Group.name.ilike(f"%{escaped}%", escape="\\"))
 
     total_result = await db.execute(
         select(func.count()).select_from(Group).where(*conditions)
     )
     total = int(total_result.scalar_one())
 
+    rank = case(
+        (or_(Group.status == "pending", Group.pending_name.isnot(None)), 0),
+        (Group.status == "approved", 1),
+        (Group.status == "rejected", 2),
+        else_=3,
+    )
     result = await db.execute(
         select(Group)
         .where(*conditions)
-        .order_by(Group.created_at.desc())
+        .order_by(rank.asc(), Group.created_at.desc(), Group.id.asc())
         .limit(page_size)
         .offset((page - 1) * page_size)
     )
