@@ -113,7 +113,10 @@ interface AppStats {
 
 type Period = 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
 
-const APPS = ['drone-tm', 'fair', 'umap', 'osm-export-tool', 'chatmap'];
+// Fallback only: the real list comes from GET /admin/apps, which knows both
+// the apps with a backend of their own and the ones whose mappings login keeps
+// itself (LearnWorlds). Hardcoding it here is how this list fell behind.
+const FALLBACK_APPS = ['drone-tm', 'fair', 'umap', 'osm-export-tool', 'chatmap'];
 const APP_COLORS: Record<string, string> = {
   'drone-tm': '#D73F3F',
   'fair': '#4A90A4',
@@ -252,6 +255,7 @@ function AdminPage() {
   const [loadingLogins, setLoadingLogins] = useState(false);
 
   // Mappings state
+  const [apps, setApps] = useState<string[]>(FALLBACK_APPS);
   const [selectedApp, setSelectedApp] = useState<string>('drone-tm');
   const [mappings, setMappings] = useState<Mapping[]>([]);
   const [total, setTotal] = useState(0);
@@ -396,6 +400,26 @@ function AdminPage() {
     fetchAppStats();
     fetchLoginStats();
   }, [isAdmin, activeTab, backendUrl, period, customStartDate, customEndDate]);
+
+  // The apps the backend can manage, so the picker never goes stale again.
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchApps = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/admin/apps`, {
+          credentials: 'include',
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (Array.isArray(data.apps) && data.apps.length > 0) setApps(data.apps);
+      } catch {
+        // Keep the fallback list rather than leaving the admin with none.
+      }
+    };
+
+    fetchApps();
+  }, [isAdmin, backendUrl]);
 
   // Fetch mappings when app or page changes
   useEffect(() => {
@@ -963,7 +987,7 @@ function AdminPage() {
                 className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-hot-red-100 bg-white"
               >
                 <option value="all">All Apps</option>
-                {APPS.map((app) => (
+                {apps.map((app) => (
                   <option key={app} value={app}>{app}</option>
                 ))}
               </select>
@@ -1157,7 +1181,7 @@ function AdminPage() {
                 }}
                 className="app-select"
               >
-                {APPS.map((app) => (
+                {apps.map((app) => (
                   <option key={app} value={app}>
                     {app}
                   </option>
