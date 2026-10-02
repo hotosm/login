@@ -344,7 +344,10 @@ async def resolve_mapping(
     app_name: str,
     hanko_user_id: str,
     db: DB,
-    x_internal_key: Annotated[str, Header()],
+    # Optional so a missing header is answered as "not authorised" rather than
+    # as a malformed request: FastAPI would reject it with a 422 before this
+    # function runs, which reads like a bug in the caller's payload.
+    x_internal_key: Annotated[str | None, Header()] = None,
 ) -> MappingResponse:
     """Resolve a Hanko user to their account in an external app.
 
@@ -368,7 +371,7 @@ async def resolve_mapping(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Internal mapping resolution is not configured",
         )
-    if x_internal_key != settings.login_internal_api_key:
+    if not x_internal_key or x_internal_key != settings.login_internal_api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid internal key",

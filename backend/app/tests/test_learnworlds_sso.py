@@ -432,3 +432,11 @@ async def test_mapping_needs_the_internal_key(client, db, internal_key):
     )
 
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_mapping_without_the_header_is_unauthorised(client, internal_key):
+    """A missing header is not a malformed request, it is a refused one."""
+    response = await client.get(f"{MAPPING_PATH}/someone-else")
+
+    assert response.status_code == 401
