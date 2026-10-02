@@ -358,3 +358,19 @@ async def test_status_lists_the_addresses_to_try(client, lw, signed_in, verified
 
     assert response.status_code == 200
     assert response.json() == {"linked": False, "emails": [USER_A.email]}
+
+
+@pytest.mark.asyncio
+async def test_existing_account_keeps_its_own_profile(client, db, lw, signed_in):
+    """Adopting an account must not overwrite the name it already has."""
+    db.add(UserProfile(hanko_user_id=USER_A.id, first_name="Ada", last_name="Lovelace"))
+    await db.commit()
+    lw.get_user_by_email.return_value = {"id": "lw-existing", "email": USER_A.email}
+
+    await client.get(SSO_PATH, follow_redirects=False)
+
+    sent = lw.sso_login.await_args.kwargs
+    assert sent["user_id"] == "lw-existing"
+    assert "username" not in sent
+    assert "first_name" not in sent
+    assert "avatar" not in sent

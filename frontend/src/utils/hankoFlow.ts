@@ -13,6 +13,11 @@
 
 const hankoUrl = import.meta.env.VITE_HANKO_URL || '';
 
+// The state that accepts the emailed code. Creating an address jumps straight
+// here, which the docs do not mention: they describe email_create returning to
+// profile_init, and that only happens when verification is not required.
+const PASSCODE_STATE = 'passcode_confirmation';
+
 export interface FlowState {
   name: string;
   csrf_token: string;
@@ -105,43 +110,48 @@ function findEmail(state: FlowState, address: string) {
  * address after a timeout does the sensible thing instead of erroring.
  */
 export async function sendVerificationCode(address: string): Promise<FlowState> {
-  let state = await startProfileFlow();
+  const state = await startProfileFlow();
+  const existing = findEmail(state, address);
 
-  let email = findEmail(state, address);
-  if (!email) {
-    const created = await runAction(state, 'email_create', { email: address });
-    const complaint = errorIn(created, 'email_create');
-    email = findEmail(created, address);
-    if (!email) {
-      // Only claim the address belongs to someone else when Hanko actually
-      // says so. Anything else — a server that cannot send codes, a rejected
-      // value — gets the neutral message plus whatever Hanko complained
-      // about, which beats sending the person off to a sign-in that will not
-      // help them.
-      throw new FlowError(
-        complaint && /exist|taken|already|in use/i.test(complaint)
-          ? 'email_taken'
-          : complaint || 'rejected',
-      );
-    }
-    state = created;
-  }
-  if (email.is_verified) throw new FlowError('already_verified');
+  if (existing?.is_verified) throw new FlowError('already_verified');
 
-  // `email_verify` only shows up once an unverified address exists, which is
-  // why the action is read from the state after creating it.
-  const verifying = await runAction(state, 'email_verify', { email_id: email.id });
-  if (verifying.error?.message) throw new FlowError(verifying.error.message);
-  return verifying;
+  // An address already on the account but unverified: ask for a code for it.
+  // A new one: creating it sends the code on its own, because the server
+  // requires verification. Either way we end up in the state that takes the
+  // code — and with a new address Hanko answers with an empty payload, so the
+  // state name is what tells us it worked, not the address coming back.
+  const next = existing
+    ? await runAction(state, 'email_verify', { email_id: existing.id })
+    : await runAction(state, 'email_create', { email: address });
+
+  if (next.name === PASSCODE_STATE) return next;
+
+  // Did not reach it: surface what Hanko said, and only blame a taken address
+  // when it actually says so.
+  const complaint = errorIn(next, existing ? 'email_verify' : 'email_create');
+  throw new FlowError(
+    complaint && /exist|taken|already|in use/i.test(complaint)
+      ? 'email_taken'
+      : complaint || 'rejected',
+  );
 }
 
-/** Submit the code. Throws when Hanko rejects it. */
+/**
+ * Submit the code. Throws when Hanko rejects it.
+ *
+ * A wrong or expired code keeps the flow in the passcode state with the
+ * complaint on the field, so staying there is the failure, not an error reply.
+ */
 export async function submitCode(state: FlowState, code: string): Promise<void> {
   const result = await runAction(state, 'verify_passcode', { code });
-  if (result.error?.message) throw new FlowError(result.error.message);
+  if (result.name === PASSCODE_STATE || errorIn(result, 'verify_passcode')) {
+    throw new FlowError(errorIn(result, 'verify_passcode') || 'wrong_code');
+  }
 }
 
-/** Ask for another code, returning the state that accepts it. */
+/** Ask for another code, returning the state that accepts the new one. */
 export async function resendCode(state: FlowState): Promise<FlowState> {
-  return runAction(state, 'resend_passcode');
+  const result = await runAction(state, 'resend_passcode');
+  if (result.name !== PASSCODE_STATE) throw new FlowError('resend_failed');
+  return result;
 }
