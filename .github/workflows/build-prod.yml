@@ -92,5 +92,6 @@ jobs:
           build-args: |
             VITE_HANKO_URL=https://login.hotosm.org
             VITE_BACKEND_URL=https://login.hotosm.org/api
+            VITE_PORTAL_URL=https://portal.hotosm.org
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
