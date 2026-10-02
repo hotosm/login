@@ -17,7 +17,7 @@ from fastapi import (
     status,
 )
 from pydantic import BaseModel
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import (
@@ -32,7 +32,7 @@ from app.core.authz import (
     CurrentUser as _CurrentUser,
 )
 from app.core.config import settings
-from app.db.models import AccountManager, Group, GroupMembership
+from app.db.models import AccountManager, Group
 from app.schemas.groups import GroupListResponse
 from app.services import groups_service, hanko_lookup, notifications_service
 from app.services.email import send_email
@@ -86,17 +86,6 @@ async def _notify_owner(
     )
 
 
-async def _current_owner_id(db: AsyncSession, group: Group) -> str:
-    """Return the group's owner, falling back to whoever created it."""
-    result = await db.execute(
-        select(GroupMembership.hanko_user_id).where(
-            GroupMembership.group_id == group.id,
-            GroupMembership.role == "owner",
-        )
-    )
-    return result.scalars().first() or group.created_by
-
-
 class RejectRequest(BaseModel):
     """Optional reason when rejecting an organization."""
 
@@ -131,29 +120,43 @@ async def list_organizations(
     db: DB,
     status_filter: Annotated[str | None, Query(alias="status")] = None,
     pending_action: Annotated[bool, Query()] = False,
+    search: Annotated[str | None, Query()] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> GroupListResponse:
-    """List organizations for moderation (optionally filtered by status)."""
+    """List organizations for moderation (optionally filtered by status/name).
+
+    Ordered by: needs review (pending or staged name change), approved,
+    rejected; newest first within each group.
+    """
     conditions = [Group.type == "organization"]
     if pending_action:
         # Everything awaiting a moderator: new requests plus approved orgs
-        # whose name change is still staged in ``pending_name``.
+        # whose name change is still staged.
         conditions.append(
             or_(Group.status == "pending", Group.pending_name.isnot(None))
         )
     elif status_filter:
         conditions.append(Group.status == status_filter)
+    if search:
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        conditions.append(Group.name.ilike(f"%{escaped}%", escape="\\"))
 
     total_result = await db.execute(
         select(func.count()).select_from(Group).where(*conditions)
     )
     total = int(total_result.scalar_one())
 
+    rank = case(
+        (or_(Group.status == "pending", Group.pending_name.isnot(None)), 0),
+        (Group.status == "approved", 1),
+        (Group.status == "rejected", 2),
+        else_=3,
+    )
     result = await db.execute(
         select(Group)
         .where(*conditions)
-        .order_by(Group.created_at.desc())
+        .order_by(rank.asc(), Group.created_at.desc(), Group.id.asc())
         .limit(page_size)
         .offset((page - 1) * page_size)
     )
@@ -246,7 +249,7 @@ async def approve_name_change(
     group.pending_name = None
     await notifications_service.create(
         db,
-        recipient_id=await _current_owner_id(db, group),
+        recipient_id=await groups_service.get_owner_id(db, group),
         type="org_name_approved",
         data={
             "group_id": group.id,
@@ -275,7 +278,7 @@ async def reject_name_change(
     group.pending_name = None
     await notifications_service.create(
         db,
-        recipient_id=await _current_owner_id(db, group),
+        recipient_id=await groups_service.get_owner_id(db, group),
         type="org_name_rejected",
         data={
             "group_id": group.id,

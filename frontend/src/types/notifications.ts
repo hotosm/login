@@ -10,6 +10,8 @@ export type NotificationType =
   | 'org_rejected'
   | 'org_name_approved'
   | 'org_name_rejected'
+  | 'org_edited'
+  | 'org_deleted'
   | 'team_member_joined'
   | 'team_member_left'
   | 'member_left'

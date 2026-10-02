@@ -1,18 +1,23 @@
-import Button from '@/components/shared/Button';
 import OrgNameChangeReviewForm from '@/components/OrgNameChangeReviewForm';
 import OrgReviewForm from '@/components/OrgReviewForm';
 import PanelHeader from '@/components/PanelHeader';
+import Input from '@/components/forms/Input';
+import Button from '@/components/shared/Button';
+import Pagination from '@/components/shared/Pagination';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import StatusBadge from '../components/shared/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
-import { usePendingOrgs } from '../hooks/usePendingOrgs';
+import { useManagedOrganizations } from '../hooks/useManagedOrganizations';
 import { useRoles } from '../hooks/useRoles';
+import type { GroupResponse } from '../types/groups';
 
-// Organization requests awaiting moderation. Same capability as the admin
-// console's Organizations tab, but inside the account area: one panel, and each
-// org is reviewed in a block that expands under its own row (no modals).
+// Organization requests awaiting moderation, plus every other organization for
+// account managers/admins to search, view and manage. Same capability as the
+// admin console's Organizations tab, but inside the account area: one panel,
+// and each pending org is reviewed in a block that expands under its own row
+// (no modals).
 function OrgsToApprovePage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -20,7 +25,14 @@ function OrgsToApprovePage() {
   const canModerate = isAdmin || isAccountManager;
 
   const {
-    pendingOrgs,
+    organizations,
+    totalPages,
+    page,
+    setPage,
+    query,
+    setQuery,
+    searchNow,
+    debouncedQuery,
     loading,
     error,
     unauthorized,
@@ -28,7 +40,7 @@ function OrgsToApprovePage() {
     reject,
     approveName,
     rejectName,
-  } = usePendingOrgs(canModerate);
+  } = useManagedOrganizations(canModerate);
 
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -44,6 +56,9 @@ function OrgsToApprovePage() {
     if (error) toast.error(error);
   }, [error]);
 
+  const needsReview = (org: GroupResponse) =>
+    org.status === 'pending' || !!org.pending_name;
+
   // Every action closes the review block and reports through a toast
   const runAction = async (action: () => Promise<void>, message: string) => {
     setSubmitting(true);
@@ -58,7 +73,14 @@ function OrgsToApprovePage() {
     }
   };
 
-  if (rolesLoading || (canModerate && loading)) {
+  const searchTerm = debouncedQuery.trim();
+
+  // Full-page spinner only for the first load; later searches and page changes
+  // keep the current list on screen and just mark it busy.
+  if (
+    rolesLoading ||
+    (canModerate && loading && organizations.length === 0 && !searchTerm)
+  ) {
     return (
       <div className="flex items-center justify-center py-24">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-600 border-t-transparent"></div>
@@ -85,13 +107,33 @@ function OrgsToApprovePage() {
       <div className="bg-white rounded-xl shadow-xl p-6 flex flex-col gap-lg">
         <PanelHeader sectionName={t('orgsToApprove')} />
 
-        {pendingOrgs.length === 0 ? (
+        <Input
+          type="search"
+          label={t('searchOrganizationsLabel')}
+          placeholder={t('searchOrganizationsPlaceholder')}
+          withClear
+          value={query}
+          onValueChange={setQuery}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              searchNow();
+            }
+          }}
+        />
+
+        {organizations.length === 0 ? (
           <p className="text-sm text-hot-gray-500 py-6 text-center">
-            {t('noPendingOrgs')}
+            {searchTerm
+              ? t('noSearchResults', { query: searchTerm })
+              : t('noManagedOrganizations')}
           </p>
         ) : (
-          <div className="divide-y divide-hot-gray-200">
-            {pendingOrgs.map((org) => (
+          <div
+            aria-busy={loading}
+            className={`divide-y divide-hot-gray-200 transition-opacity ${loading ? 'opacity-60' : ''}`}
+          >
+            {organizations.map((org) => (
               <div key={org.id}>
                 <div className="flex items-center justify-between py-3 gap-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -106,21 +148,35 @@ function OrgsToApprovePage() {
                       </p>
                       {org.pending_name && (
                         <p className="text-xs text-hot-gray-500 truncate">
-                          {t('nameChangePending')}: {org.pending_name}
+                          {t('proposedName')}: {org.pending_name}
                         </p>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <StatusBadge status={org.status} />
+                    {org.status === 'approved' && org.pending_name && (
+                      <StatusBadge status="pending_name" />
+                    )}
+                    {needsReview(org) && (
+                      <Button
+                        appearance="outlined"
+                        type="button"
+                        onClick={() =>
+                          setReviewingId((id) =>
+                            id === org.id ? null : org.id,
+                          )
+                        }
+                      >
+                        {reviewingId === org.id ? t('close') : t('review')}
+                      </Button>
+                    )}
                     <Button
                       appearance="outlined"
                       type="button"
-                      onClick={() =>
-                        setReviewingId((id) => (id === org.id ? null : org.id))
-                      }
+                      onClick={() => navigate(`/organizations/${org.id}`)}
                     >
-                      {reviewingId === org.id ? t('close') : t('review')}
+                      {t('editBtn')}
                     </Button>
                   </div>
                 </div>
@@ -166,6 +222,16 @@ function OrgsToApprovePage() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center pt-2">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
       </div>

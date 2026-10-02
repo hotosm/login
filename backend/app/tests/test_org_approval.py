@@ -108,6 +108,17 @@ async def test_owner_can_edit_details_but_not_name(client, auth):
     assert resp.json()["website"] == "https://adf.ht"
 
 
+async def test_account_manager_edit_applies_immediately(client, auth):
+    org = await _create_org(client)
+    auth["user"] = ADMIN
+    await client.post(f"/api/admin/organizations/{org['id']}/approve")
+    resp = await client.patch(
+        f"/api/groups/{org['id']}", json={"website": "https://adf.ht"}
+    )
+    assert resp.status_code == 200
+    assert resp.json()["website"] == "https://adf.ht"
+
+
 async def test_am_role_via_allowlist_and_table(client, auth, db):
     # admin@test.org resolves as AM through the email allowlist.
     auth["user"] = ADMIN
@@ -188,6 +199,17 @@ async def test_pending_action_excludes_settled_orgs(client, auth):
     resp = await client.get("/api/admin/organizations?status=approved")
     ids = [item["id"] for item in resp.json()["items"]]
     assert org["id"] in ids
+
+
+async def test_list_organizations_filters_by_name_search(client, auth):
+    adf = await _create_org(client, name="ADF Haiti")
+    hot = await _create_org(client, name="HOT Tech Team")
+    auth["user"] = ADMIN
+
+    resp = await client.get("/api/admin/organizations?search=adf")
+    ids = [item["id"] for item in resp.json()["items"]]
+    assert adf["id"] in ids
+    assert hot["id"] not in ids
 
 
 async def test_reject_name_change_clears_pending_name(client, auth):

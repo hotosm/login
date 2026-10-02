@@ -33,10 +33,11 @@ const variants: Record<string, Variant> = {
   approved: 'success',
   active: 'success',
   rejected: 'danger',
+  pending_name: 'warning',
 };
 
 // Colored pill reflecting a group's approval status
-// (pending / approved / active / rejected).
+// (pending / approved / active / rejected), or a staged name change (pending_name).
 function StatusBadge({ status }: { status: string }) {
   const { t } = useLanguage();
 
@@ -45,6 +46,7 @@ function StatusBadge({ status }: { status: string }) {
     approved: t('statusApproved'),
     active: t('statusActive'),
     rejected: t('statusRejected'),
+    pending_name: t('statusPendingNameApproval'),
   };
 
   const variant = variants[status] ?? 'neutral';

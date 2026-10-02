@@ -9,7 +9,7 @@ import Icon from '@/components/shared/Icon';
 import Spinner from '@/components/shared/Spinner';
 import { Tab, TabGroup, TabPanel } from '@/components/shared/Tabs';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import MembersPanel from '../components/MembersPanel';
 import StatusBadge from '../components/shared/StatusBadge';
@@ -23,6 +23,7 @@ const panelStyle = { '--padding': '0' } as React.CSSProperties;
 function OrganizationDetailPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
 
   const {
@@ -83,6 +84,12 @@ function OrganizationDetailPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
+  };
+
+  const handleCancel = () => {
+    // 'default' means the page was opened directly, so there is no in-app history to go back to
+    if (location.key !== 'default') navigate(-1);
+    else navigate(listPath);
   };
 
   const handleUpload = async (kind: 'avatar' | 'banner', file: File) => {
@@ -291,9 +298,18 @@ function OrganizationDetailPage() {
                       {t('deleteGroupBtn')}
                     </Button>
                   )}
-                  <Button type="submit" disabled={saving}>
-                    {saving ? t('saving') : t('saveChanges')}
-                  </Button>
+                  <div className="flex gap-2 ml-auto">
+                    <Button
+                      appearance="plain"
+                      type="button"
+                      onClick={handleCancel}
+                    >
+                      {t('cancel')}
+                    </Button>
+                    <Button type="submit" disabled={saving}>
+                      {saving ? t('saving') : t('saveChanges')}
+                    </Button>
+                  </div>
                 </div>
               </form>
             ) : (
