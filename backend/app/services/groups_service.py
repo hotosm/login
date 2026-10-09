@@ -107,6 +107,17 @@ async def get_user_role(db: AsyncSession, group_id: str, user_id: str) -> str | 
     return membership.role if membership else None
 
 
+async def get_owner_id(db: AsyncSession, group: Group) -> str:
+    """Return the group's owner, falling back to whoever created it."""
+    result = await db.execute(
+        select(GroupMembership.hanko_user_id).where(
+            GroupMembership.group_id == group.id,
+            GroupMembership.role == "owner",
+        )
+    )
+    return result.scalars().first() or group.created_by
+
+
 async def load_group_or_404(db: AsyncSession, group_id: str) -> Group:
     """Load a group or raise 404."""
     group = await get_group(db, group_id)
@@ -147,6 +158,19 @@ async def require_role(
     return role
 
 
+async def require_manage_access(
+    db: AsyncSession, group: Group, user: HankoUser, min_role: str
+) -> str | None:
+    """Require at least ``min_role`` in the group, or account-manager status.
+
+    Account-manager status only bypasses the role check for organizations — it
+    can manage any organization regardless of membership role.
+    """
+    if group.type == "organization" and await is_account_manager(user, db):
+        return await get_user_role(db, group.id, user.id)
+    return await require_role(db, group, user, min_role)
+
+
 async def count_members(db: AsyncSession, group_id: str) -> int:
     """Count the members of a group."""
     result = await db.execute(
@@ -155,6 +179,17 @@ async def count_members(db: AsyncSession, group_id: str) -> int:
         .where(GroupMembership.group_id == group_id)
     )
     return int(result.scalar_one())
+
+
+async def manager_ids(db: AsyncSession, group_id: str) -> list[str]:
+    """Return the hanko user ids of a group's owner and managers."""
+    result = await db.execute(
+        select(GroupMembership.hanko_user_id).where(
+            GroupMembership.group_id == group_id,
+            GroupMembership.role.in_(("owner", "manager")),
+        )
+    )
+    return list(result.scalars().all())
 
 
 async def list_user_groups(

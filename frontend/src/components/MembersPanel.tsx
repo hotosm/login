@@ -8,9 +8,9 @@ import {
 import type { MemberRole } from '../types/groups';
 import { ROLE_OPTIONS, roleLabels } from '../utils/roles';
 import ConfirmDialog from './ConfirmDialog';
+import RoleSelect from './RoleSelect';
 import Button from './shared/Button';
-import Dropdown from './shared/Dropdown';
-import DropdownItem from './shared/DropdownItem';
+import Spinner from './shared/Spinner';
 
 interface MembersPanelProps {
   groupId: string;
@@ -80,9 +80,7 @@ function MembersPanel({
       {canManage && renderAdd && renderAdd(refresh)}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-hot-red-600 border-t-transparent"></div>
-        </div>
+        <Spinner size="inline" />
       ) : members.length === 0 ? (
         <p className="text-sm text-hot-gray-500 py-6 text-center">
           {t('noMembers')}
@@ -118,35 +116,12 @@ function MembersPanel({
 
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {canChangeRoles && !self ? (
-                    <Dropdown
+                    <RoleSelect
                       size="small"
-                      onSelect={(e) => {
-                        const { value } = e.detail.item as HTMLElement & {
-                          value?: string;
-                        };
-                        if (value)
-                          requestRoleChange(member, value as MemberRole);
-                      }}
-                    >
-                      <Button
-                        slot="trigger"
-                        size="small"
-                        appearance="outlined"
-                        withCaret
-                      >
-                        {labels[member.role]}
-                      </Button>
-                      {ROLE_OPTIONS.map((role) => (
-                        <DropdownItem
-                          key={role}
-                          value={role}
-                          type="checkbox"
-                          checked={member.role === role}
-                        >
-                          {labels[role]}
-                        </DropdownItem>
-                      ))}
-                    </Dropdown>
+                      value={member.role}
+                      roles={ROLE_OPTIONS}
+                      onChange={(role) => requestRoleChange(member, role)}
+                    />
                   ) : (
                     <span className="text-white font-semibold bg-hot-neutral-800 rounded-xl px-xs py-2xs">
                       {labels[member.role]}
@@ -154,10 +129,10 @@ function MembersPanel({
                   )}
 
                   {self ? (
-                   <Button
+                    <Button
                       appearance="outlined"
-                      size='small'
-                      variant='danger'
+                      size="small"
+                      variant="danger"
                       onClick={() => requestRemove(member)}
                     >
                       {t('leaveGroup')}
@@ -166,9 +141,9 @@ function MembersPanel({
                     canManage && (
                       <Button
                         appearance="outlined"
-                        size='small'
+                        size="small"
                         onClick={() => requestRemove(member)}
-                        variant='danger'
+                        variant="danger"
                       >
                         {t('removeMember')}
                       </Button>

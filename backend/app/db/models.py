@@ -47,6 +47,12 @@ class UserProfile(Base):
 
     # Public profile slug (/user/{slug}); generated lazily from username/email.
     slug: Mapped[str | None] = mapped_column(String(80), nullable=True, unique=True)
+    # Opt-in flag: only public profiles are served at /api/public/user/{slug}.
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Last time the slug was changed, for the 15-day change cooldown.
+    slug_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # OSM connection (cached from OAuth)
     osm_user_id: Mapped[int | None] = mapped_column(nullable=True)
@@ -103,6 +109,53 @@ class UserApiToken(Base):
     def __repr__(self) -> str:
         """Return short debug representation for logging."""
         return f"<UserApiToken(user={self.hanko_user_id[:8]}..., app={self.app})>"
+
+
+class HankoUserMapping(Base):
+    """Link between a Hanko user and their account in an external app.
+
+    Same shape as the ``hanko_user_mappings`` table auth-libs creates in the
+    apps that own a database (fAIr, for one). It lives here because LearnWorlds
+    is a third-party SaaS: there is no database of ours on the other side, so
+    login keeps the link.
+
+    Once a row exists the login flow stops depending on the email, which may
+    change on either side.
+    """
+
+    __tablename__ = "hanko_user_mappings"
+    __table_args__ = (
+        UniqueConstraint("hanko_user_id", "app_name", name="uq_hanko_app"),
+        Index("idx_app_user_id", "app_user_id", "app_name"),
+    )
+
+    # Columns match the table auth-libs creates elsewhere, so its raw-SQL
+    # helpers keep working. One deviation: there the primary key is
+    # hanko_user_id alone, which allows a single mapping per user. Login may end
+    # up holding mappings for more than one external app, so the key is
+    # (hanko_user_id, app_name) — the pair auth-libs already treats as unique.
+    hanko_user_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    app_name: Mapped[str] = mapped_column(
+        String(255), primary_key=True, server_default="default"
+    )
+    app_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        nullable=True,
+    )
+
+    def __repr__(self) -> str:
+        """Return short debug representation for logging."""
+        return (
+            f"<HankoUserMapping({self.hanko_user_id[:8]}... -> "
+            f"{self.app_user_id} @ {self.app_name})>"
+        )
 
 
 # --- Teams & Organizations -------------------------------------------------
@@ -292,3 +345,35 @@ class AccountManager(Base):
     def __repr__(self) -> str:
         """Return short debug representation for logging."""
         return f"<AccountManager(user={self.hanko_user_id[:8]}...)>"
+
+
+class Notification(Base):
+    """An in-app notification addressed to a single user.
+
+    Generic by design: ``type`` discriminates the event and ``data`` carries the
+    structured context needed to render it. Display text is deliberately kept
+    out of the database so the frontend can translate it. Like the group tables,
+    the recipient is a bare ``hanko_user_id`` (no FK to user_profiles).
+    """
+
+    __tablename__ = "notifications"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid_str)
+    hanko_user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    type: Mapped[str] = mapped_column(String(50), nullable=False)
+    data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        # Unread counts and the per-user feed both start from this pair.
+        Index("ix_notifications_user_read", "hanko_user_id", "read_at"),
+    )
+
+    def __repr__(self) -> str:
+        """Return short debug representation for logging."""
+        return f"<Notification(user={self.hanko_user_id[:8]}..., type={self.type})>"

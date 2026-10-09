@@ -43,8 +43,10 @@ COPY . .
 # Build arguments for Vite environment variables
 ARG VITE_HANKO_URL=https://login.hotosm.org
 ARG VITE_BACKEND_URL=https://login.hotosm.org/api
+ARG VITE_PORTAL_URL=https://portal.hotosm.org
 ENV VITE_HANKO_URL=$VITE_HANKO_URL
 ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+ENV VITE_PORTAL_URL=$VITE_PORTAL_URL
 
 # Build application
 RUN pnpm build

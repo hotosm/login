@@ -47,12 +47,16 @@ def make_user(user_id: str, email: str | None = None) -> HankoUser:
 # Convenience test identities.
 USER_A = make_user("user-a-id", "a@test.org")
 USER_B = make_user("user-b-id", "b@test.org")
+USER_C = make_user("user-c-id", "c@test.org")
+USER_D = make_user("user-d-id", "d@test.org")
 ADMIN = make_user("admin-id", "admin@test.org")
 
 
 _KNOWN_EMAILS = {
     USER_A.email: USER_A.id,
     USER_B.email: USER_B.id,
+    USER_C.email: USER_C.id,
+    USER_D.email: USER_D.id,
     ADMIN.email: ADMIN.id,
 }
 
@@ -74,6 +78,9 @@ def mock_hanko_lookup():
     async def _user_ids_to_emails(user_ids: list[str]) -> dict[str, str]:
         return {uid: known_ids[uid] for uid in user_ids if uid in known_ids}
 
+    async def _user_ids_to_usernames(user_ids: list[str]) -> dict[str, str]:
+        return {}
+
     with (
         patch("app.services.hanko_lookup.email_to_user_id", new=_email_to_user_id),
         patch("app.services.hanko_lookup.email_has_account", new=_email_has_account),
@@ -81,6 +88,10 @@ def mock_hanko_lookup():
         patch(
             "app.services.hanko_lookup.user_ids_to_emails",
             new=_user_ids_to_emails,
+        ),
+        patch(
+            "app.services.hanko_lookup.user_ids_to_usernames",
+            new=_user_ids_to_usernames,
         ),
     ):
         yield

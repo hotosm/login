@@ -15,9 +15,11 @@ from app.api.routes import api_token as api_token_routes
 from app.api.routes import data_deletion as data_deletion_routes
 from app.api.routes import groups as groups_routes
 from app.api.routes import invitations as invitations_routes
+from app.api.routes import notifications as notifications_routes
 from app.api.routes import organizations_admin as organizations_admin_routes
 from app.api.routes import profile as profile_routes
 from app.api.routes import public as public_routes
+from app.api.routes import sso as sso_routes
 from app.api.routes import users as users_routes
 from app.schemas.auth import UserInfoResponse
 
@@ -70,6 +72,7 @@ app.add_middleware(
         "https://dev.chatmap.hotosm.org",
         "https://fair.hotosm.org",
         "https://fair-dev.hotosm.org",
+        "https://ai.hotosm.org",
         "https://stage.ai.hotosm.org",
         "https://dev.ai.hotosm.org",
         "https://umap.hotosm.org",
@@ -175,9 +178,12 @@ app.include_router(data_deletion_routes.router)
 app.include_router(groups_routes.router)
 app.include_router(invitations_routes.router)
 app.include_router(invitations_routes.me_router)
+app.include_router(notifications_routes.me_router)
 app.include_router(organizations_admin_routes.router)
 app.include_router(organizations_admin_routes.me_router)
 app.include_router(public_routes.router)
+app.include_router(sso_routes.router)
+app.include_router(sso_routes.internal_router)
 app.include_router(users_routes.router)
 
 

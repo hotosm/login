@@ -104,6 +104,7 @@ export class HankoAuth extends LitElement {
   @property({ type: String, attribute: "mapping-check-url" }) mappingCheckUrl =
     "";
   @property({ type: String, attribute: "app-id" }) appId = "";
+  @property({ type: String, attribute: "onboarding-url" }) onboardingUrl = "";
   // Custom login page URL (for standalone mode - overrides ${hankoUrl}/app)
   @property({ type: String, attribute: "login-url" }) loginUrl = "";
   @property({ type: String, reflect: true }) lang = "en";
@@ -840,6 +841,15 @@ export class HankoAuth extends LitElement {
     }
   }
 
+  // Without onboarding-url, login derives the callback from return_to.
+  private get onboardingRedirect(): string {
+    const params = new URLSearchParams();
+    if (this.appId) params.set("onboarding", this.appId);
+    params.set("return_to", window.location.origin);
+    if (this.onboardingUrl) params.set("callback", this.onboardingUrl);
+    return `${this.hankoUrl}/app?${params}`;
+  }
+
   // Check app mapping status (for cross-app auth scenarios)
   // Only used when mapping-check-url is configured
   private async checkAppMapping(): Promise<boolean> {
@@ -872,9 +882,7 @@ export class HankoAuth extends LitElement {
           // User has Hanko session but no app mapping - redirect to onboarding
           // Don't set flag here - only set it when onboarding completes
           this.log("User needs onboarding, redirecting...");
-          const returnTo = encodeURIComponent(window.location.origin);
-          const appParam = this.appId ? `onboarding=${this.appId}` : "";
-          window.location.href = `${this.hankoUrl}/app?${appParam}&return_to=${returnTo}`;
+          window.location.href = this.onboardingRedirect;
           return false; // Redirect in progress, don't proceed
         }
 
@@ -886,9 +894,7 @@ export class HankoAuth extends LitElement {
       } else if (response.status === 401 || response.status === 403) {
         // Needs onboarding
         this.log("401/403 - User needs onboarding, redirecting...");
-        const returnTo = encodeURIComponent(window.location.origin);
-        const appParam = this.appId ? `onboarding=${this.appId}` : "";
-        window.location.href = `${this.hankoUrl}/app?${appParam}&return_to=${returnTo}`;
+        window.location.href = this.onboardingRedirect;
         return false;
       }
 

@@ -235,6 +235,7 @@ docker image prune -af
 
 - `VITE_HANKO_URL`: Hanko API URL for frontend
 - `VITE_BACKEND_URL`: Backend API URL
+- `VITE_PORTAL_URL`: Portal URL (public profiles)
 
 ### Database
 
@@ -348,12 +349,8 @@ function LoginPage() {
 
 ## Contributing
 
-1. Create a feature branch from `develop`
-2. Make your changes
-3. Test builds locally (see "Testing Docker Builds Locally")
-4. Commit and push
-5. Create PR to `develop`
-6. Auto-deployment to testing on merge
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow and
+AI-assisted coding policy.
 
 ## License
 
