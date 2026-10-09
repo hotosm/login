@@ -62,6 +62,13 @@ class Settings(BaseSettings):
     backend_url: str = ""
     frontend_url: str = ""
 
+    # LearnWorlds (learn.hotosm.org) Custom SSO. The client id is public — it
+    # ships in the school's own HTML — but the secret is not. Unset means the
+    # SSO endpoint answers 503 instead of failing at import time.
+    learnworlds_school_url: str = ""
+    learnworlds_client_id: str = ""
+    learnworlds_client_secret: str = ""
+
     # S3/MinIO storage for group avatar/banner images. When unset, images fall
     # back to the local filesystem (fine for dev without object storage).
     s3_endpoint_url: str | None = None

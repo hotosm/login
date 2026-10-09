@@ -106,6 +106,7 @@ export function AuthButton({ hankoUrl, onLogin }) {
 |-----------|------|---------|-------------|
 | `mapping-check-url` | string | `""` | URL to check user mapping |
 | `app-id` | string | `""` | App identifier for onboarding |
+| `onboarding-url` | string | `""` | App's onboarding callback URL; login derives it from `return_to` when unset |
 
 ---
 
@@ -328,6 +329,23 @@ flowchart TD
     J -->|No| L["dispatch 'hanko-login' event"]
     H -->|No| L
 ```
+
+### Onboarding Redirect
+
+When `checkAppMapping` finds no mapping, the component sends the user to the
+login app with these query params:
+
+| Param | Value | Purpose |
+| --- | --- | --- |
+| `onboarding` | `app-id` | Which app is onboarding the user |
+| `return_to` | `window.location.origin` | Where to send the user afterwards |
+| `callback` | `onboarding-url` | The app's onboarding endpoint (omitted when the attribute is unset) |
+
+Set `onboarding-url` whenever the app's API is not same-origin with its
+frontend — fAIr serves its SPA from CloudFront (`ai.hotosm.org`) and its API
+from `api.ai.hotosm.org`. Without it, login falls back to deriving
+`{return_to origin}/api/v1/auth/onboarding/`, which for a split-origin app
+hits the SPA instead of the API and loops the user between app and login.
 
 ### OSM Connection
 

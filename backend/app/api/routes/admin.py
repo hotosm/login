@@ -6,6 +6,7 @@ with Hanko user statistics.
 """
 
 import logging
+import re
 from datetime import date, datetime, timedelta
 from typing import Annotated, Any
 
@@ -14,11 +15,15 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from hotosm_auth.models import HankoUser
 from hotosm_auth_fastapi import get_current_user
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import AccountManagerUser
 from app.core.config import settings
+from app.db import get_db
+from app.services import local_mappings
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
+DB = Annotated[AsyncSession, Depends(get_db)]
 HTTP_NO_CONTENT = 204
 HTTP_BAD_REQUEST = 400
 MAPPINGS_PAGE_SIZE = 100
@@ -75,9 +80,13 @@ async def check_admin(admin: AdminUser) -> dict[str, Any]:
 
 @router.get("/apps")
 async def list_apps(admin: AdminUser) -> dict[str, Any]:
-    """List available apps for admin management."""
+    """List available apps for admin management.
+
+    Includes the ones whose mappings login keeps itself, which have no backend
+    URL of their own and would otherwise be missing from the picker.
+    """
     return {
-        "apps": list(settings.app_urls.keys()),
+        "apps": sorted(set(settings.app_urls) | set(local_mappings.LOCAL_MAPPING_APPS)),
     }
 
 
@@ -200,10 +209,20 @@ async def list_mappings(
     app: str,
     request: Request,
     admin: AdminUser,
+    db: DB,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
 ) -> Any:
-    """List user mappings for an app with enriched user data."""
+    """List user mappings for an app with enriched user data.
+
+    Apps that own a database answer for themselves; LearnWorlds has none, so
+    login reads the mappings it keeps for it.
+    """
+    if local_mappings.is_local(app):
+        return await enrich_with_hanko_emails(
+            await local_mappings.list_mappings(db, app, page, page_size)
+        )
+
     result = await proxy_request(
         method="GET",
         app=app,
@@ -225,8 +244,17 @@ async def get_mapping(
     hanko_user_id: str,
     request: Request,
     admin: AdminUser,
+    db: DB,
 ) -> Any:
     """Get a specific user mapping."""
+    if local_mappings.is_local(app):
+        mapping = await local_mappings.get_mapping(db, app, hanko_user_id)
+        if mapping is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Mapping not found"
+            )
+        return mapping
+
     return await proxy_request(
         method="GET",
         app=app,
@@ -240,9 +268,15 @@ async def create_mapping(
     app: str,
     request: Request,
     admin: AdminUser,
+    db: DB,
 ) -> Any:
     """Create a new user mapping."""
     body = await request.json()
+    if local_mappings.is_local(app):
+        return await local_mappings.set_mapping(
+            db, app, body["hanko_user_id"], body["app_user_id"]
+        )
+
     return await proxy_request(
         method="POST",
         app=app,
@@ -258,9 +292,15 @@ async def update_mapping(
     hanko_user_id: str,
     request: Request,
     admin: AdminUser,
+    db: DB,
 ) -> Any:
     """Update a user mapping."""
     body = await request.json()
+    if local_mappings.is_local(app):
+        return await local_mappings.set_mapping(
+            db, app, hanko_user_id, body["app_user_id"]
+        )
+
     return await proxy_request(
         method="PUT",
         app=app,
@@ -276,8 +316,13 @@ async def delete_mapping(
     hanko_user_id: str,
     request: Request,
     admin: AdminUser,
+    db: DB,
 ) -> None:
     """Delete a user mapping."""
+    if local_mappings.is_local(app):
+        await local_mappings.delete_mapping(db, app, hanko_user_id)
+        return
+
     await proxy_request(
         method="DELETE",
         app=app,
@@ -500,6 +545,27 @@ def _default_app_stats(unavailable: bool = False) -> dict[str, Any]:
     return result
 
 
+_USER_ID_FRAGMENT_RE = re.compile(r"[0-9a-fA-F-]+")
+_USER_ID_MIN_LEN = 8
+
+
+def _looks_like_user_id(fragment: str) -> bool:
+    """Whether a search fragment is worth matching against user ids.
+
+    A user id is a UUID: 32 hex characters and four dashes. A short hex
+    fragment therefore matches a large share of ids by chance — "a" is in
+    ~89% of them, "ab" in ~11% — which would bury the email results an admin
+    is actually looking for. Anything containing a non-hex letter ("ana",
+    "mar") can never match an id at all, so the id branch is only worth adding
+    for a fragment that is hex and long enough to be selective. Eight
+    characters is the first block of a UUID, which is what gets pasted.
+    """
+    return (
+        len(fragment) >= _USER_ID_MIN_LEN
+        and _USER_ID_FRAGMENT_RE.fullmatch(fragment) is not None
+    )
+
+
 def _build_search_filters(
     email: str | None,
     date_from: str | None,
@@ -512,7 +578,11 @@ def _build_search_filters(
     param_idx = 1
 
     if email:
-        conditions.append(f"e.address ILIKE ${param_idx}")
+        # `email` may be an email fragment or a (partial) user id — match either.
+        match_conditions = [f"e.address ILIKE ${param_idx}"]
+        if _looks_like_user_id(email):
+            match_conditions.append(f"u.id::text ILIKE ${param_idx}")
+        conditions.append(f"({' OR '.join(match_conditions)})")
         params.append(f"%{email}%")
         param_idx += 1
     if date_from:
@@ -995,7 +1065,9 @@ async def get_recent_users(
 async def search_users(  # noqa: PLR0913
     admin: AccountManagerUser,
     request: Request,
-    email: str | None = Query(None, description="Search by email (partial match)"),
+    email: str | None = Query(
+        None, description="Search by email or user ID (partial match)"
+    ),
     date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
     date_to: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
     verified: str | None = Query(

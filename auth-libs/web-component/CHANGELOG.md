@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.5] - 2026-09-04
+
+### Added
+
+- `onboarding-url` attribute. When set, the onboarding redirect passes it to
+  the login app as `callback`, so apps serving their API from a different
+  origin than their frontend no longer loop between app and login. Unset (the
+  default) keeps login deriving the callback from `return_to`.
+
+## [0.5.4] - 2026-04-28
+
+### Added
+
+- Exponential backoff on session check failures.
+
 ## [0.5.3] - 2026-04-16
 
 ### Changed

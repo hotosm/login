@@ -17,7 +17,7 @@ from fastapi import (
     status,
 )
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import (
@@ -34,7 +34,7 @@ from app.core.authz import (
 from app.core.config import settings
 from app.db.models import AccountManager, Group
 from app.schemas.groups import GroupListResponse
-from app.services import groups_service, hanko_lookup
+from app.services import groups_service, hanko_lookup, notifications_service
 from app.services.email import send_email
 
 logger = logging.getLogger(__name__)
@@ -119,23 +119,44 @@ async def list_organizations(
     admin: AccountManagerUser,
     db: DB,
     status_filter: Annotated[str | None, Query(alias="status")] = None,
+    pending_action: Annotated[bool, Query()] = False,
+    search: Annotated[str | None, Query()] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> GroupListResponse:
-    """List organizations for moderation (optionally filtered by status)."""
+    """List organizations for moderation (optionally filtered by status/name).
+
+    Ordered by: needs review (pending or staged name change), approved,
+    rejected; newest first within each group.
+    """
     conditions = [Group.type == "organization"]
-    if status_filter:
+    if pending_action:
+        # Everything awaiting a moderator: new requests plus approved orgs
+        # whose name change is still staged.
+        conditions.append(
+            or_(Group.status == "pending", Group.pending_name.isnot(None))
+        )
+    elif status_filter:
         conditions.append(Group.status == status_filter)
+    if search:
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        conditions.append(Group.name.ilike(f"%{escaped}%", escape="\\"))
 
     total_result = await db.execute(
         select(func.count()).select_from(Group).where(*conditions)
     )
     total = int(total_result.scalar_one())
 
+    rank = case(
+        (or_(Group.status == "pending", Group.pending_name.isnot(None)), 0),
+        (Group.status == "approved", 1),
+        (Group.status == "rejected", 2),
+        else_=3,
+    )
     result = await db.execute(
         select(Group)
         .where(*conditions)
-        .order_by(Group.created_at.desc())
+        .order_by(rank.asc(), Group.created_at.desc(), Group.id.asc())
         .limit(page_size)
         .offset((page - 1) * page_size)
     )
@@ -171,6 +192,12 @@ async def approve_organization(
     """Approve a pending (or previously rejected) organization."""
     group = await _load_org_or_404(db, group_id)
     group.status = "approved"
+    await notifications_service.create(
+        db,
+        recipient_id=group.created_by,
+        type="org_approved",
+        data={"group_id": group.id, "group_name": group.name},
+    )
     await db.commit()
     await _notify_owner(background_tasks, group, approved=True)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -187,6 +214,16 @@ async def reject_organization(
     """Reject an organization request."""
     group = await _load_org_or_404(db, group_id)
     group.status = "rejected"
+    await notifications_service.create(
+        db,
+        recipient_id=group.created_by,
+        type="org_rejected",
+        data={
+            "group_id": group.id,
+            "group_name": group.name,
+            "reason": payload.reason,
+        },
+    )
     await db.commit()
     await _notify_owner(background_tasks, group, approved=False, reason=payload.reason)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -210,6 +247,45 @@ async def approve_name_change(
         db, group.type, group.pending_name
     )
     group.pending_name = None
+    await notifications_service.create(
+        db,
+        recipient_id=await groups_service.get_owner_id(db, group),
+        type="org_name_approved",
+        data={
+            "group_id": group.id,
+            "group_name": group.name,
+            "new_name": group.name,
+        },
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/organizations/{group_id}/reject-name", status_code=status.HTTP_204_NO_CONTENT
+)
+async def reject_name_change(
+    group_id: str, admin: AccountManagerUser, db: DB
+) -> Response:
+    """Discard an organization's pending name change, keeping the current one."""
+    group = await _load_org_or_404(db, group_id)
+    if not group.pending_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No pending name change",
+        )
+    rejected_name = group.pending_name
+    group.pending_name = None
+    await notifications_service.create(
+        db,
+        recipient_id=await groups_service.get_owner_id(db, group),
+        type="org_name_rejected",
+        data={
+            "group_id": group.id,
+            "group_name": group.name,
+            "rejected_name": rejected_name,
+        },
+    )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

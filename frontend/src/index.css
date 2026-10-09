@@ -2,6 +2,7 @@
 
 /* HOT Design Tokens - shared package, same source portal uses */
 @import "hotosm-ui-design/dist/hot.css";
+@import 'hotosm-ui-design/dist/hot-wa.css';
 
 :root,
 :host,

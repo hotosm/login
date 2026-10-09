@@ -59,6 +59,7 @@ jobs:
             --target production \
             --build-arg VITE_HANKO_URL=https://dev.login.hotosm.org \
             --build-arg VITE_BACKEND_URL=https://dev.login.hotosm.org/api \
+            --build-arg VITE_PORTAL_URL=https://dev.portal.hotosm.org \
             --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
             --no-cache \
             --pull \
@@ -89,6 +90,8 @@ jobs:
           SMTP_FROM_ADDRESS: ${{ secrets.SMTP_FROM_ADDRESS }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          LEARNWORLDS_CLIENT_ID: ${{ secrets.LEARNWORLDS_CLIENT_ID }}
+          LEARNWORLDS_CLIENT_SECRET: ${{ secrets.LEARNWORLDS_CLIENT_SECRET }}
         run: |
           ssh $EC2_USER@$EC2_HOST << 'EOF'
             set -e
@@ -115,6 +118,20 @@ jobs:
             # Always overwrite hanko-config.yaml from example to pick up changes
             cp hanko-config.yaml.example hanko-config.yaml
             echo "✓ Updated hanko-config.yaml from example"
+
+            # Inject the Hanko JWK encryption key. Without this the config would
+            # keep the placeholder from the example and Hanko would run on a key
+            # that is published in this repository.
+            if [ -z "${{ secrets.HANKO_SECRET_KEY }}" ]; then
+              echo "✗ HANKO_SECRET_KEY is not set — refusing to deploy Hanko with the placeholder key"
+              exit 1
+            fi
+            sed -i "s|HANKO_SECRET_KEY_PLACEHOLDER|${{ secrets.HANKO_SECRET_KEY }}|" hanko-config.yaml
+            if grep -q "HANKO_SECRET_KEY_PLACEHOLDER" hanko-config.yaml; then
+              echo "✗ Hanko secret key placeholder still present after substitution"
+              exit 1
+            fi
+            echo "✓ Injected Hanko secret key"
 
             # Fix CORS config in hanko-config.yaml (ensure wildcard is disabled)
             sed -i 's/unsafe_wildcard_origin_allowed: true/unsafe_wildcard_origin_allowed: false/' hanko-config.yaml
@@ -205,6 +222,23 @@ jobs:
               sed -i 's|^SMTP_STARTTLS=.*|SMTP_STARTTLS=true|' .env
             else
               echo 'SMTP_STARTTLS=true' >> .env
+            fi
+            # LearnWorlds Custom SSO. Points at the test school; production uses
+            # its own school with a different client id and secret.
+            if grep -q '^LEARNWORLDS_SCHOOL_URL=' .env; then
+              sed -i 's|^LEARNWORLDS_SCHOOL_URL=.*|LEARNWORLDS_SCHOOL_URL=https://learn-dev.hotosm.org|' .env
+            else
+              echo 'LEARNWORLDS_SCHOOL_URL=https://learn-dev.hotosm.org' >> .env
+            fi
+            if grep -q '^LEARNWORLDS_CLIENT_ID=' .env; then
+              sed -i 's|^LEARNWORLDS_CLIENT_ID=.*|LEARNWORLDS_CLIENT_ID=${{ secrets.LEARNWORLDS_CLIENT_ID }}|' .env
+            else
+              echo 'LEARNWORLDS_CLIENT_ID=${{ secrets.LEARNWORLDS_CLIENT_ID }}' >> .env
+            fi
+            if grep -q '^LEARNWORLDS_CLIENT_SECRET=' .env; then
+              sed -i 's|^LEARNWORLDS_CLIENT_SECRET=.*|LEARNWORLDS_CLIENT_SECRET=${{ secrets.LEARNWORLDS_CLIENT_SECRET }}|' .env
+            else
+              echo 'LEARNWORLDS_CLIENT_SECRET=${{ secrets.LEARNWORLDS_CLIENT_SECRET }}' >> .env
             fi
             echo "✓ Updated secrets in .env"
 

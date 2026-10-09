@@ -22,6 +22,7 @@ from hotosm_auth_fastapi import get_current_user
 from PIL import Image, ImageOps
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.authz import is_account_manager
 from app.db import get_db
 from app.db.models import Group, GroupMembership
 from app.schemas.groups import (
@@ -35,7 +36,7 @@ from app.schemas.groups import (
     MyGroupsResponse,
     NameChangeRequest,
 )
-from app.services import groups_service, hanko_lookup, s3_service
+from app.services import groups_service, hanko_lookup, notifications_service, s3_service
 
 router = APIRouter(prefix="/api/groups", tags=["Groups"])
 
@@ -51,10 +52,11 @@ _BANNER_MAX_WIDTH = 1600  # px
 _load_group_or_404 = groups_service.load_group_or_404
 _require_access = groups_service.require_access
 _require_role = groups_service.require_role
+_require_manage_access = groups_service.require_manage_access
 
 
 async def _add_team_members_by_email(
-    db: AsyncSession, group_id: str, emails: list[str], owner_id: str
+    db: AsyncSession, group: Group, emails: list[str], owner_id: str
 ) -> None:
     """Resolve emails to accounts and add them as members (skip unknown/dupes)."""
     seen = {owner_id}
@@ -64,8 +66,62 @@ async def _add_team_members_by_email(
             continue
         seen.add(member_id)
         db.add(
-            GroupMembership(group_id=group_id, hanko_user_id=member_id, role="member")
+            GroupMembership(group_id=group.id, hanko_user_id=member_id, role="member")
         )
+        await _notify_member_joined(db, group, member_id)
+
+
+async def _notify_member_joined(db: AsyncSession, group: Group, member_id: str) -> None:
+    """Tell a user they were added to a team (caller commits)."""
+    await notifications_service.create(
+        db,
+        recipient_id=member_id,
+        type="team_member_joined",
+        data={"group_id": group.id, "group_name": group.name},
+    )
+
+
+async def _notify_member_left(
+    db: AsyncSession, group: Group, member_id: str, actor_id: str
+) -> None:
+    """Tell a group's owner and managers that a member is gone (caller commits).
+
+    Neither the departing member nor whoever removed them is notified.
+    """
+    label = (await groups_service.creator_labels(db, [member_id])).get(member_id)
+    member_name = (label.name or label.username or label.email) if label else None
+    recipient_ids = set(await groups_service.manager_ids(db, group.id)) - {
+        member_id,
+        actor_id,
+    }
+    for recipient_id in recipient_ids:
+        await notifications_service.create(
+            db,
+            recipient_id=recipient_id,
+            type="member_left",
+            data={
+                "group_id": group.id,
+                "group_name": group.name,
+                "group_type": group.type,
+                "member_name": member_name,
+            },
+        )
+
+
+async def _notify_member_removed(
+    db: AsyncSession, group: Group, member_id: str
+) -> None:
+    """Tell a user that a manager removed them from a group (caller commits)."""
+    await notifications_service.create(
+        db,
+        recipient_id=member_id,
+        type="member_removed",
+        data={
+            "group_id": group.id,
+            "group_name": group.name,
+            "group_type": group.type,
+        },
+    )
 
 
 # --- Group CRUD ------------------------------------------------------------
@@ -93,7 +149,7 @@ async def create_group(
     db.add(GroupMembership(group_id=group.id, hanko_user_id=user.id, role="owner"))
     # Teams may seed members directly by email; orgs use invitations.
     if payload.type == "team" and payload.member_emails:
-        await _add_team_members_by_email(db, group.id, payload.member_emails, user.id)
+        await _add_team_members_by_email(db, group, payload.member_emails, user.id)
     await db.commit()
     await db.refresh(group)
     members_count = await groups_service.count_members(db, group.id)
@@ -133,14 +189,27 @@ async def get_group(group_id: str, user: CurrentUser, db: DB) -> GroupResponse:
 async def update_group(
     group_id: str, payload: GroupUpdate, user: CurrentUser, db: DB
 ) -> GroupResponse:
-    """Update group details (owner/manager). The name is not editable here."""
-    group = await _load_group_or_404(db, group_id)
-    role = await _require_role(db, group, user, "manager")
+    """Update group details (owner/manager, or account manager for organizations).
 
+    The name is not editable here.
+    """
+    group = await _load_group_or_404(db, group_id)
+    role = await _require_manage_access(db, group, user, "manager")
     data = payload.model_dump(exclude_unset=True)
+
     for field in ("description", "contact_email", "website", "is_public"):
         if field in data:
             setattr(group, field, data[field])
+
+    if group.type == "organization" and await is_account_manager(user, db):
+        owner_id = await groups_service.get_owner_id(db, group)
+        if owner_id != user.id:
+            await notifications_service.create(
+                db,
+                recipient_id=owner_id,
+                type="org_edited",
+                data={"group_id": group.id, "group_name": group.name},
+            )
     await db.commit()
     await db.refresh(group)
     members_count = await groups_service.count_members(db, group.id)
@@ -174,10 +243,27 @@ async def change_group_name(
 
 @router.delete("/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_group(group_id: str, user: CurrentUser, db: DB) -> Response:
-    """Delete a group (owner only). Memberships cascade."""
+    """Delete a group (owner only, or account manager for organizations).
+
+    Memberships cascade.
+    """
     group = await _load_group_or_404(db, group_id)
-    await _require_role(db, group, user, "owner")
+    await _require_manage_access(db, group, user, "owner")
+
+    notify_org_deletion = group.type == "organization"
+    if notify_org_deletion:
+        owner_id = await groups_service.get_owner_id(db, group)
+        group_id_for_notice, group_name = group.id, group.name
+
     await db.delete(group)
+
+    if notify_org_deletion and owner_id != user.id:
+        await notifications_service.create(
+            db,
+            recipient_id=owner_id,
+            type="org_deleted",
+            data={"group_id": group_id_for_notice, "group_name": group_name},
+        )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -259,6 +345,7 @@ async def add_group_member(
                 group_id=group_id, hanko_user_id=member_id, role=payload.role
             )
         )
+        await _notify_member_joined(db, group, member_id)
         await db.commit()
     items, total = await groups_service.list_members(db, group_id, 1, 50)
     return MemberListResponse(items=items, total=total, page=1, page_size=50)
@@ -324,6 +411,10 @@ async def remove_group_member(
                 detail="Cannot remove this member",
             )
     await db.delete(target)
+    if member_id == user.id:
+        await _notify_member_left(db, group, member_id, actor_id=user.id)
+    else:
+        await _notify_member_removed(db, group, member_id)
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

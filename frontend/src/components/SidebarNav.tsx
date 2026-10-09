@@ -1,3 +1,4 @@
+import WaBadge from '@awesome.me/webawesome/dist/react/badge/index.js';
 import { NavLink, useHref } from 'react-router-dom';
 import Icon from './shared/Icon';
 
@@ -10,6 +11,8 @@ export interface SidebarNavItem {
   icon?: string;
   /** Open in a new tab instead of navigating in place. */
   newTab?: boolean;
+  /** Count pill rendered after the label (hidden when 0). */
+  badge?: number;
 }
 
 interface Props {
@@ -24,12 +27,14 @@ function linkClass(elevated: boolean) {
   return ({ isActive }: { isActive: boolean }) => {
     if (elevated) {
       return `${baseClass} font-semibold ${
-        isActive ? 'text-hot-gray-800' : 'hover:bg-hot-gray-50'
+        isActive
+          ? 'text-hot-gray-800'
+          : 'text-hot-gray-700 hover:bg-hot-gray-50'
       }`;
     }
     return `${baseClass} font-medium ${
       isActive
-        ? 'bg-hot-gray-50'
+        ? 'bg-hot-gray-50 text-hot-gray-900'
         : 'text-hot-gray-700 hover:bg-hot-gray-50'
     }`;
   };
@@ -42,6 +47,11 @@ function SidebarLink({ item }: { item: SidebarNavItem }) {
   const icon = item.icon && (
     <Icon src={item.icon} label="" className="w-3 h-3" />
   );
+  const badge = !!item.badge && item.badge > 0 && (
+    <WaBadge variant="danger" appearance="filled">
+      {item.badge}
+    </WaBadge>
+  );
 
   if (item.newTab) {
     return (
@@ -53,6 +63,7 @@ function SidebarLink({ item }: { item: SidebarNavItem }) {
       >
         {icon}
         {item.label}
+        {badge}
       </a>
     );
   }
@@ -61,6 +72,7 @@ function SidebarLink({ item }: { item: SidebarNavItem }) {
     <NavLink to={item.to} className={getClass}>
       {icon}
       {item.label}
+      {badge}
     </NavLink>
   );
 }

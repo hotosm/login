@@ -4,6 +4,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import AccountLayout from './layouts/AccountLayout';
 import AcceptInvitePage from './pages/AcceptInvitePage';
 import AdminPage from './pages/AdminPage';
+import LinkLearnWorldsPage from './pages/LinkLearnWorldsPage';
 import LoginPage from './pages/LoginPage';
 import NotificationsPage from './pages/NotificationsPage';
 import OrganizationDetailPage from './pages/OrganizationDetailPage';
@@ -21,6 +22,11 @@ function App() {
           <Routes>
             {/* Root path serves the login page (outside the account chrome) */}
             <Route path="/" element={<LoginPage />} />
+
+            {/* Claim an existing LearnWorlds account before the LMS makes a
+                new one. Outside the account chrome: it is a stop on the way
+                to learn.hotosm.org, not a section of the site. */}
+            <Route path="/link/learnworlds" element={<LinkLearnWorldsPage />} />
 
             {/* Account section: shared sidebar + top chrome via AccountLayout */}
             <Route element={<AccountLayout />}>
