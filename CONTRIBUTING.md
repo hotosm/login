@@ -23,3 +23,9 @@ These exist for human learning.
 
 For full policy details, see the
 [AI-assisted coding guide](https://responsibleai.guide/ai-assisted-coding-guide/).
+
+## Releases
+
+Releases are cut from `main`: open a PR from `develop` to `main`, bump the
+version in `chart/Chart.yaml`, and create the release from `main`. Merge `main`
+back into `develop` afterwards.
