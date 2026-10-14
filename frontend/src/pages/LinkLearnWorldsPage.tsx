@@ -7,6 +7,7 @@ import Button from '../components/shared/Button';
 import ErrorBanner from '../components/shared/ErrorBanner';
 import Spinner from '../components/shared/Spinner';
 import { useLanguage } from '../contexts/LanguageContext';
+import type { Translations } from '../translations';
 import { backendUrl, readError } from '../utils/api';
 import {
   FlowState,
@@ -30,6 +31,14 @@ type Step = 'loading' | 'choose' | 'ask' | 'code' | 'done';
 // so this one gets its own panel rather than a line of red text.
 const EMAIL_TAKEN = 'email_taken';
 
+// What the backend says after the round trip through LinkedIn. "linked" is
+// handled on its own; "cancelled" needs no message, they just chose not to.
+const LINKEDIN_ERRORS: Record<string, keyof Translations> = {
+  not_found: 'linkLinkedInNotFound',
+  unverified: 'linkLinkedInUnverified',
+  failed: 'linkLinkedInFailed',
+};
+
 function LinkLearnWorldsPage() {
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
@@ -45,6 +54,7 @@ function LinkLearnWorldsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [takenEmail, setTakenEmail] = useState<string | null>(null);
+  const [linkedinEnabled, setLinkedinEnabled] = useState(false);
 
   // Back to the SSO endpoint: with a link stored it now knows who they are.
   // `new=1` tells it to go ahead and let LearnWorlds create the account.
@@ -56,6 +66,24 @@ function LinkLearnWorldsPage() {
 
   // Show which address came up empty, so the question makes sense.
   useEffect(() => {
+    const linkedinOutcome = searchParams.get('linkedin');
+    if (linkedinOutcome === 'linked') {
+      // Back from LinkedIn with the courses found. Asking for the status now
+      // would see the link and skip straight to the LMS, past this good news.
+      const found = Number(searchParams.get('courses'));
+      setCourses(Number.isFinite(found) && found > 0 ? found : null);
+      setStep('done');
+      return;
+    }
+    if (linkedinOutcome) {
+      const message = LINKEDIN_ERRORS[linkedinOutcome];
+      if (message) setError(t(message));
+      // Keep a reload from showing the same message again.
+      const url = new URL(window.location.href);
+      url.searchParams.delete('linkedin');
+      window.history.replaceState(null, '', url);
+    }
+
     const load = async () => {
       try {
         const response = await fetch(`${backendUrl}/sso/learnworlds/status`, {
@@ -73,6 +101,7 @@ function LinkLearnWorldsPage() {
             return;
           }
           setCurrentEmail(data.emails?.[0] ?? null);
+          setLinkedinEnabled(Boolean(data.linkedin));
         }
       } catch {
         // Not knowing the address only costs us a nicer sentence.
@@ -95,6 +124,13 @@ function LinkLearnWorldsPage() {
       // Even if the call fails, sending them on beats staying here.
     }
     continueToLms();
+  };
+
+  // LinkedIn tells the backend which address they used; it looks that up in
+  // the school and sends them back here with the outcome.
+  const findWithLinkedIn = () => {
+    const params = new URLSearchParams({ redirectUrl });
+    window.location.href = `${backendUrl}/sso/learnworlds/linkedin?${params}`;
   };
 
   const askForCode = async () => {
@@ -201,13 +237,26 @@ function LinkLearnWorldsPage() {
                   )}
                 </div>
 
-                {/* Two real options, not an action with an escape hatch: most
+                {/* Real options, not an action with an escape hatch: most
                     people who reach this page have nothing to recover, and
-                    leading with "recover your courses" worries them. */}
+                    leading with "recover your courses" worries them. They are
+                    named after how people signed in, because that is what
+                    they remember, not which address it used. */}
                 <div className="flex flex-col gap-2">
+                  <p className="text-sm text-hot-gray-700 text-center">
+                    {t('linkChooseHow')}
+                  </p>
                   <Button appearance="outlined" onClick={() => setStep('ask')}>
                     {t('linkYesOtherEmail')}
                   </Button>
+                  {/* Many joined the school with LinkedIn and never knew
+                      which address it used; LinkedIn knows. Google needs no
+                      button: its address is a Gmail they can type. */}
+                  {linkedinEnabled && (
+                    <Button appearance="outlined" onClick={findWithLinkedIn}>
+                      {t('linkWithLinkedIn')}
+                    </Button>
+                  )}
                   <Button
                     appearance="accent"
                     onClick={() => continueToLms(true)}

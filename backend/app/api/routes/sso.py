@@ -10,8 +10,9 @@ LEARNWORLDS_SSO_IMPLEMENTATION_PLAN.md for why.
 """
 
 import logging
+import secrets
 from typing import Annotated
-from urllib.parse import urlencode, urlparse
+from urllib.parse import quote, unquote, urlencode, urlparse
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
@@ -25,6 +26,7 @@ from app.db.models import HankoUserMapping, UserProfile
 from app.schemas.sso import LinkRequest, MappingResponse
 from app.services import hanko_lookup
 from app.services.learnworlds import LearnWorldsError, learnworlds_client
+from app.services.linkedin import LinkedInError, linkedin_client
 
 logger = logging.getLogger(__name__)
 
@@ -132,10 +134,17 @@ async def _match_by_email(user) -> str | None:
     return None
 
 
-def _linking_page_redirect(request: Request, redirect_url: str) -> RedirectResponse:
-    """Send the person to the screen that looks for their existing courses."""
+def _linking_page_redirect(
+    request: Request, redirect_url: str, **extra: str
+) -> RedirectResponse:
+    """Send the person to the screen that looks for their existing courses.
+
+    ``extra`` carries the outcome of a LinkedIn lookup back to that screen.
+    """
     origin = (settings.frontend_url or str(request.base_url)).rstrip("/")
-    page = f"{origin}/app/link/learnworlds?" + urlencode({"redirectUrl": redirect_url})
+    page = f"{origin}/app/link/learnworlds?" + urlencode(
+        {"redirectUrl": redirect_url, **extra}
+    )
     return RedirectResponse(page, status_code=status.HTTP_302_FOUND)
 
 
@@ -277,6 +286,7 @@ async def learnworlds_status(db: DB, user: CurrentUser) -> dict:
         "linked": linked is not None,
         "emails": await hanko_lookup.verified_emails(user.id)
         or ([user.email] if user.email else []),
+        "linkedin": linkedin_client.is_configured,
     }
 
 
@@ -335,6 +345,132 @@ async def learnworlds_link(db: DB, user: CurrentUser, payload: LinkRequest) -> d
         courses = None
 
     return {"linked": True, "courses": courses}
+
+
+# --- LinkedIn -------------------------------------------------------------
+#
+# People who joined the school with LinkedIn often cannot say which address
+# their courses are under. LinkedIn tells us, and we look it up like any other
+# verified address. It is not a way to sign in: they already have a session.
+
+LINKEDIN_PATH = "/api/sso/learnworlds/linkedin"
+LINKEDIN_STATE_COOKIE = "lw_linkedin_state"
+# Long enough to read LinkedIn's consent screen, short enough not to linger.
+LINKEDIN_STATE_MAX_AGE = 600
+
+
+def _linkedin_redirect_uri(request: Request) -> str:
+    """The callback URL, which must match one registered in the LinkedIn app."""
+    origin = (settings.backend_url or str(request.base_url)).rstrip("/")
+    return f"{origin}{LINKEDIN_PATH}/callback"
+
+
+@router.get("/learnworlds/linkedin")
+async def learnworlds_linkedin_start(
+    request: Request,
+    user: CurrentUser,
+    redirect_url: str | None = Query(None, alias="redirectUrl"),
+) -> RedirectResponse:
+    """Send the person to LinkedIn to find out which address they used.
+
+    **Authentication**: requires a Hanko session.
+    """
+    if not linkedin_client.is_configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LinkedIn lookup is not configured",
+        )
+
+    state = secrets.token_urlsafe(24)
+    response = RedirectResponse(
+        linkedin_client.authorize_url(_linkedin_redirect_uri(request), state),
+        status_code=status.HTTP_302_FOUND,
+    )
+    # The state ties the callback to this browser, which is what stops someone
+    # from sending a victim a callback URL carrying the attacker's LinkedIn.
+    # Where the LMS wanted them to land rides along; it is re-checked on return.
+    response.set_cookie(
+        LINKEDIN_STATE_COOKIE,
+        # Encoded so the value needs no quoting in the cookie header.
+        f"{state}|{quote(_safe_redirect_url(redirect_url), safe='')}",
+        max_age=LINKEDIN_STATE_MAX_AGE,
+        path=LINKEDIN_PATH,
+        httponly=True,
+        secure=request.url.scheme == "https",
+        samesite="lax",
+    )
+    return response
+
+
+async def _link_from_linkedin(
+    db: AsyncSession, user, code: str, redirect_uri: str
+) -> dict[str, str]:
+    """Find the school account behind the LinkedIn address and link it.
+
+    Returns the outcome for the linking screen, as query parameters.
+    """
+    if await _linked_user_id(db, user.id):
+        # Linked in another tab meanwhile: the screen sends them straight in.
+        return {"linkedin": "linked"}
+
+    try:
+        email = await linkedin_client.verified_email(code, redirect_uri)
+        if not email:
+            return {"linkedin": "unverified"}
+        existing = await learnworlds_client.get_user_by_email(email)
+    except (LinkedInError, LearnWorldsError):
+        logger.exception("LinkedIn lookup failed for %s", user.id)
+        return {"linkedin": "failed"}
+    if not existing or not existing.get("id"):
+        return {"linkedin": "not_found"}
+
+    await _link(db, user.id, existing["id"])
+    logger.info("learnworlds sso: %s (matched by linkedin)", user.id)
+
+    try:
+        courses = await learnworlds_client.count_courses(existing["id"])
+    except LearnWorldsError:
+        # The link is what matters; the count is only there to reassure.
+        logger.warning("Could not count courses for %s", existing["id"])
+        return {"linkedin": "linked"}
+    return {"linkedin": "linked", "courses": str(courses)}
+
+
+@router.get("/learnworlds/linkedin/callback")
+async def learnworlds_linkedin_callback(
+    request: Request,
+    db: DB,
+    user: CurrentUser,
+    code: str | None = Query(None),
+    state: str | None = Query(None),
+    error: str | None = Query(None),
+) -> RedirectResponse:
+    """Look up the LinkedIn address in the school and link it if it is there.
+
+    Always ends on the linking screen with a ``linkedin`` outcome: ``linked``,
+    ``not_found``, ``unverified``, ``cancelled`` or ``failed``.
+
+    **Authentication**: requires a Hanko session.
+    """
+    stored_state, _, stored_redirect = (
+        request.cookies.get(LINKEDIN_STATE_COOKIE) or ""
+    ).partition("|")
+    target = _safe_redirect_url(unquote(stored_redirect) or None)
+
+    if error:
+        # Most often the person pressed "Cancel" on LinkedIn's screen.
+        result = {"linkedin": "cancelled"}
+    elif not code or not state or not secrets.compare_digest(state, stored_state):
+        logger.warning("LinkedIn callback with a missing or foreign state")
+        result = {"linkedin": "failed"}
+    else:
+        result = await _link_from_linkedin(
+            db, user, code, _linkedin_redirect_uri(request)
+        )
+
+    response = _linking_page_redirect(request, target, **result)
+    response.delete_cookie(LINKEDIN_STATE_COOKIE, path=LINKEDIN_PATH)
+    return response
 
 
 @internal_router.get(
