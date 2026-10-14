@@ -11,6 +11,8 @@ LEARNWORLDS_SSO_IMPLEMENTATION_PLAN.md for why.
 
 import logging
 import secrets
+import time
+from collections import defaultdict, deque
 from typing import Annotated
 from urllib.parse import quote, unquote, urlencode, urlparse
 
@@ -50,6 +52,33 @@ VALID_ACTIONS = ("login", "signup", "passwordreset")
 # clicked the sign-in button is its own login page. Returning a logged-in user
 # there lands them on "Looks like you are lost", so those paths go home instead.
 DEAD_END_PATHS = ("/signin", "/login", "/signup", "/register")
+
+
+class _RateLimiter:
+    """At most ``limit`` calls per key in a sliding ``window`` of seconds.
+
+    In memory, which is enough while login runs a single replica; with more,
+    each one would allow its own share.
+    """
+
+    def __init__(self, limit: int, window: float) -> None:
+        self.limit = limit
+        self.window = window
+        self._calls: dict[str, deque[float]] = defaultdict(deque)
+
+    def allow(self, key: str) -> bool:
+        now = time.monotonic()
+        calls = self._calls[key]
+        while calls and now - calls[0] > self.window:
+            calls.popleft()
+        if len(calls) >= self.limit:
+            return False
+        calls.append(now)
+        return True
+
+
+# Enough for a few typos, too few to walk a list of addresses.
+_email_checks = _RateLimiter(limit=10, window=3600)
 
 
 def _safe_redirect_url(redirect_url: str | None) -> str:
@@ -288,6 +317,41 @@ async def learnworlds_status(db: DB, user: CurrentUser) -> dict:
         or ([user.email] if user.email else []),
         "linkedin": linkedin_client.is_configured,
     }
+
+
+@router.post("/learnworlds/email-check")
+async def learnworlds_email_check(user: CurrentUser, payload: LinkRequest) -> dict:
+    """Whether ``email`` already belongs to a different HOT account.
+
+    Hanko will not say so: to hide which addresses are registered, adding a
+    taken address quietly emails its owner instead of sending a code, and the
+    linking screen would wait for a code that never comes. Asking first lets
+    the screen offer to sign in with that account instead.
+
+    That does tell a signed-in person whether an address has an account, so
+    the answer is a bare yes or no, each person gets a few tries an hour, and
+    every "yes" is logged.
+
+    **Authentication**: requires a Hanko session.
+
+    **Returns**:
+    - 200: ``{"taken": bool}``; unknown when Hanko is unreachable reads as false
+    - 429: too many checks
+    """
+    if not _email_checks.allow(user.id):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many checks, try again later",
+        )
+
+    # None when nobody has it, or when Hanko is unreachable: either way the
+    # screen carries on as before. Their own address, verified or not, is not
+    # "taken" — Hanko handles that case and says so.
+    owner = await hanko_lookup.email_to_user_id(payload.email.strip().lower())
+    taken = owner is not None and owner != user.id
+    if taken:
+        logger.info("learnworlds email-check: %s asked about a taken address", user.id)
+    return {"taken": taken}
 
 
 @router.post("/learnworlds/link")

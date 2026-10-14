@@ -137,18 +137,37 @@ function LinkLearnWorldsPage() {
     setError(null);
     setTakenEmail(null);
     setBusy(true);
+    const address = otherEmail.trim();
     try {
+      // Hanko will not say when the address is someone else's account: it
+      // emails that owner instead of sending a code, and this screen would
+      // wait for a code that never arrives. So ask first.
+      const check = await fetch(`${backendUrl}/sso/learnworlds/email-check`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: address }),
+      });
+      if (check.status === 429) {
+        setError(t('linkTooManyChecks'));
+        return;
+      }
+      if (check.ok && (await check.json()).taken) {
+        setTakenEmail(address);
+        return;
+      }
+
       // The code is sent by Hanko, as part of adding the address to their HOT
       // account — not by us, and not because the address exists in the LMS.
       // Tying it to the LMS would let anyone test addresses to find out who
       // studies here.
-      setFlow(await sendVerificationCode(otherEmail.trim()));
+      setFlow(await sendVerificationCode(address));
       setCode('');
       setStep('code');
     } catch (err) {
       const reason = err instanceof Error ? err.message : '';
       if (reason === EMAIL_TAKEN) {
-        setTakenEmail(otherEmail.trim());
+        setTakenEmail(address);
       } else if (reason === 'already_verified') {
         setError(t('linkEmailAlreadyYours'));
       } else {
