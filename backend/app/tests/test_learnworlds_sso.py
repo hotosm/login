@@ -602,3 +602,66 @@ async def test_linkedin_failure_is_reported_not_raised(client, db, lw, linkedin)
 
     assert query["linkedin"] == ["failed"]
     assert await _mappings(db) == []
+
+
+# --- address already on another account ------------------------------------
+#
+# Hanko hides this (it emails the owner instead of sending a code), so the
+# screen asks first.
+
+CHECK_PATH = "/api/sso/learnworlds/email-check"
+
+
+@pytest.fixture
+def owner():
+    """Control which Hanko user an address belongs to; fresh rate limit."""
+    with (
+        patch.object(
+            sso_route.hanko_lookup, "email_to_user_id", new=AsyncMock(return_value=None)
+        ) as mock,
+        patch.object(sso_route, "_email_checks", sso_route._RateLimiter(3, 3600)),
+    ):
+        yield mock
+
+
+@pytest.mark.asyncio
+async def test_check_reports_an_address_on_another_account(client, owner):
+    owner.return_value = "someone-else"
+
+    response = await client.post(CHECK_PATH, json={"email": "Taken@Example.org"})
+
+    assert response.json() == {"taken": True}
+    owner.assert_awaited_once_with("taken@example.org")
+
+
+@pytest.mark.asyncio
+async def test_check_free_address_is_not_taken(client, owner):
+    response = await client.post(CHECK_PATH, json={"email": "free@example.org"})
+
+    assert response.json() == {"taken": False}
+
+
+@pytest.mark.asyncio
+async def test_check_own_address_is_not_taken(client, owner):
+    """Their own address goes through Hanko, which handles it properly."""
+    owner.return_value = USER_A.id
+
+    response = await client.post(CHECK_PATH, json={"email": "mine@example.org"})
+
+    assert response.json() == {"taken": False}
+
+
+@pytest.mark.asyncio
+async def test_check_is_rate_limited_per_person(client, owner, auth):
+    """A few typos are fine; walking a list of addresses is not."""
+    for _ in range(3):
+        assert (
+            await client.post(CHECK_PATH, json={"email": "a@b.org"})
+        ).status_code == 200
+
+    response = await client.post(CHECK_PATH, json={"email": "a@b.org"})
+    assert response.status_code == 429
+
+    auth["user"] = make_user("someone-else")
+    response = await client.post(CHECK_PATH, json={"email": "a@b.org"})
+    assert response.status_code == 200

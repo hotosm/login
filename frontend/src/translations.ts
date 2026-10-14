@@ -294,6 +294,7 @@ export interface Translations {
   linkNoImNew: string;
   linkWithLinkedIn: string;
   linkChooseHow: string;
+  linkTooManyChecks: string;
   linkLinkedInNotFound: string;
   linkLinkedInUnverified: string;
   linkLinkedInFailed: string;
@@ -600,6 +601,7 @@ export const translations: Record<string, Translations> = {
     linkNoImNew: 'No, I am new here',
     linkWithLinkedIn: 'With LinkedIn',
     linkChooseHow: 'If you have, choose how you used to sign in to the Learning Center:',
+    linkTooManyChecks: 'Too many attempts. Please try again in an hour.',
     linkLinkedInNotFound: 'Your LinkedIn address has no courses here. Try another email.',
     linkLinkedInUnverified: 'LinkedIn did not confirm your address. Try another email.',
     linkLinkedInFailed: 'We could not check with LinkedIn. Please try again.',
@@ -891,6 +893,7 @@ export const translations: Record<string, Translations> = {
     linkNoImNew: 'No, soy nuevo',
     linkWithLinkedIn: 'Con LinkedIn',
     linkChooseHow: 'Si ya los hiciste, elige cómo entrabas al Learning Center:',
+    linkTooManyChecks: 'Demasiados intentos. Inténtalo de nuevo en una hora.',
     linkLinkedInNotFound: 'Tu correo de LinkedIn no tiene cursos aquí. Prueba con otro correo.',
     linkLinkedInUnverified: 'LinkedIn no confirmó tu correo. Prueba con otro correo.',
     linkLinkedInFailed: 'No pudimos consultar a LinkedIn. Inténtalo de nuevo.',
@@ -1185,6 +1188,7 @@ export const translations: Record<string, Translations> = {
     linkNoImNew: 'Non, je suis nouveau',
     linkWithLinkedIn: 'Avec LinkedIn',
     linkChooseHow: 'Si oui, choisissez comment vous vous connectiez au Learning Center :',
+    linkTooManyChecks: 'Trop de tentatives. Veuillez réessayer dans une heure.',
     linkLinkedInNotFound: 'Votre adresse LinkedIn n\'a aucun cours ici. Essayez une autre adresse.',
     linkLinkedInUnverified: 'LinkedIn n\'a pas confirmé votre adresse. Essayez une autre adresse.',
     linkLinkedInFailed: 'Impossible de vérifier avec LinkedIn. Veuillez réessayer.',
@@ -1472,6 +1476,7 @@ export const translations: Record<string, Translations> = {
     linkNoImNew: 'Não, sou novo',
     linkWithLinkedIn: 'Com o LinkedIn',
     linkChooseHow: 'Se já fez, escolha como você entrava no Learning Center:',
+    linkTooManyChecks: 'Muitas tentativas. Tente novamente em uma hora.',
     linkLinkedInNotFound: 'Seu e-mail do LinkedIn não tem cursos aqui. Tente outro e-mail.',
     linkLinkedInUnverified: 'O LinkedIn não confirmou seu e-mail. Tente outro e-mail.',
     linkLinkedInFailed: 'Não foi possível consultar o LinkedIn. Tente novamente.',
