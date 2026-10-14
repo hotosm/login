@@ -5,7 +5,7 @@ person owns, not that their API works.
 """
 
 from unittest.mock import AsyncMock, patch
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 import pytest
 from hotosm_auth_fastapi import get_current_user_optional
@@ -357,7 +357,11 @@ async def test_status_lists_the_addresses_to_try(client, lw, signed_in, verified
     response = await client.get("/api/sso/learnworlds/status")
 
     assert response.status_code == 200
-    assert response.json() == {"linked": False, "emails": [USER_A.email]}
+    assert response.json() == {
+        "linked": False,
+        "emails": [USER_A.email],
+        "linkedin": sso_route.linkedin_client.is_configured,
+    }
 
 
 @pytest.mark.asyncio
@@ -440,3 +444,161 @@ async def test_mapping_without_the_header_is_unauthorised(client, internal_key):
     response = await client.get(f"{MAPPING_PATH}/someone-else")
 
     assert response.status_code == 401
+
+
+# --- LinkedIn lookup -------------------------------------------------------
+#
+# LinkedIn is stubbed too: these check what we do with the address it gives.
+
+LINKEDIN_PATH = "/api/sso/learnworlds/linkedin"
+STATE = "state-123"
+
+
+@pytest.fixture
+def linkedin():
+    """Stub the LinkedIn client as configured, returning a verified address."""
+    with (
+        patch.object(
+            type(sso_route.linkedin_client),
+            "is_configured",
+            property(lambda self: True),
+        ),
+        patch.object(
+            sso_route.linkedin_client,
+            "verified_email",
+            new=AsyncMock(return_value="old@linkedin.org"),
+        ),
+    ):
+        yield sso_route.linkedin_client
+
+
+async def _callback(client, state=STATE, cookie=STATE, **params):
+    client.cookies.set(
+        "lw_linkedin_state",
+        f"{cookie}|{quote(f'{SCHOOL}/course/x', safe='')}",
+        path=LINKEDIN_PATH,
+    )
+    query = {"code": "the-code", "state": state, **params}
+    return await client.get(f"{LINKEDIN_PATH}/callback", params=query)
+
+
+def _outcome(response) -> dict[str, list[str]]:
+    assert response.status_code == 302
+    location = urlparse(response.headers["location"])
+    assert location.path == "/app/link/learnworlds"
+    return parse_qs(location.query)
+
+
+@pytest.mark.asyncio
+async def test_linkedin_start_redirects_with_state_cookie(client, lw, linkedin):
+    response = await client.get(
+        LINKEDIN_PATH, params={"redirectUrl": f"{SCHOOL}/course/x"}
+    )
+
+    assert response.status_code == 302
+    location = urlparse(response.headers["location"])
+    assert location.netloc == "www.linkedin.com"
+    query = parse_qs(location.query)
+    assert query["scope"] == ["openid email"]
+    assert query["redirect_uri"][0].endswith(f"{LINKEDIN_PATH}/callback")
+    cookie = response.cookies["lw_linkedin_state"]
+    assert cookie.startswith(query["state"][0] + "|")
+    assert '"' not in cookie
+
+
+@pytest.mark.asyncio
+async def test_linkedin_round_trip_uses_the_cookie_it_set(client, db, lw, linkedin):
+    """The state and destination survive the trip through LinkedIn."""
+    lw.get_user_by_email.return_value = {"id": "lw-linkedin"}
+    lw.count_courses = AsyncMock(return_value=1)
+
+    start = await client.get(LINKEDIN_PATH, params={"redirectUrl": f"{SCHOOL}/c/1"})
+    state = parse_qs(urlparse(start.headers["location"]).query)["state"][0]
+    response = await client.get(
+        f"{LINKEDIN_PATH}/callback", params={"code": "the-code", "state": state}
+    )
+
+    query = _outcome(response)
+    assert query["linkedin"] == ["linked"]
+    assert query["redirectUrl"] == [f"{SCHOOL}/c/1"]
+    assert [r.app_user_id for r in await _mappings(db)] == ["lw-linkedin"]
+
+
+@pytest.mark.asyncio
+async def test_linkedin_start_needs_configuration(client, lw):
+    with patch.object(
+        type(sso_route.linkedin_client),
+        "is_configured",
+        property(lambda self: False),
+    ):
+        response = await client.get(LINKEDIN_PATH)
+
+    assert response.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_linkedin_address_in_the_school_is_linked(client, db, lw, linkedin):
+    """The whole point: courses under the LinkedIn address come back."""
+    lw.get_user_by_email.return_value = {"id": "lw-linkedin"}
+    lw.count_courses = AsyncMock(return_value=3)
+
+    query = _outcome(await _callback(client))
+
+    assert query["linkedin"] == ["linked"]
+    assert query["courses"] == ["3"]
+    assert query["redirectUrl"] == [f"{SCHOOL}/course/x"]
+    lw.get_user_by_email.assert_awaited_once_with("old@linkedin.org")
+    assert [r.app_user_id for r in await _mappings(db)] == ["lw-linkedin"]
+
+
+@pytest.mark.asyncio
+async def test_linkedin_address_not_in_the_school(client, db, lw, linkedin):
+    query = _outcome(await _callback(client))
+
+    assert query["linkedin"] == ["not_found"]
+    assert await _mappings(db) == []
+
+
+@pytest.mark.asyncio
+async def test_linkedin_unverified_address_is_not_looked_up(client, db, lw, linkedin):
+    """LinkedIn not vouching for the address proves nothing about its courses."""
+    linkedin.verified_email.return_value = None
+
+    query = _outcome(await _callback(client))
+
+    assert query["linkedin"] == ["unverified"]
+    lw.get_user_by_email.assert_not_awaited()
+    assert await _mappings(db) == []
+
+
+@pytest.mark.asyncio
+async def test_linkedin_foreign_state_is_refused(client, db, lw, linkedin):
+    """A callback URL from someone else's browser must not link their LinkedIn."""
+    lw.get_user_by_email.return_value = {"id": "lw-attacker"}
+
+    query = _outcome(await _callback(client, state="forged"))
+
+    assert query["linkedin"] == ["failed"]
+    linkedin.verified_email.assert_not_awaited()
+    assert await _mappings(db) == []
+
+
+@pytest.mark.asyncio
+async def test_linkedin_cancel_goes_back_to_the_screen(client, lw, linkedin):
+    response = await client.get(
+        f"{LINKEDIN_PATH}/callback",
+        params={"error": "user_cancelled_login", "state": STATE},
+    )
+
+    assert _outcome(response)["linkedin"] == ["cancelled"]
+    linkedin.verified_email.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_linkedin_failure_is_reported_not_raised(client, db, lw, linkedin):
+    linkedin.verified_email.side_effect = sso_route.LinkedInError("boom")
+
+    query = _outcome(await _callback(client))
+
+    assert query["linkedin"] == ["failed"]
+    assert await _mappings(db) == []

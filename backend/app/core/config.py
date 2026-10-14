@@ -69,6 +69,12 @@ class Settings(BaseSettings):
     learnworlds_client_id: str = ""
     learnworlds_client_secret: str = ""
 
+    # LinkedIn app used only by the LearnWorlds linking screen, to find the
+    # courses of people who joined the school with LinkedIn. Unset hides the
+    # option.
+    linkedin_client_id: str = ""
+    linkedin_client_secret: str = ""
+
     # S3/MinIO storage for group avatar/banner images. When unset, images fall
     # back to the local filesystem (fine for dev without object storage).
     s3_endpoint_url: str | None = None

@@ -92,6 +92,8 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           LEARNWORLDS_CLIENT_ID: ${{ secrets.LEARNWORLDS_CLIENT_ID }}
           LEARNWORLDS_CLIENT_SECRET: ${{ secrets.LEARNWORLDS_CLIENT_SECRET }}
+          LINKEDIN_CLIENT_ID: ${{ secrets.LINKEDIN_CLIENT_ID }}
+          LINKEDIN_CLIENT_SECRET: ${{ secrets.LINKEDIN_CLIENT_SECRET }}
         run: |
           ssh $EC2_USER@$EC2_HOST << 'EOF'
             set -e
@@ -239,6 +241,16 @@ jobs:
               sed -i 's|^LEARNWORLDS_CLIENT_SECRET=.*|LEARNWORLDS_CLIENT_SECRET=${{ secrets.LEARNWORLDS_CLIENT_SECRET }}|' .env
             else
               echo 'LEARNWORLDS_CLIENT_SECRET=${{ secrets.LEARNWORLDS_CLIENT_SECRET }}' >> .env
+            fi
+            if grep -q '^LINKEDIN_CLIENT_ID=' .env; then
+              sed -i 's|^LINKEDIN_CLIENT_ID=.*|LINKEDIN_CLIENT_ID=${{ secrets.LINKEDIN_CLIENT_ID }}|' .env
+            else
+              echo 'LINKEDIN_CLIENT_ID=${{ secrets.LINKEDIN_CLIENT_ID }}' >> .env
+            fi
+            if grep -q '^LINKEDIN_CLIENT_SECRET=' .env; then
+              sed -i 's|^LINKEDIN_CLIENT_SECRET=.*|LINKEDIN_CLIENT_SECRET=${{ secrets.LINKEDIN_CLIENT_SECRET }}|' .env
+            else
+              echo 'LINKEDIN_CLIENT_SECRET=${{ secrets.LINKEDIN_CLIENT_SECRET }}' >> .env
             fi
             echo "✓ Updated secrets in .env"
 
