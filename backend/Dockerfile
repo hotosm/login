@@ -60,7 +60,9 @@ COPY . .
 RUN chmod +x entrypoint.sh
 
 # Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# uploads/ exists in the image so a fresh volume mounted there inherits
+# appuser's ownership; otherwise Docker creates it owned by root.
+RUN useradd -m -u 1000 appuser && mkdir -p /app/uploads && chown -R appuser:appuser /app
 USER appuser
 
 # Expose port

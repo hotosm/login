@@ -292,6 +292,12 @@ export interface Translations {
   linkChooseIntro: string;
   linkYesOtherEmail: string;
   linkNoImNew: string;
+  linkWithLinkedIn: string;
+  linkChooseHow: string;
+  linkTooManyChecks: string;
+  linkLinkedInNotFound: string;
+  linkLinkedInUnverified: string;
+  linkLinkedInFailed: string;
   linkEmailLabel: string;
   linkWhyCode: string;
   linkCodeLabel: string;
@@ -561,7 +567,7 @@ export const translations: Record<string, Translations> = {
     linkTitle: 'Recover your courses',
     linkNoCoursesFor: 'We found no courses under this address:',
     linkNoCoursesGeneric: 'We found no courses under your account.',
-    linkAskOtherEmail: 'If you took them with a different address, enter it and we will bring them over.',
+    linkAskOtherEmail: 'Enter the email you used to sign in with. If you used Google, it is your Gmail address.',
     linkOtherEmailPlaceholder: 'your-other-email@example.com',
     linkFindMyProgress: 'Find my courses',
     linkSearching: 'Looking...',
@@ -591,8 +597,14 @@ export const translations: Record<string, Translations> = {
     linkDoneFrom: 'From now on you sign in to the Learning Center with your HOT account.',
     linkChooseTitle: 'Have you taken courses here before?',
     linkChooseIntro: 'There are no courses under the address you signed in with:',
-    linkYesOtherEmail: 'Yes, with a different email',
+    linkYesOtherEmail: 'With my email or with Google',
     linkNoImNew: 'No, I am new here',
+    linkWithLinkedIn: 'With LinkedIn',
+    linkChooseHow: 'If you have, choose how you used to sign in to the Learning Center:',
+    linkTooManyChecks: 'Too many attempts. Please try again in an hour.',
+    linkLinkedInNotFound: 'Your LinkedIn address has no courses here. Try another email.',
+    linkLinkedInUnverified: 'LinkedIn did not confirm your address. Try another email.',
+    linkLinkedInFailed: 'We could not check with LinkedIn. Please try again.',
   },
   es: {
     welcomeTo: "Bienvenido a HOT's",
@@ -847,7 +859,7 @@ export const translations: Record<string, Translations> = {
     linkTitle: 'Recupera tus cursos',
     linkNoCoursesFor: 'No encontramos cursos con este correo:',
     linkNoCoursesGeneric: 'No encontramos cursos asociados a tu cuenta.',
-    linkAskOtherEmail: 'Si los hiciste con otro correo, escríbelo y los traemos a esta cuenta.',
+    linkAskOtherEmail: 'Escribe el correo con el que entrabas. Si usabas Google, es tu dirección de Gmail.',
     linkOtherEmailPlaceholder: 'tu-otro-correo@ejemplo.com',
     linkFindMyProgress: 'Buscar mis cursos',
     linkSearching: 'Buscando...',
@@ -877,8 +889,14 @@ export const translations: Record<string, Translations> = {
     linkDoneFrom: 'A partir de ahora entras al Learning Center con tu cuenta HOT.',
     linkChooseTitle: '¿Ya hiciste cursos antes?',
     linkChooseIntro: 'No hay cursos asociados al correo con el que entraste:',
-    linkYesOtherEmail: 'Sí, los hice con otro correo',
+    linkYesOtherEmail: 'Con mi correo o con Google',
     linkNoImNew: 'No, soy nuevo',
+    linkWithLinkedIn: 'Con LinkedIn',
+    linkChooseHow: 'Si ya los hiciste, elige cómo entrabas al Learning Center:',
+    linkTooManyChecks: 'Demasiados intentos. Inténtalo de nuevo en una hora.',
+    linkLinkedInNotFound: 'Tu correo de LinkedIn no tiene cursos aquí. Prueba con otro correo.',
+    linkLinkedInUnverified: 'LinkedIn no confirmó tu correo. Prueba con otro correo.',
+    linkLinkedInFailed: 'No pudimos consultar a LinkedIn. Inténtalo de nuevo.',
   },
   fr: {
     welcomeTo: "Bienvenue sur HOT's",
@@ -1136,7 +1154,7 @@ export const translations: Record<string, Translations> = {
     linkTitle: 'Récupérez vos cours',
     linkNoCoursesFor: 'Aucun cours trouvé avec cette adresse :',
     linkNoCoursesGeneric: 'Aucun cours trouvé pour votre compte.',
-    linkAskOtherEmail: 'Si vous les avez suivis avec une autre adresse, saisissez-la et nous les transférons.',
+    linkAskOtherEmail: 'Saisissez l\'adresse avec laquelle vous vous connectiez. Si vous utilisiez Google, c\'est votre adresse Gmail.',
     linkOtherEmailPlaceholder: 'votre-autre-email@exemple.com',
     linkFindMyProgress: 'Retrouver mes cours',
     linkSearching: 'Recherche...',
@@ -1166,8 +1184,14 @@ export const translations: Record<string, Translations> = {
     linkDoneFrom: 'Désormais, connectez-vous au Learning Center avec votre compte HOT.',
     linkChooseTitle: 'Avez-vous déjà suivi des cours ici ?',
     linkChooseIntro: 'Aucun cours n\'est associé à l\'adresse utilisée pour vous connecter :',
-    linkYesOtherEmail: 'Oui, avec une autre adresse',
+    linkYesOtherEmail: 'Avec mon adresse e-mail ou avec Google',
     linkNoImNew: 'Non, je suis nouveau',
+    linkWithLinkedIn: 'Avec LinkedIn',
+    linkChooseHow: 'Si oui, choisissez comment vous vous connectiez au Learning Center :',
+    linkTooManyChecks: 'Trop de tentatives. Veuillez réessayer dans une heure.',
+    linkLinkedInNotFound: 'Votre adresse LinkedIn n\'a aucun cours ici. Essayez une autre adresse.',
+    linkLinkedInUnverified: 'LinkedIn n\'a pas confirmé votre adresse. Essayez une autre adresse.',
+    linkLinkedInFailed: 'Impossible de vérifier avec LinkedIn. Veuillez réessayer.',
   },
   pt: {
     welcomeTo: "Bem-vindo ao HOT's",
@@ -1418,7 +1442,7 @@ export const translations: Record<string, Translations> = {
     linkTitle: 'Recupere seus cursos',
     linkNoCoursesFor: 'Não encontramos cursos com este e-mail:',
     linkNoCoursesGeneric: 'Não encontramos cursos associados à sua conta.',
-    linkAskOtherEmail: 'Se você os fez com outro e-mail, escreva aqui e nós os trazemos.',
+    linkAskOtherEmail: 'Escreva o e-mail com que você entrava. Se usava o Google, é o seu endereço do Gmail.',
     linkOtherEmailPlaceholder: 'seu-outro-email@exemplo.com',
     linkFindMyProgress: 'Procurar meus cursos',
     linkSearching: 'Procurando...',
@@ -1448,8 +1472,14 @@ export const translations: Record<string, Translations> = {
     linkDoneFrom: 'A partir de agora você entra no Learning Center com sua conta HOT.',
     linkChooseTitle: 'Você já fez cursos aqui?',
     linkChooseIntro: 'Não há cursos associados ao e-mail com que você entrou:',
-    linkYesOtherEmail: 'Sim, com outro e-mail',
+    linkYesOtherEmail: 'Com meu e-mail ou com o Google',
     linkNoImNew: 'Não, sou novo',
+    linkWithLinkedIn: 'Com o LinkedIn',
+    linkChooseHow: 'Se já fez, escolha como você entrava no Learning Center:',
+    linkTooManyChecks: 'Muitas tentativas. Tente novamente em uma hora.',
+    linkLinkedInNotFound: 'Seu e-mail do LinkedIn não tem cursos aqui. Tente outro e-mail.',
+    linkLinkedInUnverified: 'O LinkedIn não confirmou seu e-mail. Tente outro e-mail.',
+    linkLinkedInFailed: 'Não foi possível consultar o LinkedIn. Tente novamente.',
   },
 };
 
