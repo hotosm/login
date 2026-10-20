@@ -452,6 +452,13 @@ function LinkLearnWorldsPage() {
             )}
 
             {error && <ErrorBanner>{error}</ErrorBanner>}
+
+            <p className="text-xs text-hot-gray-500 text-center">
+              {t('linkHelp')}{' '}
+              <a href="mailto:tech@hotosm.org" className="underline">
+                tech@hotosm.org
+              </a>
+            </p>
           </div>
         </div>
       </div>
