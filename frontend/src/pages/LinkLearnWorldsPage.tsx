@@ -24,7 +24,20 @@ import {
 // answer. That is the whole reason this page exists: LearnWorlds makes a new,
 // empty account for an unknown address, and the courses they already have
 // would then sit out of reach behind the address they no longer use.
-type Step = 'loading' | 'choose' | 'ask' | 'code' | 'done';
+type Step = 'loading' | 'choose' | 'ask' | 'code' | 'profile' | 'done';
+
+// One of the school's own sign-up questions, as the backend reads them from
+// LearnWorlds. Accounts created from here skip its sign-up form, so this
+// screen asks them instead; labels and options come in the school's language.
+interface SignupField {
+  key: string;
+  type: 'dropdown' | 'text' | 'date';
+  label: string;
+  required: boolean;
+  placeholder: string;
+  options: string[];
+  max_length: number | null;
+}
 
 // The address belongs to a different HOT account. Hanko refuses to move it,
 // which is right, and the way out is to sign in with that account instead —
@@ -55,6 +68,8 @@ function LinkLearnWorldsPage() {
   const [error, setError] = useState<string | null>(null);
   const [takenEmail, setTakenEmail] = useState<string | null>(null);
   const [linkedinEnabled, setLinkedinEnabled] = useState(false);
+  const [signupFields, setSignupFields] = useState<SignupField[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
   // Back to the SSO endpoint: with a link stored it now knows who they are.
   // `new=1` tells it to go ahead and let LearnWorlds create the account.
@@ -124,6 +139,60 @@ function LinkLearnWorldsPage() {
       // Even if the call fails, sending them on beats staying here.
     }
     continueToLms();
+  };
+
+  // New here: the school wants a few answers from everyone who signs up. With
+  // nothing to ask (or the questions unreadable) they go straight in.
+  const startNewAccount = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const response = await fetch(
+        `${backendUrl}/sso/learnworlds/signup-fields`,
+        { credentials: 'include' },
+      );
+      const fields: SignupField[] = response.ok
+        ? (await response.json()).fields
+        : [];
+      if (fields.length) {
+        setSignupFields(fields);
+        setStep('profile');
+        return;
+      }
+    } catch {
+      // Not being able to ask is no reason to keep them out.
+    } finally {
+      setBusy(false);
+    }
+    continueToLms(true);
+  };
+
+  const missingAnswer = signupFields.some(
+    (field) => field.required && !answers[field.key]?.trim(),
+  );
+
+  const createAccount = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      // A POST, so the answers stay out of URLs and logs.
+      const response = await fetch(`${backendUrl}/sso/learnworlds/new`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ redirectUrl, fields: answers }),
+      });
+      if (response.status === 422) {
+        setError(t('linkProfileInvalid'));
+        return;
+      }
+      if (!response.ok) throw new Error(await readError(response));
+      window.location.href = (await response.json()).url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('linkFailed'));
+    } finally {
+      setBusy(false);
+    }
   };
 
   // LinkedIn tells the backend which address they used; it looks that up in
@@ -278,7 +347,8 @@ function LinkLearnWorldsPage() {
                   )}
                   <Button
                     appearance="accent"
-                    onClick={() => continueToLms(true)}
+                    onClick={startNewAccount}
+                    disabled={busy}
                   >
                     {t('linkNoImNew')}
                   </Button>
@@ -425,6 +495,85 @@ function LinkLearnWorldsPage() {
                     }}
                   >
                     {t('linkUseAnotherEmail')}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {step === 'profile' && (
+              <>
+                <div className="text-center">
+                  <h2 className="text-2xl mb-3">{t('linkProfileTitle')}</h2>
+                  <p className="text-base text-hot-gray-700">
+                    {t('linkProfileIntro')}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  {signupFields.map((field) => {
+                    const label = field.required
+                      ? `${field.label} *`
+                      : field.label;
+                    const setAnswer = (value: string) =>
+                      setAnswers((current) => ({
+                        ...current,
+                        [field.key]: value,
+                      }));
+                    if (field.type === 'dropdown') {
+                      return (
+                        <div key={field.key}>
+                          <label
+                            htmlFor={field.key}
+                            className="block text-sm font-medium text-hot-gray-700 mb-1"
+                          >
+                            {label}
+                          </label>
+                          <select
+                            id={field.key}
+                            value={answers[field.key] ?? ''}
+                            onChange={(e) => setAnswer(e.target.value)}
+                            className="input-field"
+                          >
+                            <option value="">{t('linkProfileSelect')}</option>
+                            {field.options.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    }
+                    return (
+                      <Input
+                        key={field.key}
+                        label={label}
+                        type={field.type === 'date' ? 'date' : 'text'}
+                        value={answers[field.key] ?? ''}
+                        onValueChange={setAnswer}
+                        placeholder={field.placeholder}
+                        maxlength={field.max_length ?? undefined}
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Button
+                    appearance="accent"
+                    onClick={createAccount}
+                    disabled={busy || missingAnswer}
+                  >
+                    {busy ? t('linkProfileCreating') : t('linkProfileSubmit')}
+                  </Button>
+                  <Button
+                    appearance="plain"
+                    onClick={() => {
+                      setStep('choose');
+                      setError(null);
+                    }}
+                  >
+                    {t('goBack')}
                   </Button>
                 </div>
               </>
