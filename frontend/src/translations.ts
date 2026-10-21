@@ -284,6 +284,12 @@ export interface Translations {
   linkOnlyOnce: string;
   linkHelp: string;
   linkHelpLink: string;
+  linkProfileTitle: string;
+  linkProfileIntro: string;
+  linkProfileSelect: string;
+  linkProfileSubmit: string;
+  linkProfileCreating: string;
+  linkProfileInvalid: string;
   linkCodeTitle: string;
   linkVerify: string;
   linkVerifying: string;
@@ -576,6 +582,12 @@ export const translations: Record<string, Translations> = {
     linkOnlyOnce: 'We only ask this once.',
     linkHelp: 'Questions or problems?',
     linkHelpLink: 'Send us a request',
+    linkProfileTitle: 'A few questions',
+    linkProfileIntro: 'The Learning Center asks everyone who joins. It helps HOT understand who its courses reach.',
+    linkProfileSelect: 'Select...',
+    linkProfileSubmit: 'Continue to the courses',
+    linkProfileCreating: 'Creating your account...',
+    linkProfileInvalid: 'Some answers are not valid. Check them and try again.',
     linkCodeTitle: 'Confirm the address is yours',
     linkVerify: 'Verify and recover',
     linkVerifying: 'Verifying...',
@@ -870,6 +882,12 @@ export const translations: Record<string, Translations> = {
     linkOnlyOnce: 'Te lo preguntamos una sola vez.',
     linkHelp: '¿Dudas o problemas?',
     linkHelpLink: 'Envíanos una solicitud',
+    linkProfileTitle: 'Unas preguntas',
+    linkProfileIntro: 'El Learning Center se las pide a todas las personas que se suman. Ayuda a HOT a entender a quién llegan sus cursos.',
+    linkProfileSelect: 'Selecciona...',
+    linkProfileSubmit: 'Continuar a los cursos',
+    linkProfileCreating: 'Creando tu cuenta...',
+    linkProfileInvalid: 'Algunas respuestas no son válidas. Revísalas e intenta de nuevo.',
     linkCodeTitle: 'Confirma que ese correo es tuyo',
     linkVerify: 'Verificar y recuperar',
     linkVerifying: 'Verificando...',
@@ -1167,6 +1185,12 @@ export const translations: Record<string, Translations> = {
     linkOnlyOnce: 'Nous ne le demandons qu\'une seule fois.',
     linkHelp: 'Des questions ou un problème ?',
     linkHelpLink: 'Envoyez-nous une demande',
+    linkProfileTitle: 'Quelques questions',
+    linkProfileIntro: 'Le Learning Center les pose à toutes les personnes qui s\'inscrivent. Cela aide HOT à comprendre qui ses cours atteignent.',
+    linkProfileSelect: 'Sélectionnez...',
+    linkProfileSubmit: 'Continuer vers les cours',
+    linkProfileCreating: 'Création de votre compte...',
+    linkProfileInvalid: 'Certaines réponses ne sont pas valides. Vérifiez-les et réessayez.',
     linkCodeTitle: 'Confirmez que l\'adresse est la vôtre',
     linkVerify: 'Vérifier et récupérer',
     linkVerifying: 'Vérification...',
@@ -1457,6 +1481,12 @@ export const translations: Record<string, Translations> = {
     linkOnlyOnce: 'Perguntamos isso apenas uma vez.',
     linkHelp: 'Dúvidas ou problemas?',
     linkHelpLink: 'Envie-nos uma solicitação',
+    linkProfileTitle: 'Algumas perguntas',
+    linkProfileIntro: 'O Learning Center pergunta a todas as pessoas que se inscrevem. Isso ajuda a HOT a entender quem seus cursos alcançam.',
+    linkProfileSelect: 'Selecione...',
+    linkProfileSubmit: 'Continuar para os cursos',
+    linkProfileCreating: 'Criando sua conta...',
+    linkProfileInvalid: 'Algumas respostas não são válidas. Revise-as e tente novamente.',
     linkCodeTitle: 'Confirme que o e-mail é seu',
     linkVerify: 'Verificar e recuperar',
     linkVerifying: 'Verificando...',
