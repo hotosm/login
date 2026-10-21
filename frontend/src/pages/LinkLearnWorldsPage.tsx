@@ -455,8 +455,13 @@ function LinkLearnWorldsPage() {
 
             <p className="text-xs text-hot-gray-500 text-center">
               {t('linkHelp')}{' '}
-              <a href="mailto:tech@hotosm.org" className="underline">
-                tech@hotosm.org
+              <a
+                href="https://roadmap.hotosm.org/#tech-request"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                {t('linkHelpLink')}
               </a>
             </p>
           </div>
