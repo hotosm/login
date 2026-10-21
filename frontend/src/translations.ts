@@ -282,6 +282,8 @@ export interface Translations {
   linkFindMyProgress: string;
   linkSearching: string;
   linkOnlyOnce: string;
+  linkHelp: string;
+  linkHelpLink: string;
   linkCodeTitle: string;
   linkVerify: string;
   linkVerifying: string;
@@ -572,6 +574,8 @@ export const translations: Record<string, Translations> = {
     linkFindMyProgress: 'Find my courses',
     linkSearching: 'Looking...',
     linkOnlyOnce: 'We only ask this once.',
+    linkHelp: 'Questions or problems?',
+    linkHelpLink: 'Send us a request',
     linkCodeTitle: 'Confirm the address is yours',
     linkVerify: 'Verify and recover',
     linkVerifying: 'Verifying...',
@@ -864,6 +868,8 @@ export const translations: Record<string, Translations> = {
     linkFindMyProgress: 'Buscar mis cursos',
     linkSearching: 'Buscando...',
     linkOnlyOnce: 'Te lo preguntamos una sola vez.',
+    linkHelp: '¿Dudas o problemas?',
+    linkHelpLink: 'Envíanos una solicitud',
     linkCodeTitle: 'Confirma que ese correo es tuyo',
     linkVerify: 'Verificar y recuperar',
     linkVerifying: 'Verificando...',
@@ -1159,6 +1165,8 @@ export const translations: Record<string, Translations> = {
     linkFindMyProgress: 'Retrouver mes cours',
     linkSearching: 'Recherche...',
     linkOnlyOnce: 'Nous ne le demandons qu\'une seule fois.',
+    linkHelp: 'Des questions ou un problème ?',
+    linkHelpLink: 'Envoyez-nous une demande',
     linkCodeTitle: 'Confirmez que l\'adresse est la vôtre',
     linkVerify: 'Vérifier et récupérer',
     linkVerifying: 'Vérification...',
@@ -1447,6 +1455,8 @@ export const translations: Record<string, Translations> = {
     linkFindMyProgress: 'Procurar meus cursos',
     linkSearching: 'Procurando...',
     linkOnlyOnce: 'Perguntamos isso apenas uma vez.',
+    linkHelp: 'Dúvidas ou problemas?',
+    linkHelpLink: 'Envie-nos uma solicitação',
     linkCodeTitle: 'Confirme que o e-mail é seu',
     linkVerify: 'Verificar e recuperar',
     linkVerifying: 'Verificando...',

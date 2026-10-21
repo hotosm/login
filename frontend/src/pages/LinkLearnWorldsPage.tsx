@@ -452,6 +452,18 @@ function LinkLearnWorldsPage() {
             )}
 
             {error && <ErrorBanner>{error}</ErrorBanner>}
+
+            <p className="text-xs text-hot-gray-500 text-center">
+              {t('linkHelp')}{' '}
+              <a
+                href="https://roadmap.hotosm.org/#tech-request"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                {t('linkHelpLink')}
+              </a>
+            </p>
           </div>
         </div>
       </div>
