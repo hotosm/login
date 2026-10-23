@@ -16,6 +16,7 @@ Docs: https://www.learnworlds.dev/docs/api/58052c1c3066e-single-sign-on
 import json
 import logging
 import time
+from datetime import date
 from typing import Any
 from urllib.parse import quote
 
@@ -32,9 +33,98 @@ _TOKEN_EXPIRY_MARGIN = 60
 _HTTP_BAD_REQUEST = 400
 _HTTP_NOT_FOUND = 404
 
+# The school's public pages define its sign-up questions in this JS variable.
+_SIGNUP_FIELDS_MARKER = "var USER_CUSTOM_FIELDS="
+# The questions change rarely; a failed read is retried sooner.
+_SIGNUP_FIELDS_TTL = 3600
+_SIGNUP_FIELDS_RETRY = 300
+# Field types the linking screen knows how to ask.
+_SIGNUP_FIELD_TYPES = ("dropdown", "text", "date")
+_OLDEST_BIRTH_YEAR = 1900
+
 
 class LearnWorldsError(Exception):
     """The LearnWorlds API rejected a request or answered unexpectedly."""
+
+
+class SignupAnswersError(ValueError):
+    """The answers to the sign-up questions do not fit their definitions."""
+
+
+def _parse_signup_fields(html: str) -> list[dict[str, Any]]:
+    """Pull the sign-up questions out of a school page.
+
+    Only active fields shown on the sign-up form, of a type we can ask.
+    """
+    start = html.index(_SIGNUP_FIELDS_MARKER) + len(_SIGNUP_FIELDS_MARKER)
+    raw, _ = json.JSONDecoder().raw_decode(html[start:])
+
+    fields = []
+    for field in raw:
+        signup = next(
+            (
+                form.get("data") or {}
+                for form in field.get("formData") or []
+                if form.get("type") == "signup"
+            ),
+            None,
+        )
+        if (
+            not field.get("active")
+            or not signup
+            or not signup.get("isVisible")
+            or field.get("type") not in _SIGNUP_FIELD_TYPES
+        ):
+            continue
+        fields.append(
+            {
+                "key": field["key"],
+                "type": field["type"],
+                "label": signup.get("label") or field.get("name") or field["key"],
+                "required": bool(signup.get("required")),
+                "placeholder": signup.get("placeholder") or "",
+                "options": [
+                    option["field_value"] for option in field.get("options") or []
+                ],
+                "max_length": int(field.get("maxLength") or 0) or None,
+            }
+        )
+    return fields
+
+
+def clean_signup_answers(
+    fields: list[dict[str, Any]], answers: dict[str, str]
+) -> dict[str, str]:
+    """Check answers against the school's questions and return what to store.
+
+    The API stores whatever it is sent, even an option the dropdown does not
+    have, so this is the only place a bad value gets stopped.
+    """
+    unknown = set(answers) - {field["key"] for field in fields}
+    if unknown:
+        raise SignupAnswersError(f"Unknown fields: {', '.join(sorted(unknown))}")
+
+    clean = {}
+    for field in fields:
+        value = (answers.get(field["key"]) or "").strip()
+        if not value:
+            if field["required"]:
+                raise SignupAnswersError(f"{field['key']} is required")
+            continue
+        if field["type"] == "dropdown" and value not in field["options"]:
+            raise SignupAnswersError(f"{field['key']} is not one of the options")
+        if field["type"] == "date":
+            try:
+                born = date.fromisoformat(value)
+            except ValueError as exc:
+                raise SignupAnswersError(f"{field['key']} is not a date") from exc
+            if born.year < _OLDEST_BIRTH_YEAR or born > date.today():
+                raise SignupAnswersError(f"{field['key']} is out of range")
+            value = born.isoformat()
+        if field["max_length"] and len(value) > field["max_length"]:
+            raise SignupAnswersError(f"{field['key']} is too long")
+        clean[field["key"]] = value
+    return clean
 
 
 class LearnWorldsClient:
@@ -54,6 +144,8 @@ class LearnWorldsClient:
         self.timeout = timeout
         self._token: str | None = None
         self._token_expires_at: float = 0.0
+        self._signup_fields: list[dict[str, Any]] = []
+        self._signup_fields_expire_at: float = 0.0
 
     @property
     def is_configured(self) -> bool:
@@ -153,6 +245,45 @@ class LearnWorldsClient:
                 return 0
             payload = self._payload(response)
         return int((payload.get("meta") or {}).get("totalItems") or 0)
+
+    async def signup_fields(self) -> list[dict[str, Any]]:
+        """The questions the school asks on its own sign-up form.
+
+        Accounts created through SSO skip that form, so the linking screen asks
+        them instead. Read from the school's public pages, because the
+        API has no endpoint for field definitions. An empty list means "ask
+        nothing": a page we cannot read must not stop anyone from getting in.
+        """
+        if time.monotonic() < self._signup_fields_expire_at:
+            return self._signup_fields
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                # Every page carries them; the home page is the one sure to exist.
+                response = await client.get(f"{self.school_url}/")
+                response.raise_for_status()
+            self._signup_fields = _parse_signup_fields(response.text)
+            ttl = _SIGNUP_FIELDS_TTL
+        except (httpx.HTTPError, ValueError, KeyError, TypeError):
+            logger.exception("Could not read the LearnWorlds sign-up questions")
+            self._signup_fields = []
+            ttl = _SIGNUP_FIELDS_RETRY
+
+        self._signup_fields_expire_at = time.monotonic() + ttl
+        return self._signup_fields
+
+    async def update_user_fields(self, user_id: str, fields: dict[str, str]) -> None:
+        """Store profile fields (``cf_*`` keys) on a user.
+
+        Unlike the SSO call, this endpoint takes a plain JSON body.
+        """
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.put(
+                f"{self.school_url}/admin/api/v2/users/{user_id}",
+                headers=await self._headers(client),
+                json={"fields": fields},
+            )
+            self._payload(response)
 
     async def sso_login(
         self,

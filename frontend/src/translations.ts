@@ -317,6 +317,14 @@ export interface Translations {
   linkFindMyProgress: string;
   linkSearching: string;
   linkOnlyOnce: string;
+  linkHelp: string;
+  linkHelpLink: string;
+  linkProfileTitle: string;
+  linkProfileIntro: string;
+  linkProfileSelect: string;
+  linkProfileSubmit: string;
+  linkProfileCreating: string;
+  linkProfileInvalid: string;
   linkCodeTitle: string;
   linkVerify: string;
   linkVerifying: string;
@@ -649,6 +657,14 @@ export const translations: Record<string, Translations> = {
     linkFindMyProgress: 'Find my courses',
     linkSearching: 'Looking...',
     linkOnlyOnce: 'We only ask this once.',
+    linkHelp: 'Questions or problems?',
+    linkHelpLink: 'Send us a request',
+    linkProfileTitle: 'Student profile',
+    linkProfileIntro: 'This information helps us build more inclusive learning options.',
+    linkProfileSelect: 'Select...',
+    linkProfileSubmit: 'Continue to the courses',
+    linkProfileCreating: 'Creating your account...',
+    linkProfileInvalid: 'Some answers are not valid. Check them and try again.',
     linkCodeTitle: 'Confirm the address is yours',
     linkVerify: 'Verify and recover',
     linkVerifying: 'Verifying...',
@@ -983,6 +999,14 @@ export const translations: Record<string, Translations> = {
     linkFindMyProgress: 'Buscar mis cursos',
     linkSearching: 'Buscando...',
     linkOnlyOnce: 'Te lo preguntamos una sola vez.',
+    linkHelp: '¿Dudas o problemas?',
+    linkHelpLink: 'Envíanos una solicitud',
+    linkProfileTitle: 'Perfil de estudiante',
+    linkProfileIntro: 'Esta información nos ayuda a crear opciones de aprendizaje más inclusivas.',
+    linkProfileSelect: 'Selecciona...',
+    linkProfileSubmit: 'Continuar a los cursos',
+    linkProfileCreating: 'Creando tu cuenta...',
+    linkProfileInvalid: 'Algunas respuestas no son válidas. Revísalas e intenta de nuevo.',
     linkCodeTitle: 'Confirma que ese correo es tuyo',
     linkVerify: 'Verificar y recuperar',
     linkVerifying: 'Verificando...',
@@ -1320,6 +1344,14 @@ export const translations: Record<string, Translations> = {
     linkFindMyProgress: 'Retrouver mes cours',
     linkSearching: 'Recherche...',
     linkOnlyOnce: 'Nous ne le demandons qu\'une seule fois.',
+    linkHelp: 'Des questions ou un problème ?',
+    linkHelpLink: 'Envoyez-nous une demande',
+    linkProfileTitle: 'Profil d\'apprenant',
+    linkProfileIntro: 'Ces informations nous aident à créer des formations plus inclusives.',
+    linkProfileSelect: 'Sélectionnez...',
+    linkProfileSubmit: 'Continuer vers les cours',
+    linkProfileCreating: 'Création de votre compte...',
+    linkProfileInvalid: 'Certaines réponses ne sont pas valides. Vérifiez-les et réessayez.',
     linkCodeTitle: 'Confirmez que l\'adresse est la vôtre',
     linkVerify: 'Vérifier et récupérer',
     linkVerifying: 'Vérification...',
@@ -1649,6 +1681,14 @@ export const translations: Record<string, Translations> = {
     linkFindMyProgress: 'Procurar meus cursos',
     linkSearching: 'Procurando...',
     linkOnlyOnce: 'Perguntamos isso apenas uma vez.',
+    linkHelp: 'Dúvidas ou problemas?',
+    linkHelpLink: 'Envie-nos uma solicitação',
+    linkProfileTitle: 'Perfil de estudante',
+    linkProfileIntro: 'Essas informações nos ajudam a criar opções de aprendizagem mais inclusivas.',
+    linkProfileSelect: 'Selecione...',
+    linkProfileSubmit: 'Continuar para os cursos',
+    linkProfileCreating: 'Criando sua conta...',
+    linkProfileInvalid: 'Algumas respostas não são válidas. Revise-as e tente novamente.',
     linkCodeTitle: 'Confirme que o e-mail é seu',
     linkVerify: 'Verificar e recuperar',
     linkVerifying: 'Verificando...',
