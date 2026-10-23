@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import type { GroupResponse, GroupSummary, GroupType } from '../types/groups';
+import type {
+  GroupResponse,
+  GroupSummary,
+  GroupTranslationsPatch,
+  GroupType,
+} from '../types/groups';
 import { type ApiRequest, jsonBody, useApiRequest } from './useApiRequest';
 
 // Teams and organizations are both groups
@@ -15,9 +20,13 @@ export const groupListPath: Record<GroupType, string> = {
 /** Editable fields of PATCH /groups/{id}. Teams only use a subset. */
 export interface GroupDetailsPatch {
   description?: string | null;
+  tagline?: string | null;
+  video_url?: string | null;
   contact_email?: string | null;
   website?: string | null;
   is_public?: boolean;
+  default_locale?: string;
+  translations?: GroupTranslationsPatch;
 }
 
 /** Surfaces a hook's load error as a toast. */
@@ -89,8 +98,15 @@ export function useGroupList(type: GroupType) {
   return { groups, loading, loadError, submitting, refresh, createGroup };
 }
 
-/** A single group and the actions every group type supports. */
-export function useGroup(id: string, type: GroupType) {
+/**
+ * A single group and the actions every group type supports. It's read from
+ * `loadPath` (by id unless given); every action goes by the loaded group's id.
+ */
+export function useGroup(
+  id: string | null,
+  type: GroupType,
+  loadPath = `/groups/${id}`,
+) {
   const navigate = useNavigate();
   const request = useApiRequest();
 
@@ -102,15 +118,16 @@ export function useGroup(id: string, type: GroupType) {
   const [deleting, setDeleting] = useState(false);
 
   // Scoped to this group; the type-specific hooks build their own actions on it
+  const groupId = group?.id ?? id;
   const groupRequest = useCallback<ApiRequest>(
-    (path, init) => request(`/groups/${id}${path}`, init),
-    [request, id],
+    (path, init) => request(`/groups/${groupId}${path}`, init),
+    [request, groupId],
   );
 
   const refresh = useCallback(async () => {
     try {
       setLoadError(null);
-      const response = await groupRequest('');
+      const response = await request(loadPath);
       if (!response) return;
       setGroup(await response.json());
     } catch (err) {
@@ -118,14 +135,14 @@ export function useGroup(id: string, type: GroupType) {
     } finally {
       setLoading(false);
     }
-  }, [groupRequest]);
+  }, [request, loadPath]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
 
-  const updateDetails = useCallback(
+  const updateGeneral = useCallback(
     async (patch: GroupDetailsPatch) => {
       setSaving(true);
       try {
@@ -174,7 +191,7 @@ export function useGroup(id: string, type: GroupType) {
     canDelete: group?.role === 'owner',
     listPath: groupListPath[type],
     refresh,
-    updateDetails,
+    updateGeneral,
     changeName,
     remove,
     groupRequest,

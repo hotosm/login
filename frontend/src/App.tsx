@@ -32,10 +32,7 @@ function App() {
             <Route element={<AccountLayout />}>
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/organizations" element={<OrganizationsPage />} />
-              <Route
-                path="/organizations/:id"
-                element={<OrganizationDetailPage />}
-              />
+              <Route path="/org/:slug" element={<OrganizationDetailPage />} />
               <Route path="/teams" element={<TeamsPage />} />
               <Route path="/teams/:id" element={<TeamDetailPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />

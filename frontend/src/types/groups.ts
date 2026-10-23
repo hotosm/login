@@ -1,5 +1,7 @@
 // Shared types for Teams & Organizations (groups).
 
+import type { TranslatableGroupField } from '../constants/locales';
+
 export type GroupType = 'team' | 'organization';
 export type MemberRole = 'owner' | 'manager' | 'member';
 
@@ -20,7 +22,11 @@ export interface GroupResponse {
   type: GroupType;
   name: string;
   slug: string;
+  // Markdown, rendered with RichTextContent
   description: string | null;
+  tagline: string | null;
+  // Normalized YouTube watch URL
+  video_url: string | null;
   contact_email: string | null;
   website: string | null;
   avatar_url: string | null;
@@ -28,6 +34,10 @@ export interface GroupResponse {
   status: string;
   pending_name: string | null;
   is_public: boolean;
+  // Locale the base fields (description, ...) are written in
+  default_locale: string;
+  // Other locales' content; only filled by GET/PATCH /groups/{id}
+  translations: Record<string, GroupTranslationFields>;
   created_by: string;
   // Resolved by the moderation endpoints only; may be null when unknown
   created_by_name?: string | null;
@@ -38,6 +48,19 @@ export interface GroupResponse {
   role: MemberRole | null;
   members_count: number;
 }
+
+// A group's translatable fields in one locale
+export type GroupTranslationFields = Record<
+  TranslatableGroupField,
+  string | null
+>;
+
+// PATCH semantics per locale: absent leaves it, an object replaces it, null
+// removes it. Keyed by any BASE_LOCALES code; never send the base locale here.
+export type GroupTranslationsPatch = Record<
+  string,
+  GroupTranslationFields | null
+>;
 
 export interface GroupMember {
   hanko_user_id: string;

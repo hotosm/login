@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import type WaInput from '@awesome.me/webawesome/dist/components/input/input.js';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
+import Input from './forms/Input';
 import Button from './shared/Button';
 
 interface GroupNameFieldProps {
@@ -11,6 +13,8 @@ interface GroupNameFieldProps {
   onChangeName: (name: string) => Promise<unknown>;
   /** A requested name still awaiting approval, shown under the field. */
   pendingName?: string | null;
+  /** The new name only applies once an administrator approves it. */
+  requiresApproval?: boolean;
 }
 
 /** The group name, with inline editing for anyone who can manage the group. */
@@ -19,56 +23,70 @@ function GroupNameField({
   canManage,
   onChangeName,
   pendingName,
+  requiresApproval = false,
 }: GroupNameFieldProps) {
   const { t } = useLanguage();
 
   const [editing, setEditing] = useState(false);
-  const [newName, setNewName] = useState('');
+  const [newName, setNewName] = useState(name);
+  const inputRef = useRef<WaInput>(null);
+
+  // Keep showing the current name while not editing
+  useEffect(() => {
+    if (!editing) setNewName(name);
+  }, [name, editing]);
+
+  // Focus once the input is enabled — it can't take focus while disabled
+  useEffect(() => {
+    const input = inputRef.current;
+    if (editing && input) input.updateComplete.then(() => input.focus());
+  }, [editing]);
+
+  const handleCancel = () => {
+    setNewName(name);
+    setEditing(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (!(await onChangeName(newName))) return;
       setEditing(false);
-      setNewName('');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
   return (
-    <div>
-      <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-        {t('name')}
-      </label>
-      {editing ? (
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            required
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className="input-field"
-          />
-          <Button type="submit">{t('saveChanges')}</Button>
-          <Button appearance="plain" onClick={() => setEditing(false)}>
+    <form onSubmit={handleSubmit} className="space-y-2">
+      <div className="flex items-end gap-2">
+        <Input
+          ref={inputRef}
+          type="text"
+          label={t('name')}
+          required
+          disabled={!editing}
+          value={newName}
+          onValueChange={setNewName}
+          className="flex-1"
+          hint={
+            editing && requiresApproval
+              ? t('nameChangeNeedsApproval')
+              : undefined
+          }
+        />
+        {canManage && !editing && (
+          <Button appearance="plain" onClick={() => setEditing(true)}>
+            {t('changeName')}
+          </Button>
+        )}
+      </div>
+      {editing && (
+        <div className="flex justify-end gap-2">
+          <Button appearance="plain" onClick={handleCancel}>
             {t('cancel')}
           </Button>
-        </form>
-      ) : (
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-hot-gray-900">{name}</span>
-          {canManage && (
-            <Button
-              appearance="plain"
-              onClick={() => {
-                setNewName(name);
-                setEditing(true);
-              }}
-            >
-              {t('changeName')}
-            </Button>
-          )}
+          <Button type="submit">{t('saveChanges')}</Button>
         </div>
       )}
       {pendingName && (
@@ -76,7 +94,7 @@ function GroupNameField({
           {t('nameChangePending')}: {pendingName}
         </p>
       )}
-    </div>
+    </form>
   );
 }
 

@@ -1,6 +1,8 @@
 import AddMemberForm from '@/components/AddMemberForm';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import GroupNameField from '@/components/GroupNameField';
+import OrganizationContentPanel from '@/components/OrganizationContentPanel';
+import Switch from '@/components/forms/Switch';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import BreadcrumbItem from '@/components/shared/BreadcrumbItem';
 import Button from '@/components/shared/Button';
@@ -15,16 +17,18 @@ import MembersPanel from '../components/MembersPanel';
 import StatusBadge from '../components/shared/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOrganization } from '../hooks/useOrgs';
+import { portalUrl } from '../utils/portal';
+import { rasterizeSvg } from '../utils/rasterizeSvg';
 
-type TabName = 'details' | 'members';
+type TabName = 'general' | 'profile' | 'members';
 
 const panelStyle = { '--padding': '0' } as React.CSSProperties;
 
 function OrganizationDetailPage() {
-  const { id = '' } = useParams();
+  const { slug = '' } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
 
   const {
     organization: org,
@@ -38,49 +42,55 @@ function OrganizationDetailPage() {
     invitations,
     refresh,
     refreshInvitations,
-    updateDetails,
+    updateGeneral,
     changeName,
     uploadImage,
     invite,
     cancelInvitation,
     deleteOrganization,
-  } = useOrganization(id);
+  } = useOrganization(slug);
 
-  const [activeTab, setActiveTab] = useState<TabName>('details');
+  const [activeTab, setActiveTab] = useState<TabName>('general');
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // The pencils over the banner and avatar open these hidden pickers
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  // Editable details form, seeded from the loaded organization
-  const [description, setDescription] = useState('');
+  // Editable general form, seeded from the loaded organization
   const [contactEmail, setContactEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [isPublic, setIsPublic] = useState(false);
 
+  // Keyed on these fields rather than `org`, so saving the Public profile tab
+  // (which also replaces `org`) doesn't wipe unsaved edits here.
+  const savedContactEmail = org?.contact_email;
+  const savedWebsite = org?.website;
+  const savedIsPublic = org?.is_public;
   useEffect(() => {
-    if (!org) return;
-    setDescription(org.description || '');
-    setContactEmail(org.contact_email || '');
-    setWebsite(org.website || '');
-    setIsPublic(org.is_public);
-  }, [org]);
+    setContactEmail(savedContactEmail || '');
+    setWebsite(savedWebsite || '');
+    setIsPublic(savedIsPublic ?? false);
+  }, [savedContactEmail, savedWebsite, savedIsPublic]);
 
   useEffect(() => {
     if (activeTab === 'members') refreshInvitations();
   }, [activeTab, refreshInvitations]);
 
-  const handleSaveDetails = async (e: React.FormEvent) => {
+  // The Public profile tab is managers only, so leave it if the role goes.
+  useEffect(() => {
+    if (!canManage && activeTab === 'profile') setActiveTab('general');
+  }, [canManage, activeTab]);
+
+  const handleSaveGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const updated = await updateDetails({
-        description: description || null,
+      const updated = await updateGeneral({
         contact_email: contactEmail || null,
         website: website || null,
         is_public: isPublic,
       });
-      if (updated) toast.success(t('detailsSaved'));
+      if (updated) toast.success(t('generalSaved'));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -92,9 +102,19 @@ function OrganizationDetailPage() {
     else navigate(listPath);
   };
 
+  // The slug follows the name, so a rename applied right away moves the page.
+  // A rename pending approval keeps the slug, so it stays put.
+  const handleChangeName = async (name: string) => {
+    const updated = await changeName(name);
+    if (updated && updated.slug !== slug) {
+      navigate(`/org/${updated.slug}`, { replace: true });
+    }
+    return updated;
+  };
+
   const handleUpload = async (kind: 'avatar' | 'banner', file: File) => {
     try {
-      await uploadImage(kind, file);
+      await uploadImage(kind, await rasterizeSvg(file, kind));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -156,7 +176,7 @@ function OrganizationDetailPage() {
               <input
                 ref={bannerInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -194,7 +214,7 @@ function OrganizationDetailPage() {
                   <input
                     ref={avatarInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -217,11 +237,12 @@ function OrganizationDetailPage() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-semibold text-hot-gray-900">
-                  {org.name}
-                </h1>
-                <StatusBadge status={org.status} />
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <h1 className="text-xl font-semibold text-hot-gray-900">
+                    {org.name}
+                  </h1>
+                </div>
               </div>
               {org.pending_name && (
                 <p className="text-xs text-hot-gray-500 mt-1">
@@ -238,22 +259,24 @@ function OrganizationDetailPage() {
         active={activeTab}
         onWaTabShow={(e) => setActiveTab(e.detail.name as TabName)}
       >
-        <Tab panel="details">{t('detailsTab')}</Tab>
+        <Tab panel="general">{t('generalTab')}</Tab>
+        {canManage && <Tab panel="profile">{t('orgPublicProfileTab')}</Tab>}
         <Tab panel="members">
           {t('membersTab')} ({org.members_count})
         </Tab>
 
-        <TabPanel name="details" style={panelStyle}>
+        <TabPanel name="general" style={panelStyle}>
           <div className="pt-xl space-y-6">
             <GroupNameField
               name={org.name}
               canManage={canManage}
-              onChangeName={changeName}
+              onChangeName={handleChangeName}
               pendingName={org.pending_name}
+              requiresApproval={org.status === 'approved'}
             />
 
             {canManage ? (
-              <form onSubmit={handleSaveDetails} className="space-y-4">
+              <form onSubmit={handleSaveGeneral} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-hot-gray-700 mb-1">
                     {t('contactEmail')}
@@ -276,17 +299,20 @@ function OrganizationDetailPage() {
                     className="input-field"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-hot-gray-700 mb-1">
-                    {t('description')}
-                  </label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                    className="input-field"
-                  />
-                </div>
+                {/* On means draft: the org isn't shown in Portal. */}
+                <Switch
+                  checked={!isPublic}
+                  onCheckedChange={(checked) => setIsPublic(!checked)}
+                  hint={t(
+                    !isPublic
+                      ? 'orgDraftHint'
+                      : org.status === 'approved'
+                        ? 'orgPublicHint'
+                        : 'orgPublicHintPending',
+                  )}
+                >
+                  {t('orgDraftLabel')}
+                </Switch>
 
                 <div className="flex items-center justify-between pt-2">
                   {canDelete && (
@@ -330,10 +356,14 @@ function OrganizationDetailPage() {
                 </div>
                 <div>
                   <dt className="font-medium text-hot-gray-700">
-                    {t('description')}
+                    {t('orgVisibility')}
                   </dt>
-                  <dd className="text-hot-gray-600 whitespace-pre-line">
-                    {org.description || '—'}
+                  <dd className="text-hot-gray-600">
+                    {t(
+                      org.is_public
+                        ? 'orgVisibilityPublic'
+                        : 'orgVisibilityPrivate',
+                    )}
                   </dd>
                 </div>
               </dl>
@@ -341,11 +371,24 @@ function OrganizationDetailPage() {
           </div>
         </TabPanel>
 
+        {/* Always mounted, so drafts survive switching tabs */}
+        {canManage && (
+          <TabPanel name="profile" style={panelStyle}>
+            <div className="pt-xl">
+              <OrganizationContentPanel
+                org={org}
+                saving={saving}
+                updateGeneral={updateGeneral}
+              />
+            </div>
+          </TabPanel>
+        )}
+
         <TabPanel name="members" style={panelStyle}>
           {activeTab === 'members' && (
             <div className="pt-xl space-y-6">
               <MembersPanel
-                groupId={id}
+                groupId={org.id}
                 viewerRole={org.role}
                 onLeft={() => navigate(listPath)}
                 onViewerRoleChanged={refresh}

@@ -182,16 +182,51 @@ export interface Translations {
   create?: string;
 
   // Group detail (shared)
-  detailsTab?: string;
+  generalTab?: string;
   membersTab?: string;
   changeName?: string;
   nameChangePending?: string;
+  nameChangeNeedsApproval?: string;
   avatarLabel?: string;
   bannerLabel?: string;
   changeBanner?: string;
   changeAvatar?: string;
-  detailsSaved?: string;
+  generalSaved?: string;
   publicGroup?: string;
+  orgDraftLabel?: string;
+  orgDraftHint?: string;
+  orgPublicHint?: string;
+  orgPublicHintPending?: string;
+  orgVisibility?: string;
+  orgVisibilityPublic?: string;
+  orgVisibilityPrivate?: string;
+  viewOrgPublicProfile?: string;
+  orgLocaleBase?: string;
+  orgLocaleEmpty?: string;
+  orgLocaleUnsaved?: string;
+  orgTagline?: string;
+  orgTaglineCounter?: string;
+  orgVideo?: string;
+  orgVideoHint?: string;
+  orgVideoInvalid?: string;
+  orgBaseShownWhen?: string;
+  orgNoTranslationsYet?: string;
+  orgStartWithEnglish?: string;
+  orgPortalLanguages?: string;
+  orgAllLanguages?: string;
+  markdownWrite?: string;
+  markdownPreview?: string;
+  markdownHint?: string;
+  orgPublicProfileTab?: string;
+  orgLocaleComplete?: string;
+  orgLocalePartial?: string;
+  orgAddLanguage?: string;
+  orgRemoveTranslation?: string;
+  orgRemoveTranslationTitle?: string;
+  orgRemoveTranslationConfirm?: string;
+  orgRemoveTranslationBtn?: string;
+  orgViewInPortal?: string;
+  orgRequiredFieldsMissing?: string;
   deleteGroupBtn?: string;
   deleteGroupConfirm?: string;
   deleteTeamTitle?: string;
@@ -482,16 +517,58 @@ export const translations: Record<string, Translations> = {
     memberIdsHint: 'Comma-separated Hanko user IDs',
     noTeams: "You don't belong to any teams yet.",
     create: 'Create',
-    detailsTab: 'Details',
+    generalTab: 'General',
     membersTab: 'Members',
     changeName: 'Change name',
     nameChangePending: 'Name change pending approval',
+    nameChangeNeedsApproval:
+      'An administrator needs to approve the new name. Your organization keeps its current name until then.',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Change banner',
     changeAvatar: 'Change avatar',
     detailsSaved: 'Changes saved.',
     publicGroup: 'Public',
+    orgDraftLabel: 'Draft (private)',
+    orgDraftHint:
+      "Only members can see this organization. It isn't shown in Portal.",
+    orgPublicHint: 'This organization is public in Portal.',
+    orgPublicHintPending: "It will be public once it's approved.",
+    orgVisibility: 'Visibility',
+    orgVisibilityPublic: 'Public',
+    orgVisibilityPrivate: 'Private',
+    viewOrgPublicProfile: 'View public profile',
+    orgLocaleBase: 'Base',
+    orgLocaleEmpty: 'Empty',
+    orgLocaleUnsaved: 'Unsaved changes',
+    orgTagline: 'Tagline',
+    orgTaglineCounter: '{count}/{max}',
+    orgVideo: 'Video',
+    orgVideoHint: 'YouTube link',
+    orgVideoInvalid: 'Must be a YouTube video link',
+    orgBaseShownWhen: "Shown when there's no translation",
+    orgNoTranslationsYet:
+      'Add more languages so visitors can read your profile in theirs.',
+    orgStartWithEnglish:
+      "Start with English: it's what visitors see when your profile isn't available in their language.",
+    orgPortalLanguages: 'Portal languages',
+    orgAllLanguages: 'All languages',
+    markdownWrite: 'Write',
+    markdownPreview: 'Preview',
+    markdownHint:
+      'Markdown supported: **bold**, *italic*, lists and [links](https://…).',
+    orgPublicProfileTab: 'Public profile',
+    orgLocaleComplete: 'Complete',
+    orgLocalePartial: 'Partial',
+    orgAddLanguage: 'Add language',
+    orgRemoveTranslation: 'Remove translation',
+    orgRemoveTranslationTitle: 'Remove {language} translation?',
+    orgRemoveTranslationConfirm:
+      'Visitors will see the {base} version instead. This applies when you save.',
+    orgRemoveTranslationBtn: 'Remove',
+    orgViewInPortal: 'View in Portal',
+    orgRequiredFieldsMissing:
+      'Fill in the required fields in the base language.',
     deleteGroupBtn: 'Delete',
     deleteGroupConfirm: 'Are you sure? This cannot be undone.',
     deleteTeamTitle: 'Delete team?',
@@ -774,16 +851,58 @@ export const translations: Record<string, Translations> = {
     memberIdsHint: 'IDs de usuario de Hanko separados por comas',
     noTeams: 'Todavía no perteneces a ningún equipo.',
     create: 'Crear',
-    detailsTab: 'Detalles',
+    generalTab: 'General',
     membersTab: 'Miembros',
     changeName: 'Cambiar nombre',
     nameChangePending: 'Cambio de nombre pendiente de aprobación',
+    nameChangeNeedsApproval:
+      'Un administrador tiene que aprobar el nuevo nombre. Hasta entonces, tu organización mantiene su nombre actual.',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Cambiar banner',
     changeAvatar: 'Cambiar avatar',
     detailsSaved: 'Cambios guardados.',
     publicGroup: 'Público',
+    orgDraftLabel: 'Borrador (privada)',
+    orgDraftHint:
+      'Solo los miembros pueden ver esta organización. No se muestra en Portal.',
+    orgPublicHint: 'Esta organización es pública en Portal.',
+    orgPublicHintPending: 'Será pública cuando la aprueben.',
+    orgVisibility: 'Visibilidad',
+    orgVisibilityPublic: 'Pública',
+    orgVisibilityPrivate: 'Privada',
+    viewOrgPublicProfile: 'Ver perfil público',
+    orgLocaleBase: 'Base',
+    orgLocaleEmpty: 'Vacía',
+    orgLocaleUnsaved: 'Cambios sin guardar',
+    orgTagline: 'Lema',
+    orgTaglineCounter: '{count}/{max}',
+    orgVideo: 'Video',
+    orgVideoHint: 'Enlace de YouTube',
+    orgVideoInvalid: 'Debe ser un enlace a un video de YouTube',
+    orgBaseShownWhen: 'Se muestra cuando no hay traducción',
+    orgNoTranslationsYet:
+      'Agrega más idiomas para que quienes visiten lean tu perfil en el suyo.',
+    orgStartWithEnglish:
+      'Empieza por el inglés: es lo que ven quienes visitan cuando tu perfil no está disponible en su idioma.',
+    orgPortalLanguages: 'Idiomas de Portal',
+    orgAllLanguages: 'Todos los idiomas',
+    markdownWrite: 'Escribir',
+    markdownPreview: 'Vista previa',
+    markdownHint:
+      'Admite Markdown: **negrita**, *cursiva*, listas y [enlaces](https://…).',
+    orgPublicProfileTab: 'Perfil público',
+    orgLocaleComplete: 'Completa',
+    orgLocalePartial: 'Parcial',
+    orgAddLanguage: 'Agregar idioma',
+    orgRemoveTranslation: 'Eliminar traducción',
+    orgRemoveTranslationTitle: '¿Eliminar la traducción ({language})?',
+    orgRemoveTranslationConfirm:
+      'Quienes visiten verán la versión base ({base}). Se aplica al guardar.',
+    orgRemoveTranslationBtn: 'Eliminar',
+    orgViewInPortal: 'Ver en Portal',
+    orgRequiredFieldsMissing:
+      'Completa los campos obligatorios en el idioma base.',
     deleteGroupBtn: 'Eliminar',
     deleteGroupConfirm: '¿Estás seguro? Esto no se puede deshacer.',
     deleteTeamTitle: '¿Eliminar equipo?',
@@ -1069,16 +1188,58 @@ export const translations: Record<string, Translations> = {
     memberIdsHint: "IDs d'utilisateur Hanko séparés par des virgules",
     noTeams: "Vous ne faites partie d'aucune équipe pour l'instant.",
     create: 'Créer',
-    detailsTab: 'Détails',
+    generalTab: 'Général',
     membersTab: 'Membres',
     changeName: 'Changer le nom',
     nameChangePending: "Changement de nom en attente d'approbation",
+    nameChangeNeedsApproval:
+      "Un administrateur doit approuver le nouveau nom. D'ici là, votre organisation conserve son nom actuel.",
     avatarLabel: 'Avatar',
     bannerLabel: 'Bannière',
     changeBanner: 'Changer la bannière',
     changeAvatar: "Changer l'avatar",
     detailsSaved: 'Modifications enregistrées.',
     publicGroup: 'Public',
+    orgDraftLabel: 'Brouillon (privée)',
+    orgDraftHint:
+      "Seuls les membres peuvent voir cette organisation. Elle n'apparaît pas dans Portal.",
+    orgPublicHint: 'Cette organisation est publique dans Portal.',
+    orgPublicHintPending: 'Elle sera publique une fois approuvée.',
+    orgVisibility: 'Visibilité',
+    orgVisibilityPublic: 'Publique',
+    orgVisibilityPrivate: 'Privée',
+    viewOrgPublicProfile: 'Voir le profil public',
+    orgLocaleBase: 'Base',
+    orgLocaleEmpty: 'Vide',
+    orgLocaleUnsaved: 'Modifications non enregistrées',
+    orgTagline: 'Slogan',
+    orgTaglineCounter: '{count}/{max}',
+    orgVideo: 'Vidéo',
+    orgVideoHint: 'Lien YouTube',
+    orgVideoInvalid: 'Doit être un lien vers une vidéo YouTube',
+    orgBaseShownWhen: "Affiché quand il n'y a pas de traduction",
+    orgNoTranslationsYet:
+      "Ajoutez d'autres langues pour que les visiteurs lisent votre profil dans la leur.",
+    orgStartWithEnglish:
+      "Commencez par l'anglais : c'est ce que voient les visiteurs quand votre profil n'est pas disponible dans leur langue.",
+    orgPortalLanguages: 'Langues de Portal',
+    orgAllLanguages: 'Toutes les langues',
+    markdownWrite: 'Écrire',
+    markdownPreview: 'Aperçu',
+    markdownHint:
+      'Markdown pris en charge : **gras**, *italique*, listes et [liens](https://…).',
+    orgPublicProfileTab: 'Profil public',
+    orgLocaleComplete: 'Complète',
+    orgLocalePartial: 'Partielle',
+    orgAddLanguage: 'Ajouter une langue',
+    orgRemoveTranslation: 'Supprimer la traduction',
+    orgRemoveTranslationTitle: 'Supprimer la traduction ({language}) ?',
+    orgRemoveTranslationConfirm:
+      "Les visiteurs verront la version de base ({base}). Cela s'applique à l'enregistrement.",
+    orgRemoveTranslationBtn: 'Supprimer',
+    orgViewInPortal: 'Voir sur Portal',
+    orgRequiredFieldsMissing:
+      'Remplissez les champs obligatoires dans la langue de base.',
     deleteGroupBtn: 'Supprimer',
     deleteGroupConfirm: 'Êtes-vous sûr ? Cette action est irréversible.',
     deleteTeamTitle: "Supprimer l'équipe ?",
@@ -1357,16 +1518,57 @@ export const translations: Record<string, Translations> = {
     memberIdsHint: 'IDs de usuário Hanko separados por vírgulas',
     noTeams: 'Você ainda não pertence a nenhuma equipe.',
     create: 'Criar',
-    detailsTab: 'Detalhes',
+    generalTab: 'Geral',
     membersTab: 'Membros',
     changeName: 'Alterar nome',
     nameChangePending: 'Alteração de nome pendente de aprovação',
+    nameChangeNeedsApproval:
+      'Um administrador precisa aprovar o novo nome. Até lá, sua organização mantém o nome atual.',
     avatarLabel: 'Avatar',
     bannerLabel: 'Banner',
     changeBanner: 'Alterar banner',
     changeAvatar: 'Alterar avatar',
     detailsSaved: 'Alterações salvas.',
     publicGroup: 'Público',
+    orgDraftLabel: 'Rascunho (privada)',
+    orgDraftHint:
+      'Só os membros podem ver esta organização. Ela não aparece no Portal.',
+    orgPublicHint: 'Esta organização é pública no Portal.',
+    orgPublicHintPending: 'Ela será pública quando for aprovada.',
+    orgVisibility: 'Visibilidade',
+    orgVisibilityPublic: 'Pública',
+    orgVisibilityPrivate: 'Privada',
+    viewOrgPublicProfile: 'Ver perfil público',
+    orgLocaleBase: 'Base',
+    orgLocaleEmpty: 'Vazia',
+    orgLocaleUnsaved: 'Alterações não salvas',
+    orgTagline: 'Slogan',
+    orgTaglineCounter: '{count}/{max}',
+    orgVideo: 'Vídeo',
+    orgVideoHint: 'Link do YouTube',
+    orgVideoInvalid: 'Deve ser um link para um vídeo do YouTube',
+    orgBaseShownWhen: 'Exibido quando não há tradução',
+    orgNoTranslationsYet:
+      'Adicione mais idiomas para que os visitantes leiam seu perfil no idioma deles.',
+    orgStartWithEnglish:
+      'Comece pelo inglês: é o que os visitantes veem quando seu perfil não está disponível no idioma deles.',
+    orgPortalLanguages: 'Idiomas do Portal',
+    orgAllLanguages: 'Todos os idiomas',
+    markdownWrite: 'Escrever',
+    markdownPreview: 'Pré-visualizar',
+    markdownHint:
+      'Markdown compatível: **negrito**, *itálico*, listas e [links](https://…).',
+    orgPublicProfileTab: 'Perfil público',
+    orgLocaleComplete: 'Completa',
+    orgLocalePartial: 'Parcial',
+    orgAddLanguage: 'Adicionar idioma',
+    orgRemoveTranslation: 'Remover tradução',
+    orgRemoveTranslationTitle: 'Remover a tradução ({language})?',
+    orgRemoveTranslationConfirm:
+      'Os visitantes verão a versão base ({base}). Isso é aplicado ao salvar.',
+    orgRemoveTranslationBtn: 'Remover',
+    orgViewInPortal: 'Ver no Portal',
+    orgRequiredFieldsMissing: 'Preencha os campos obrigatórios no idioma base.',
     deleteGroupBtn: 'Excluir',
     deleteGroupConfirm: 'Tem certeza? Isso não pode ser desfeito.',
     deleteTeamTitle: 'Excluir equipe?',

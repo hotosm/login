@@ -5,17 +5,66 @@ names and shapes are kept stable and explicit.
 """
 
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field, field_validator
+
+from app.utils.youtube import normalize_youtube_url
 
 GroupType = Literal["team", "organization"]
 GroupStatus = Literal["pending", "approved", "rejected"]
 MemberRole = Literal["owner", "manager", "member"]
 InvitationStatus = Literal["pending", "accepted", "declined", "expired", "revoked"]
 
+# Locales a group's content can be written in, base or translation: every
+# current two-letter ISO 639-1 code (he/id/yi, not the withdrawn iw/in/ji),
+# except Swahili ("sw"), which is left out on purpose. Validated here, not in
+# the database.
+BASE_LOCALES: frozenset[str] = frozenset(
+    (
+        "aa ab ae af ak am an ar as av ay az ba be bg bi bm bn bo br bs "
+        "ca ce ch co cr cs cu cv cy da de dv dz ee el en eo es et eu fa ff fi fj fo fr fy "
+        "ga gd gl gn gu gv ha he hi ho hr ht hu hy hz ia id ie ig ii ik io is it iu ja jv "
+        "ka kg ki kj kk kl km kn ko kr ks ku kv kw ky la lb lg li ln lo lt lu lv "
+        "mg mh mi mk ml mn mr ms mt my na nb nd ne ng nl nn no nr nv ny oc oj om or os "
+        "pa pi pl ps pt qu rm rn ro ru rw "
+        "sa sc sd se sg si sk sl sm sn so sq sr ss st su sv "
+        "ta te tg th ti tk tl tn to tr ts tt tw ty ug uk ur uz ve vi vo wa wo xh yi yo "
+        "za zh zu "
+    ).split()
+)
+
+# Group fields that can be translated. Adding one takes a column on groups and
+# group_translations (plus migration), a field on GroupTranslationFields and an
+# entry here.
+TRANSLATABLE_GROUP_FIELDS: tuple[str, ...] = ("description", "tagline", "video_url")
+
+
+def _clean_tagline(value: object) -> object:
+    """Trim a tagline; blank means none."""
+    if isinstance(value, str):
+        return value.strip() or None
+    return value
+
+
+# Shared by the base fields (GroupUpdate) and every translation.
+# description holds markdown; clients render it with react-markdown, which
+# doesn't run embedded HTML.
+Description = Annotated[str | None, Field(max_length=5000)]
+Tagline = Annotated[str | None, BeforeValidator(_clean_tagline), Field(max_length=120)]
+# Any accepted YouTube link, stored as https://www.youtube.com/watch?v=ID.
+YouTubeUrl = Annotated[str | None, BeforeValidator(normalize_youtube_url)]
+
 
 # --- Groups ----------------------------------------------------------------
+
+
+class GroupTranslationFields(BaseModel):
+    """A group's translatable fields in one locale."""
+
+    description: Description = None
+    tagline: Tagline = None
+    video_url: YouTubeUrl = None
 
 
 class GroupCreate(BaseModel):
@@ -37,10 +86,44 @@ class GroupUpdate(BaseModel):
     requires account-manager approval.
     """
 
-    description: str | None = Field(None, max_length=5000)
+    # Base content, in default_locale.
+    description: Description = None
+    tagline: Tagline = None
+    video_url: YouTubeUrl = None
     contact_email: str | None = Field(None, max_length=320)
     website: str | None = Field(None, max_length=500)
     is_public: bool | None = None
+    # Locale the base fields above are written in: any of BASE_LOCALES.
+    default_locale: str | None = None
+    # Per locale (any of BASE_LOCALES): absent leaves it as is, an object
+    # replaces that locale's fields, null removes it. The default locale's
+    # content goes in the base fields, not here.
+    translations: dict[str, GroupTranslationFields | None] | None = None
+
+    @field_validator("default_locale")
+    @classmethod
+    def _known_base_locale(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.lower()
+        if value not in BASE_LOCALES:
+            raise ValueError("default_locale must be a two-letter ISO 639-1 code")
+        return value
+
+    @field_validator("translations")
+    @classmethod
+    def _known_translation_locales(
+        cls, value: dict[str, GroupTranslationFields | None] | None
+    ) -> dict[str, GroupTranslationFields | None] | None:
+        if value is None:
+            return None
+        unknown = sorted(locale for locale in value if locale not in BASE_LOCALES)
+        if unknown:
+            raise ValueError(
+                f"Unknown translation locales: {', '.join(unknown)} "
+                "(must be two-letter ISO 639-1 codes)"
+            )
+        return value
 
 
 class NameChangeRequest(BaseModel):
@@ -57,6 +140,8 @@ class GroupResponse(BaseModel):
     name: str
     slug: str
     description: str | None = None
+    tagline: str | None = None
+    video_url: str | None = None
     contact_email: str | None = None
     website: str | None = None
     avatar_url: str | None = None
@@ -64,6 +149,9 @@ class GroupResponse(BaseModel):
     status: GroupStatus
     pending_name: str | None = None
     is_public: bool
+    default_locale: str
+    # Only filled on single-group reads/updates; empty in listings.
+    translations: dict[str, GroupTranslationFields] = Field(default_factory=dict)
     created_by: str
     # Resolved requester identity, when the endpoint looks it up (moderation
     # views). Best-first: profile name, then Hanko username, then Hanko email.
@@ -200,10 +288,27 @@ class PublicGroupResponse(BaseModel):
     name: str
     slug: str
     description: str | None = None
+    tagline: str | None = None
+    video_url: str | None = None
+    contact_email: str | None = None
     website: str | None = None
     avatar_url: str | None = None
     banner_url: str | None = None
     members_count: int
+
+
+class PublicGroupProfileResponse(PublicGroupResponse):
+    """A group's own public profile, with translatable fields in one locale.
+
+    Kept apart from PublicGroupResponse so the user's group listing, which
+    returns base values, keeps its shape.
+    """
+
+    default_locale: str
+    # Locale each translatable field was actually returned in.
+    field_locales: dict[str, str]
+    # The default locale first, then every locale with a translation.
+    available_locales: list[str]
 
 
 class PublicUserResponse(BaseModel):
