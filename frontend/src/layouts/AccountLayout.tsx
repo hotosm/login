@@ -18,7 +18,7 @@ function AccountLayout() {
   const { invitations } = useMyInvitations();
 
   const navItems: SidebarNavItem[] = [
-    { to: '/profile', label: t('navProfile') },
+    { to: '/account', label: t('navProfile') },
     { to: '/organizations', label: t('navOrganizations') },
     { to: '/teams', label: t('navTeams') },
     {

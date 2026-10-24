@@ -30,6 +30,7 @@ function App() {
 
             {/* Account section: shared sidebar + top chrome via AccountLayout */}
             <Route element={<AccountLayout />}>
+              <Route path="/account" element={<ProfilePage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/organizations" element={<OrganizationsPage />} />
               <Route

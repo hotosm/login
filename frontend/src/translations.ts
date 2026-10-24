@@ -340,9 +340,9 @@ export const translations: Record<string, Translations> = {
     cancelOnboarding: 'Cancel',
     settingUpAccount: 'Setting up your account...',
     accessAllTools: 'Access all HOT tools and services',
-    myProfile: 'My Profile',
+    myProfile: 'Account',
     back: 'Back',
-    profileInformation: 'Profile Information',
+    profileInformation: 'Account Information',
     pictureUrl: 'Picture URL',
     firstName: 'First Name',
     lastName: 'Last Name',
@@ -358,10 +358,10 @@ export const translations: Record<string, Translations> = {
       'Manage your password, passkeys, and active sessions.',
     dangerZone: 'Danger Zone',
     deleteAccountWarning:
-      'Permanently delete your account and all associated data.',
+      'Permanently delete your login account and credentials. This will close your access to HOT tools. (To erase past contributions in connected apps, submit a Data Deletion request below).',
     deleteAccount: 'Delete Account',
     deleteConfirm:
-      'Are you sure you want to delete your account? This action cannot be undone.',
+      'Are you sure you want to delete your login account? This action closes your access and cannot be undone.',
     deleteComingSoon: 'Account deletion will be available soon.',
     accountCreated: 'Account created',
     accountDeleted: 'Your account has been deleted successfully.',
@@ -431,7 +431,7 @@ export const translations: Record<string, Translations> = {
     no_existing_osm_account:
       "No existing account found for your OSM user. Please select 'Continue' to create a new account.",
     hotAccount: 'HOT Account',
-    navProfile: 'Profile',
+    navProfile: 'Account',
     navOrganizations: 'Organizations',
     navTeams: 'Teams',
     navUsers: 'Users',
