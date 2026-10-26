@@ -52,10 +52,8 @@ export function useOrgContentDrafts(org: GroupResponse) {
   const [drafts, setDrafts] = useState<Drafts>(savedDrafts);
   // The org's languages, the base first, then the rest in the order added.
   const [listedLocales, setListedLocales] = useState<string[]>(savedLocales);
-  // Open groups: the base on load, plus any the manager opens or adds.
-  const [openLocales, setOpenLocales] = useState<ReadonlySet<string>>(
-    () => new Set([savedBase]),
-  );
+  // The one open group: the base on load, then whichever is opened or added.
+  const [openLocale, setOpenLocale] = useState<string | null>(savedBase);
   const [removingLocale, setRemovingLocale] = useState<string | null>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-seed only when the saved content changes
@@ -88,12 +86,8 @@ export function useOrgContentDrafts(org: GroupResponse) {
   );
 
   const setOpen = (locale: string, open: boolean) => {
-    setOpenLocales((previous) => {
-      const next = new Set(previous);
-      if (open) next.add(locale);
-      else next.delete(locale);
-      return next;
-    });
+    if (open) setOpenLocale(locale);
+    else setOpenLocale((previous) => (previous === locale ? null : previous));
   };
 
   const setDraftField = (
@@ -237,7 +231,7 @@ export function useOrgContentDrafts(org: GroupResponse) {
 
   return {
     listedLocales,
-    openLocales,
+    openLocale,
     removingLocale,
     baseLocale,
     baseHasSavedContent,

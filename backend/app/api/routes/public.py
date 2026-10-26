@@ -84,6 +84,7 @@ async def _serialize_public_group_profile(
     base = await _serialize_public_group(db, group)
     return PublicGroupProfileResponse(
         **(base.model_dump() | values),
+        id=group.id,
         default_locale=group.default_locale,
         field_locales=field_locales,
         available_locales=groups_service.available_locales(group, translations),

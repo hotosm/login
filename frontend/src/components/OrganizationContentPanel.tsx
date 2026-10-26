@@ -1,3 +1,5 @@
+import type WaAccordion from '@awesome.me/webawesome/dist/components/accordion/accordion.js';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import externalLinkIcon from '../assets/icons/box-arrow-up-right.svg';
 import { localeName } from '../constants/locales';
@@ -25,6 +27,10 @@ const TRANSLATION_STATUS_KEYS = {
   complete: 'orgLocaleComplete',
 } as const;
 
+// Locale of the item an Accordion event is about.
+const eventLocale = (event: Event) =>
+  (event as CustomEvent<{ item: HTMLElement }>).detail.item.dataset.locale;
+
 interface OrganizationContentPanelProps {
   org: GroupResponse;
   saving: boolean;
@@ -44,7 +50,7 @@ function OrganizationContentPanel({
   const { t, currentLanguage } = useLanguage();
   const {
     listedLocales,
-    openLocales,
+    openLocale,
     removingLocale,
     baseLocale,
     baseHasSavedContent,
@@ -66,10 +72,47 @@ function OrganizationContentPanel({
 
   const name = (locale: string) => localeName(locale, currentLanguage);
 
+  const accordionRef = useRef<WaAccordion>(null);
+  // A new object per request, so asking for the already open group scrolls too.
+  const [scrollTarget, setScrollTarget] = useState<{ locale: string } | null>(
+    null,
+  );
+
+  const openAndScrollTo = (locale: string) => {
+    setOpen(locale, true);
+    setScrollTarget({ locale });
+  };
+
+  // The Accordion only fires its events for clicks, so programmatic opens
+  // scroll from here, once every group has finished animating: the one
+  // collapsing above would otherwise move the target.
+  useEffect(() => {
+    const items = accordionRef.current?.querySelectorAll<
+      HTMLElement & { updateComplete: Promise<boolean> }
+    >('wa-accordion-item');
+    if (!scrollTarget || !items) return;
+    let cancelled = false;
+    (async () => {
+      await Promise.all([...items].map((item) => item.updateComplete));
+      await Promise.allSettled(
+        [...items]
+          .flatMap((item) => item.shadowRoot?.getAnimations() ?? [])
+          .map((animation) => animation.finished),
+      );
+      if (cancelled) return;
+      [...items]
+        .find((item) => item.dataset.locale === scrollTarget.locale)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [scrollTarget]);
+
   const handleSave = async () => {
     const result = buildSavePayload();
     if (!result.ok) {
-      setOpen(result.locale, true);
+      openAndScrollTo(result.locale);
       toast.error(
         t(
           result.error === 'required'
@@ -102,7 +145,10 @@ function OrganizationContentPanel({
               const { value } = e.detail.item as HTMLElement & {
                 value?: string;
               };
-              if (value) addLanguage(value);
+              if (value) {
+                addLanguage(value);
+                setScrollTarget({ locale: value });
+              }
             }}
           >
             <Button slot="trigger" variant="neutral" appearance="accent">
@@ -134,9 +180,18 @@ function OrganizationContentPanel({
       </div>
 
       <Accordion
+        ref={accordionRef}
         appearance="plain"
         mode="single-collapsible"
         className="org-language-accordion"
+        onWaExpand={(e) => {
+          const locale = eventLocale(e);
+          if (locale) setOpen(locale, true);
+        }}
+        onWaCollapse={(e) => {
+          const locale = eventLocale(e);
+          if (locale) setOpen(locale, false);
+        }}
       >
         {listedLocales.map((locale) => {
           const isBase = locale === baseLocale;
@@ -147,7 +202,7 @@ function OrganizationContentPanel({
             <AccordionItem
               key={locale}
               data-locale={locale}
-              expanded={openLocales.has(locale)}
+              expanded={openLocale === locale}
               className="border-t border-b border-hot-gray-200"
             >
               <span

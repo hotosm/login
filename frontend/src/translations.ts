@@ -535,7 +535,7 @@ export const translations: Record<string, Translations> = {
     bannerLabel: 'Banner',
     changeBanner: 'Change banner',
     changeAvatar: 'Change avatar',
-    detailsSaved: 'Changes saved.',
+    generalSaved: 'Changes saved.',
     publicGroup: 'Public',
     orgDraftLabel: 'Draft (private)',
     orgDraftHint:
@@ -877,7 +877,7 @@ export const translations: Record<string, Translations> = {
     bannerLabel: 'Banner',
     changeBanner: 'Cambiar banner',
     changeAvatar: 'Cambiar avatar',
-    detailsSaved: 'Cambios guardados.',
+    generalSaved: 'Cambios guardados.',
     publicGroup: 'Público',
     orgDraftLabel: 'Borrador (privada)',
     orgDraftHint:
@@ -1222,7 +1222,7 @@ export const translations: Record<string, Translations> = {
     bannerLabel: 'Bannière',
     changeBanner: 'Changer la bannière',
     changeAvatar: "Changer l'avatar",
-    detailsSaved: 'Modifications enregistrées.',
+    generalSaved: 'Modifications enregistrées.',
     publicGroup: 'Public',
     orgDraftLabel: 'Brouillon (privée)',
     orgDraftHint:
@@ -1560,7 +1560,7 @@ export const translations: Record<string, Translations> = {
     bannerLabel: 'Banner',
     changeBanner: 'Alterar banner',
     changeAvatar: 'Alterar avatar',
-    detailsSaved: 'Alterações salvas.',
+    generalSaved: 'Alterações salvas.',
     publicGroup: 'Público',
     orgDraftLabel: 'Rascunho (privada)',
     orgDraftHint:

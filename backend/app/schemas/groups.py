@@ -304,6 +304,7 @@ class PublicGroupProfileResponse(PublicGroupResponse):
     returns base values, keeps its shape.
     """
 
+    id: str
     default_locale: str
     # Locale each translatable field was actually returned in.
     field_locales: dict[str, str]

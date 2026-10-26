@@ -36,12 +36,6 @@ function OrgReviewForm({
 
       <dl className="space-y-3 text-sm">
         <div>
-          <dt className="font-medium text-hot-gray-700">{t('description')}</dt>
-          <dd className="text-hot-gray-900 whitespace-pre-wrap">
-            {org.description || '—'}
-          </dd>
-        </div>
-        <div>
           <dt className="font-medium text-hot-gray-700">{t('website')}</dt>
           <dd>
             {org.website ? (
