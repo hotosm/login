@@ -131,12 +131,16 @@ export function useOrgContentDrafts(org: GroupResponse) {
     setOpen(locale, true);
   };
 
-  const requestRemove = (locale: string) => setRemovingLocale(locale);
+  // English is always listed, so it can't be removed.
+  const requestRemove = (locale: string) => {
+    if (locale === 'en') return;
+    setRemovingLocale(locale);
+  };
 
   const cancelRemove = () => setRemovingLocale(null);
 
   const confirmRemove = () => {
-    if (!removingLocale) return;
+    if (!removingLocale || removingLocale === 'en') return;
     setDrafts((previous) => {
       const { [removingLocale]: _removed, ...rest } = previous;
       return rest;

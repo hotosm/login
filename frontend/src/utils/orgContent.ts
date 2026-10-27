@@ -37,12 +37,17 @@ export function seedDrafts(org: GroupResponse): Drafts {
 }
 
 // The org's languages: the base first, always (English for a new org), then
-// the saved translations in the order they were added.
+// the saved translations in the order they were added. English is always
+// listed: when another language is the base and English isn't saved, it goes
+// right after the base, empty until it's filled in.
 export function seedLocales(org: GroupResponse): string[] {
   const base = baseLocaleOf(org);
   const translated = Object.keys(org.translations ?? {}).filter(
     (locale) => locale !== base,
   );
+  if (base !== 'en' && !translated.includes('en')) {
+    return [base, 'en', ...translated];
+  }
   return [base, ...translated];
 }
 

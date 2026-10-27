@@ -296,7 +296,7 @@ function OrganizationContentPanel({
                     {videoInvalid ? t('orgVideoInvalid') : t('orgVideoHint')}
                   </span>
                 </Input>
-                {(showPortalLink || !isBase) && (
+                {(showPortalLink || (!isBase && locale !== 'en')) && (
                   <div className="flex items-center justify-between gap-2">
                     {showPortalLink && (
                       <Button
@@ -310,7 +310,7 @@ function OrganizationContentPanel({
                         <Icon slot="end" src={externalLinkIcon} label="" />
                       </Button>
                     )}
-                    {!isBase && (
+                    {!isBase && locale !== 'en' && (
                       <Button
                         variant="danger"
                         appearance="outlined"
