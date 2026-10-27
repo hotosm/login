@@ -522,3 +522,64 @@ wa-breadcrumb {
   @apply w-5 h-5 border-2 border-hot-gray-200 border-t-hot-red-600 rounded-full animate-spin;
 }
 
+
+/* Markdown rendered by RichTextContent (copied from portal's styles/index.css) */
+.rte-editor {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.rte-editor ul,
+.rte-editor ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.rte-editor ul {
+  list-style-type: disc;
+}
+
+.rte-editor ol {
+  list-style-type: decimal;
+}
+
+.rte-editor li {
+  margin: 0.25rem 0;
+}
+
+/* Opt-in tab group modifiers used by MarkdownEditor (copied from portal's
+   styles/hot-wa-portal.css). */
+
+/* Opt-in: tab groups that keep one height across tabs.
+
+   Every panel is stacked in a single grid cell, so the group is always as tall
+   as its tallest panel and switching tabs never resizes it. Inactive panels are
+   hidden with `visibility` rather than the `display: none` the component sets
+   on its own `:host` (document rules beat `:host` rules) — they still occupy
+   the cell, but stay out of both the tab order and the accessibility tree. */
+.wa-tabs-equal-height::part(body) {
+  display: grid;
+}
+
+.wa-tabs-equal-height > wa-tab-panel {
+  grid-area: 1 / 1;
+}
+
+.wa-tabs-equal-height > wa-tab-panel:not([active]) {
+  display: block;
+  visibility: hidden;
+}
+
+/* Opt-in: tighter panels. The component gives them `--wa-space-xl` (2rem) above
+   and below, which is too airy inside a dialog. */
+.wa-tabs-compact > wa-tab-panel {
+  --padding: var(--wa-space-m) 0;
+}
+
+/* Opt-in: dropdowns with long menus (e.g. every language) scroll at a fixed
+   height. The component's own `max-height` is `!important` and only caps the
+   menu at the viewport, so `height` sets the shorter cap. Only for menus that
+   are always longer than this. */
+.wa-dropdown-scroll::part(menu) {
+  height: 20rem;
+}

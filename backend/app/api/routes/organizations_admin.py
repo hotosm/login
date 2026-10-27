@@ -46,9 +46,9 @@ CurrentUser = _CurrentUser
 DB = _DB
 
 
-def _org_link(group_id: str) -> str:
+def _org_link(group: Group) -> str:
     base = (settings.frontend_url or "").rstrip("/")
-    return f"{base}/app/organizations/{group_id}"
+    return f"{base}/app/org/{group.slug}"
 
 
 async def _send_owner_email_safe(*, to: str, subject: str, body: str) -> None:
@@ -74,7 +74,7 @@ async def _notify_owner(
         subject = f"[HOT] Your organization {group.name} was approved"
         body = (
             f"Good news! Your organization '{group.name}' has been approved.\n\n"
-            f"You can now invite members from its page:\n{_org_link(group.id)}"
+            f"You can now invite members from its page:\n{_org_link(group)}"
         )
     else:
         subject = f"[HOT] Your organization {group.name} was not approved"

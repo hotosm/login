@@ -2,13 +2,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
 import Button from './shared/Button';
 import Input from './forms/Input';
-import Textarea from './forms/Textarea';
 
 export interface OrgRequestPayload {
   name: string;
   contactEmail: string;
   website: string;
-  description: string;
   avatarFile: File | null;
   bannerFile: File | null;
 }
@@ -17,7 +15,6 @@ const EMPTY: OrgRequestPayload = {
   name: '',
   contactEmail: '',
   website: '',
-  description: '',
   avatarFile: null,
   bannerFile: null,
 };
@@ -74,14 +71,6 @@ function OrgRequestForm({
             label={t('website')}
             value={values.website}
             onValueChange={(value) => set('website', value)}
-          />
-        </div>
-        <div>
-          <Textarea
-            label={t('description')}
-            value={values.description}
-            onValueChange={(value) => set('description', value)}
-            rows={3}
           />
         </div>
       </div>

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.db.models import Group, GroupMembership, UserProfile
 from app.schemas.groups import (
+    PublicGroupProfileResponse,
     PublicGroupResponse,
     PublicUserGroupsResponse,
     PublicUserResponse,
@@ -54,6 +55,9 @@ async def _serialize_public_group(
         name=group.name,
         slug=group.slug,
         description=group.description,
+        tagline=group.tagline,
+        video_url=group.video_url,
+        contact_email=group.contact_email,
         website=group.website,
         avatar_url=(
             groups_service.image_url(group.id, "avatar", group.avatar_key)
@@ -69,18 +73,44 @@ async def _serialize_public_group(
     )
 
 
-@router.get("/org/{slug}", response_model=PublicGroupResponse)
-async def public_organization(slug: str, db: DB) -> PublicGroupResponse:
+async def _serialize_public_group_profile(
+    db: AsyncSession, group: Group, locale: str | None
+) -> PublicGroupProfileResponse:
+    """A group's own public profile, translatable fields resolved per field."""
+    translations = await groups_service.get_translations(db, group.id)
+    values, field_locales = groups_service.resolve_translations(
+        group, translations, locale
+    )
+    base = await _serialize_public_group(db, group)
+    return PublicGroupProfileResponse(
+        **(base.model_dump() | values),
+        id=group.id,
+        default_locale=group.default_locale,
+        field_locales=field_locales,
+        available_locales=groups_service.available_locales(group, translations),
+    )
+
+
+# Not validated: an unknown locale simply gets the base content.
+Locale = Annotated[str | None, Query()]
+
+
+@router.get("/org/{slug}", response_model=PublicGroupProfileResponse)
+async def public_organization(
+    slug: str, db: DB, locale: Locale = None
+) -> PublicGroupProfileResponse:
     """Public profile of an approved, public organization."""
     group = await _public_group_by_slug(db, "organization", slug, require_approved=True)
-    return await _serialize_public_group(db, group)
+    return await _serialize_public_group_profile(db, group, locale)
 
 
-@router.get("/team/{slug}", response_model=PublicGroupResponse)
-async def public_team(slug: str, db: DB) -> PublicGroupResponse:
+@router.get("/team/{slug}", response_model=PublicGroupProfileResponse)
+async def public_team(
+    slug: str, db: DB, locale: Locale = None
+) -> PublicGroupProfileResponse:
     """Public profile of a public team."""
     group = await _public_group_by_slug(db, "team", slug, require_approved=False)
-    return await _serialize_public_group(db, group)
+    return await _serialize_public_group_profile(db, group, locale)
 
 
 async def _public_profile_by_slug(db: AsyncSession, slug: str) -> UserProfile:

@@ -15,7 +15,7 @@ import MembersPanel from '../components/MembersPanel';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTeam } from '../hooks/useTeams';
 
-type TabName = 'details' | 'members';
+type TabName = 'general' | 'members';
 
 const panelStyle = { '--padding': '0' } as React.CSSProperties;
 
@@ -33,14 +33,14 @@ function TeamDetailPage() {
     canManage,
     canDelete,
     listPath,
-    updateDetails,
+    updateGeneral,
     changeName,
     deleteTeam,
     addMember,
     refresh,
   } = useTeam(id);
 
-  const [activeTab, setActiveTab] = useState<TabName>('details');
+  const [activeTab, setActiveTab] = useState<TabName>('general');
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const [description, setDescription] = useState('');
@@ -55,11 +55,11 @@ function TeamDetailPage() {
   const handleSaveDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const updated = await updateDetails({
+      const updated = await updateGeneral({
         description: description || null,
         is_public: isPublic,
       });
-      if (updated) toast.success(t('detailsSaved'));
+      if (updated) toast.success(t('generalSaved'));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -105,12 +105,12 @@ function TeamDetailPage() {
           active={activeTab}
           onWaTabShow={(e) => setActiveTab(e.detail.name as TabName)}
         >
-          <Tab panel="details">{t('detailsTab')}</Tab>
+          <Tab panel="general">{t('generalTab')}</Tab>
           <Tab panel="members">
             {t('membersTab')} ({team.members_count})
           </Tab>
 
-          <TabPanel name="details" style={panelStyle}>
+          <TabPanel name="general" style={panelStyle}>
             <div className="pt-xl space-y-6">
               <GroupNameField
                 name={team.name}

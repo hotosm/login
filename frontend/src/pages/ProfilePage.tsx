@@ -11,10 +11,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import Input from "@/components/forms/Input";
 import Button from "@/components/shared/Button";
 import ErrorBanner from "@/components/shared/ErrorBanner";
-
-// Portal serves public profiles under a locale prefix and falls back to English
-// for anything it doesn't ship.
-const PORTAL_LOCALES = ["en", "es", "fr"];
+import { portalUrl } from "../utils/portal";
 
 const ALLOWED_APPS = [
   { id: "fair", label: "fAIr" },
@@ -108,14 +105,9 @@ function ProfilePage() {
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
   const hankoUrl = import.meta.env.VITE_HANKO_URL || "";
-  const portalUrl = import.meta.env.VITE_PORTAL_URL || "https://portal.hotosm.org";
 
-  const locale =
-    profile && PORTAL_LOCALES.includes(profile.language)
-      ? profile.language
-      : "en";
   const publicProfileUrl = (slug: string) =>
-    `${portalUrl}/${locale}/people/${slug}`;
+    portalUrl(`people/${slug}`, profile?.language);
 
   // A published profile always has a slug; without one there is nothing to
   // link to, so fall back to the creation flow.

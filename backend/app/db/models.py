@@ -181,7 +181,11 @@ class Group(Base):
     type: Mapped[str] = mapped_column(String(20), nullable=False)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(80), nullable=False)
+    # Markdown; clients render it with react-markdown, which doesn't run HTML.
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tagline: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # Normalized to https://www.youtube.com/watch?v=ID (see app/utils/youtube.py).
+    video_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Organization-only fields (nullable; enforced by business rules per type)
     contact_email: Mapped[str | None] = mapped_column(String(320), nullable=True)
@@ -195,6 +199,11 @@ class Group(Base):
     pending_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     # Whether the group exposes a public profile in portal (opt-in).
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Locale of the translatable fields stored here; other locales live in
+    # group_translations.
+    default_locale: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="en", server_default="en"
+    )
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -220,6 +229,35 @@ class Group(Base):
     def __repr__(self) -> str:
         """Return short debug representation for logging."""
         return f"<Group(id={self.id[:8]}..., type={self.type}, slug={self.slug})>"
+
+
+class GroupTranslation(Base):
+    """A group's translatable fields in one locale other than its default.
+
+    The default locale's content lives on the group itself. Locales are
+    validated in the app (no check constraint), so adding one needs no
+    migration.
+    """
+
+    __tablename__ = "group_translations"
+
+    group_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("groups.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    locale: Mapped[str] = mapped_column(String(10), primary_key=True)
+    # Same formats as on Group: markdown description, normalized YouTube URL.
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tagline: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    video_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), onupdate=func.now(), nullable=True
+    )
 
 
 class GroupMembership(Base):
