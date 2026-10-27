@@ -14,10 +14,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import MembersPanel from '../components/MembersPanel';
-import StatusBadge from '../components/shared/StatusBadge';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOrganization } from '../hooks/useOrgs';
-import { portalUrl } from '../utils/portal';
 import { rasterizeSvg } from '../utils/rasterizeSvg';
 
 type TabName = 'general' | 'profile' | 'members';
@@ -28,7 +26,7 @@ function OrganizationDetailPage() {
   const { slug = '' } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t, currentLanguage } = useLanguage();
+  const { t } = useLanguage();
 
   const {
     organization: org,
