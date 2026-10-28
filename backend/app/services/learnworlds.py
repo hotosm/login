@@ -92,6 +92,23 @@ def _parse_signup_fields(html: str) -> list[dict[str, Any]]:
     return fields
 
 
+def _clean_signup_value(field: dict[str, Any], value: str) -> str:
+    """Check one non-empty answer against its question and normalise it."""
+    if field["type"] == "dropdown" and value not in field["options"]:
+        raise SignupAnswersError(f"{field['key']} is not one of the options")
+    if field["type"] == "date":
+        try:
+            born = date.fromisoformat(value)
+        except ValueError as exc:
+            raise SignupAnswersError(f"{field['key']} is not a date") from exc
+        if born.year < _OLDEST_BIRTH_YEAR or born > date.today():
+            raise SignupAnswersError(f"{field['key']} is out of range")
+        value = born.isoformat()
+    if field["max_length"] and len(value) > field["max_length"]:
+        raise SignupAnswersError(f"{field['key']} is too long")
+    return value
+
+
 def clean_signup_answers(
     fields: list[dict[str, Any]], answers: dict[str, str]
 ) -> dict[str, str]:
@@ -111,19 +128,7 @@ def clean_signup_answers(
             if field["required"]:
                 raise SignupAnswersError(f"{field['key']} is required")
             continue
-        if field["type"] == "dropdown" and value not in field["options"]:
-            raise SignupAnswersError(f"{field['key']} is not one of the options")
-        if field["type"] == "date":
-            try:
-                born = date.fromisoformat(value)
-            except ValueError as exc:
-                raise SignupAnswersError(f"{field['key']} is not a date") from exc
-            if born.year < _OLDEST_BIRTH_YEAR or born > date.today():
-                raise SignupAnswersError(f"{field['key']} is out of range")
-            value = born.isoformat()
-        if field["max_length"] and len(value) > field["max_length"]:
-            raise SignupAnswersError(f"{field['key']} is too long")
-        clean[field["key"]] = value
+        clean[field["key"]] = _clean_signup_value(field, value)
     return clean
 
 
