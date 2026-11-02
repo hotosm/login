@@ -25,9 +25,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db import get_db
 from app.db.models import HankoUserMapping, UserProfile
-from app.schemas.sso import LinkRequest, MappingResponse
+from app.schemas.sso import LinkRequest, MappingResponse, NewAccountRequest
 from app.services import hanko_lookup
-from app.services.learnworlds import LearnWorldsError, learnworlds_client
+from app.services.learnworlds import (
+    LearnWorldsError,
+    SignupAnswersError,
+    clean_signup_answers,
+    learnworlds_client,
+)
 from app.services.linkedin import LinkedInError, linkedin_client
 
 logger = logging.getLogger(__name__)
@@ -273,6 +278,24 @@ async def learnworlds_sso(
     if not learnworlds_user_id and not start_fresh:
         return _linking_page_redirect(request, target)
 
+    login_url, _ = await _open_session(
+        db, user, learnworlds_user_id, target, matched_by_email=matched_by_email
+    )
+    return RedirectResponse(login_url, status_code=status.HTTP_302_FOUND)
+
+
+async def _open_session(
+    db: AsyncSession,
+    user,
+    learnworlds_user_id: str | None,
+    target: str,
+    *,
+    matched_by_email: bool = False,
+) -> tuple[str, str]:
+    """Log into the given account, or create one, and remember the link.
+
+    Returns ``(login_url, learnworlds_user_id)``.
+    """
     # Name and avatar only when LearnWorlds is about to create the account.
     # An account that already exists has its own profile, and ours is often
     # worse: with no name on file it is the local part of an email, which
@@ -300,8 +323,80 @@ async def learnworlds_sso(
             user.id,
             "matched by email" if matched_by_email else "new or created account",
         )
+    return login_url, resolved_id
 
-    return RedirectResponse(login_url, status_code=status.HTTP_302_FOUND)
+
+@router.get("/learnworlds/signup-fields")
+async def learnworlds_signup_fields(user: CurrentUser) -> dict:
+    """The questions the school asks new people, for the linking screen.
+
+    **Authentication**: requires a Hanko session.
+
+    **Returns**:
+    - 200: ``{"fields": [...]}``; empty when there is nothing to ask or the
+      school's page could not be read
+    """
+    return {"fields": await learnworlds_client.signup_fields()}
+
+
+@router.post("/learnworlds/new")
+async def learnworlds_new_account(
+    db: DB, user: CurrentUser, payload: NewAccountRequest
+) -> dict:
+    """Create the LearnWorlds account with the answers to its sign-up questions.
+
+    What ``new=1`` does on the redirect endpoint, plus the profile fields the
+    school's own sign-up form would have asked. A POST so the answers (a date
+    of birth among them) stay out of URLs and access logs.
+
+    If an account turns up after all (linked meanwhile, or an address added
+    since), that one is used and its profile is left alone.
+
+    **Authentication**: requires a Hanko session.
+
+    **Returns**:
+    - 200: ``{"url": ...}``, the one-time login URL to send the browser to
+    - 422: an answer does not fit the school's questions
+    - 502/503: LearnWorlds unreachable or credentials not configured
+    """
+    if not learnworlds_client.is_configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LearnWorlds SSO is not configured",
+        )
+
+    target = _safe_redirect_url(payload.redirect_url)
+    learnworlds_user_id = await _linked_user_id(db, user.id)
+    matched_by_email = False
+    if not learnworlds_user_id:
+        learnworlds_user_id = await _match_by_email(user)
+        matched_by_email = learnworlds_user_id is not None
+
+    answers: dict[str, str] = {}
+    if not learnworlds_user_id:
+        try:
+            answers = clean_signup_answers(
+                await learnworlds_client.signup_fields(), payload.fields
+            )
+        except SignupAnswersError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+            ) from exc
+
+    created = learnworlds_user_id is None
+    login_url, resolved_id = await _open_session(
+        db, user, learnworlds_user_id, target, matched_by_email=matched_by_email
+    )
+
+    if created and answers:
+        try:
+            await learnworlds_client.update_user_fields(resolved_id, answers)
+        except LearnWorldsError:
+            # The account exists and the person is on their way in; losing the
+            # answers is worth a log line, not a failed sign-up.
+            logger.exception("Could not store sign-up answers for %s", resolved_id)
+
+    return {"url": login_url}
 
 
 @router.get("/learnworlds/status")

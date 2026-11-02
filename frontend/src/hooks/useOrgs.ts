@@ -108,7 +108,8 @@ export function useOrganizations() {
   };
 }
 
-export function useOrganization(id: string) {
+/** An organization loaded by slug; every action goes by its id. */
+export function useOrganization(slug: string) {
   const request = useApiRequest();
   const {
     group,
@@ -118,7 +119,12 @@ export function useOrganization(id: string) {
     canManage: canManageOwnRole,
     canDelete: canDeleteOwnRole,
     ...rest
-  } = useGroup(id, 'organization');
+  } = useGroup(
+    null,
+    'organization',
+    `/groups/by-slug/organization/${encodeURIComponent(slug)}`,
+  );
+  const id = group?.id;
   const { isAccountManager } = useRoles();
 
   // An account manager can manage/delete any organization, not just ones they
@@ -167,6 +173,7 @@ export function useOrganization(id: string) {
 
   const uploadImage = useCallback(
     async (kind: 'avatar' | 'banner', file: File) => {
+      if (!id) return false;
       const response = await uploadGroupImage(request, id, kind, file);
       if (!response) return false;
       await refresh();

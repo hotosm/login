@@ -174,7 +174,7 @@ function OrgsToApprovePage() {
                     <Button
                       appearance="outlined"
                       type="button"
-                      onClick={() => navigate(`/organizations/${org.id}`)}
+                      onClick={() => navigate(`/org/${org.slug}`)}
                     >
                       {t('editBtn')}
                     </Button>

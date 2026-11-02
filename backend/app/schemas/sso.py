@@ -22,3 +22,12 @@ class MappingResponse(BaseModel):
     app_user_id: str | None = Field(
         default=None, description="None when the person has never used that app"
     )
+
+
+class NewAccountRequest(BaseModel):
+    """Answers to the school's sign-up questions, for a brand new account."""
+
+    redirect_url: str | None = Field(default=None, alias="redirectUrl")
+    fields: dict[str, str] = Field(
+        default_factory=dict, description="Answers keyed by field, e.g. cf_country"
+    )

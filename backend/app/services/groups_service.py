@@ -16,8 +16,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import is_account_manager
 from app.core.config import settings
-from app.db.models import Group, GroupMembership, UserProfile
-from app.schemas.groups import GroupResponse, MemberResponse, MyGroupItem
+from app.db.models import Group, GroupMembership, GroupTranslation, UserProfile
+from app.schemas.groups import (
+    BASE_LOCALES,
+    TRANSLATABLE_GROUP_FIELDS,
+    GroupResponse,
+    GroupTranslationFields,
+    MemberResponse,
+    MyGroupItem,
+)
 from app.services import hanko_lookup
 
 # Slugs that would collide with app/login routes must never be minted.
@@ -266,6 +273,7 @@ def serialize_group(
     role: str | None = None,
     members_count: int | None = None,
     creator: CreatorLabel | None = None,
+    translations: list[GroupTranslation] | None = None,
 ) -> GroupResponse:
     """Build a GroupResponse, deriving image URLs from stored keys."""
     creator = creator or CreatorLabel()
@@ -275,6 +283,8 @@ def serialize_group(
         name=group.name,
         slug=group.slug,
         description=group.description,
+        tagline=group.tagline,
+        video_url=group.video_url,
         contact_email=group.contact_email,
         website=group.website,
         avatar_url=(
@@ -290,6 +300,13 @@ def serialize_group(
         status=group.status,
         pending_name=group.pending_name,
         is_public=group.is_public,
+        default_locale=group.default_locale,
+        translations={
+            row.locale: GroupTranslationFields(
+                **{field: getattr(row, field) for field in TRANSLATABLE_GROUP_FIELDS}
+            )
+            for row in translations or []
+        },
         created_by=group.created_by,
         created_by_name=creator.name,
         created_by_username=creator.username,
@@ -299,6 +316,116 @@ def serialize_group(
         role=role,
         members_count=members_count,
     )
+
+
+# --- Translations ----------------------------------------------------------
+
+
+def _has_text(value: str | None) -> bool:
+    return bool(value and value.strip())
+
+
+def _blank_to_none(value: str | None) -> str | None:
+    return value if _has_text(value) else None
+
+
+async def get_translations(db: AsyncSession, group_id: str) -> list[GroupTranslation]:
+    """A group's translation rows (one query; call it for single-group reads)."""
+    result = await db.execute(
+        select(GroupTranslation)
+        .where(GroupTranslation.group_id == group_id)
+        .order_by(GroupTranslation.created_at)
+    )
+    return list(result.scalars().all())
+
+
+def _translation_values(
+    fields: GroupTranslationFields | None,
+) -> dict[str, str | None]:
+    """A translation's fields as they'd be stored (blank means none)."""
+    return {
+        field: _blank_to_none(getattr(fields, field)) if fields else None
+        for field in TRANSLATABLE_GROUP_FIELDS
+    }
+
+
+async def translated_locales_after(
+    db: AsyncSession,
+    group: Group,
+    translations: dict[str, GroupTranslationFields | None],
+) -> set[str]:
+    """Locales with a translation once a PATCH's translations are applied."""
+    locales = {row.locale for row in await get_translations(db, group.id)}
+    for locale, fields in translations.items():
+        if any(_translation_values(fields).values()):
+            locales.add(locale)
+        else:
+            locales.discard(locale)
+    return locales
+
+
+async def save_translations(
+    db: AsyncSession,
+    group: Group,
+    translations: dict[str, GroupTranslationFields | None],
+) -> None:
+    """Apply a PATCH's translations to a group (caller commits).
+
+    Each given locale's row is replaced by its fields, or removed when it is
+    null or every field is blank. A row for the group's default locale is
+    always removed: that content belongs in the base fields.
+    """
+    existing = {row.locale: row for row in await get_translations(db, group.id)}
+    for locale, fields in translations.items():
+        row = existing.pop(locale, None)
+        values = _translation_values(fields)
+        if not any(values.values()):
+            if row is not None:
+                await db.delete(row)
+        elif row is None:
+            db.add(GroupTranslation(group_id=group.id, locale=locale, **values))
+        else:
+            for field, value in values.items():
+                setattr(row, field, value)
+    stale = existing.get(group.default_locale)
+    if stale is not None:
+        await db.delete(stale)
+
+
+def resolve_translations(
+    group: Group, translations: list[GroupTranslation], locale: str | None
+) -> tuple[dict[str, str | None], dict[str, str]]:
+    """Pick each translatable field in ``locale``, falling back to the base.
+
+    Returns the values and the locale each one is actually in. An unknown or
+    missing locale gets the base values.
+    """
+    row = (
+        next((r for r in translations if r.locale == locale), None)
+        if locale in BASE_LOCALES
+        else None
+    )
+    values: dict[str, str | None] = {}
+    field_locales: dict[str, str] = {}
+    for field in TRANSLATABLE_GROUP_FIELDS:
+        translated = getattr(row, field) if row is not None else None
+        if _has_text(translated):
+            values[field], field_locales[field] = translated, row.locale
+        else:
+            values[field], field_locales[field] = (
+                getattr(group, field),
+                group.default_locale,
+            )
+    return values, field_locales
+
+
+def available_locales(group: Group, translations: list[GroupTranslation]) -> list[str]:
+    """The default locale first, then the translated ones in the order added."""
+    translated = sorted(
+        (r for r in translations if r.locale != group.default_locale),
+        key=lambda r: r.created_at,
+    )
+    return [group.default_locale] + [r.locale for r in translated]
 
 
 def to_my_group_item(group: Group, role: str) -> MyGroupItem:

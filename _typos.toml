@@ -3,3 +3,7 @@
 caf = "caf"
 # Spanish given name in backend/app/tests/test_notifications.py, not "Lines"
 ines = "ines"
+# ISO 639-1 codes in BASE_LOCALES (Bashkir, Faroese, North Ndebele)
+ba = "ba"
+fo = "fo"
+nd = "nd"

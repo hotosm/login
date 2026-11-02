@@ -20,12 +20,14 @@ from fastapi import (
 from hotosm_auth.models import HankoUser
 from hotosm_auth_fastapi import get_current_user
 from PIL import Image, ImageOps
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import is_account_manager
 from app.db import get_db
 from app.db.models import Group, GroupMembership
 from app.schemas.groups import (
+    TRANSLATABLE_GROUP_FIELDS,
     GroupCreate,
     GroupResponse,
     GroupUpdate,
@@ -141,6 +143,8 @@ async def create_group(
         contact_email=payload.contact_email,
         website=payload.website,
         status="pending" if payload.type == "organization" else "approved",
+        # Organizations start public (shown in Portal once approved); teams don't.
+        is_public=payload.type == "organization",
         created_by=user.id,
     )
     db.add(group)
@@ -176,13 +180,40 @@ async def list_my_groups(
     )
 
 
+# Declared before the /{group_id}/... routes so none of them captures it.
+@router.get("/by-slug/organization/{slug}", response_model=GroupResponse)
+async def get_organization_by_slug(
+    slug: str, user: CurrentUser, db: DB
+) -> GroupResponse:
+    """Get an organization's details by slug; same access and shape as by id."""
+    result = await db.execute(
+        select(Group).where(Group.type == "organization", Group.slug == slug)
+    )
+    group = result.scalar_one_or_none()
+    if group is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Group not found"
+        )
+    return await _group_details(db, group, user)
+
+
 @router.get("/{group_id}", response_model=GroupResponse)
 async def get_group(group_id: str, user: CurrentUser, db: DB) -> GroupResponse:
     """Get a group's details (members and account managers only)."""
     group = await _load_group_or_404(db, group_id)
+    return await _group_details(db, group, user)
+
+
+async def _group_details(
+    db: AsyncSession, group: Group, user: HankoUser
+) -> GroupResponse:
+    """A group's details, by id or slug (members and account managers only)."""
     role = await _require_access(db, group, user)
     members_count = await groups_service.count_members(db, group.id)
-    return groups_service.serialize_group(group, role=role, members_count=members_count)
+    translations = await groups_service.get_translations(db, group.id)
+    return groups_service.serialize_group(
+        group, role=role, members_count=members_count, translations=translations
+    )
 
 
 @router.patch("/{group_id}", response_model=GroupResponse)
@@ -197,9 +228,30 @@ async def update_group(
     role = await _require_manage_access(db, group, user, "manager")
     data = payload.model_dump(exclude_unset=True)
 
-    for field in ("description", "contact_email", "website", "is_public"):
+    # Checked against the default locale as it will be after this update.
+    default_locale = payload.default_locale or group.default_locale
+    if payload.translations and payload.translations.get(default_locale) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Content in the default locale goes in the base fields",
+        )
+    # English, when present, must be the base: checked on the resulting state.
+    translated_after = await groups_service.translated_locales_after(
+        db, group, payload.translations or {}
+    )
+    if default_locale != "en" and "en" in translated_after:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="English must be the base language when present",
+        )
+
+    for field in (*TRANSLATABLE_GROUP_FIELDS, "contact_email", "website", "is_public"):
         if field in data:
             setattr(group, field, data[field])
+
+    if default_locale != group.default_locale or payload.translations:
+        group.default_locale = default_locale
+        await groups_service.save_translations(db, group, payload.translations or {})
 
     if group.type == "organization" and await is_account_manager(user, db):
         owner_id = await groups_service.get_owner_id(db, group)
@@ -213,7 +265,10 @@ async def update_group(
     await db.commit()
     await db.refresh(group)
     members_count = await groups_service.count_members(db, group.id)
-    return groups_service.serialize_group(group, role=role, members_count=members_count)
+    translations = await groups_service.get_translations(db, group.id)
+    return groups_service.serialize_group(
+        group, role=role, members_count=members_count, translations=translations
+    )
 
 
 @router.post("/{group_id}/name-change", response_model=GroupResponse)
@@ -424,7 +479,14 @@ async def remove_group_member(
 
 def _process_image(data: bytes, kind: str) -> bytes:
     """Resize/normalize an image to WEBP (avatar square, banner wide)."""
-    img = Image.open(io.BytesIO(data)).convert("RGB")
+    img = Image.open(io.BytesIO(data))
+    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+        # Flatten transparency onto white so logos don't end up on black.
+        img = img.convert("RGBA")
+        background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+        background.paste(img, mask=img.split()[3])
+        img = background
+    img = img.convert("RGB")
     if kind == "avatar":
         img = ImageOps.fit(img, (_AVATAR_SIZE, _AVATAR_SIZE))
     elif img.width > _BANNER_MAX_WIDTH:

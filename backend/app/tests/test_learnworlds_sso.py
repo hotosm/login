@@ -14,6 +14,7 @@ from sqlalchemy import select
 from app.api.routes import sso as sso_route
 from app.db.models import HankoUserMapping, UserProfile
 from app.main import app
+from app.services import learnworlds as learnworlds_service
 from app.tests.conftest import USER_A, make_user
 
 SCHOOL = "https://learn-dev.hotosm.org"
@@ -665,3 +666,201 @@ async def test_check_is_rate_limited_per_person(client, owner, auth):
     auth["user"] = make_user("someone-else")
     response = await client.post(CHECK_PATH, json={"email": "a@b.org"})
     assert response.status_code == 200
+
+
+# --- Sign-up questions -----------------------------------------------------
+#
+# Accounts created through SSO skip the school's sign-up form, so the linking
+# screen asks its questions and we store the answers on the new account.
+
+NEW_PATH = "/api/sso/learnworlds/new"
+
+SIGNUP_FIELDS = [
+    {
+        "key": "cf_gender",
+        "type": "dropdown",
+        "label": "Select Gender",
+        "required": True,
+        "placeholder": "",
+        "options": ["Male", "Female", "Prefer not to say"],
+        "max_length": 80,
+    },
+    {
+        "key": "cf_dateofbirth",
+        "type": "date",
+        "label": "Date of birth",
+        "required": True,
+        "placeholder": "",
+        "options": [],
+        "max_length": 100,
+    },
+    {
+        "key": "cf_communityororganizationname",
+        "type": "text",
+        "label": "Community or organization name",
+        "required": False,
+        "placeholder": "OSM Uganda",
+        "options": [],
+        "max_length": 10,
+    },
+]
+
+GOOD_ANSWERS = {"cf_gender": "Female", "cf_dateofbirth": "1990-05-04"}
+
+# Trimmed from what the school's sign-up page really ships.
+SIGNUP_PAGE = (
+    "<script>var SITE_DISABLED_APPS=[];var USER_CUSTOM_FIELDS=["
+    '{"active":true,"name":"Date of birth","type":"date","key":"cf_dateofbirth",'
+    '"maxLength":100,"formData":[{"type":"signup","data":{"label":"Date of birth",'
+    '"isVisible":true,"required":true,"placeholder":null}}]},'
+    '{"name":"Gender","type":"dropdown","key":"cf_gender","active":true,'
+    '"options":[{"field_name":"Male","field_value":"Male"},'
+    '{"field_name":"Female","field_value":"Female"}],"maxLength":80,'
+    '"formData":[{"type":"signup","data":{"label":"Select Gender",'
+    '"isVisible":true,"required":true,"placeholder":"Male"}}]},'
+    '{"active":true,"name":"Hidden","type":"text","key":"cf_hidden",'
+    '"formData":[{"type":"signup","data":{"isVisible":false}}]},'
+    '{"active":false,"name":"Old","type":"text","key":"cf_old",'
+    '"formData":[{"type":"signup","data":{"isVisible":true}}]},'
+    '{"active":true,"name":"Agree","type":"checkbox","key":"cf_agree",'
+    '"formData":[{"type":"signup","data":{"isVisible":true}}]}'
+    "];var USER_SIGNUP_FIELDS=[];</script>"
+)
+
+
+def test_signup_page_is_read_into_questions():
+    """Only active, visible fields of a type the screen can ask come through."""
+    fields = learnworlds_service._parse_signup_fields(SIGNUP_PAGE)
+
+    assert [f["key"] for f in fields] == ["cf_dateofbirth", "cf_gender"]
+    assert fields[1] == {
+        "key": "cf_gender",
+        "type": "dropdown",
+        "label": "Select Gender",
+        "required": True,
+        "placeholder": "Male",
+        "options": ["Male", "Female"],
+        "max_length": 80,
+    }
+
+
+def test_answers_that_fit_are_kept():
+    answers = {**GOOD_ANSWERS, "cf_communityororganizationname": " OSM AR "}
+
+    assert learnworlds_service.clean_signup_answers(SIGNUP_FIELDS, answers) == {
+        "cf_gender": "Female",
+        "cf_dateofbirth": "1990-05-04",
+        "cf_communityororganizationname": "OSM AR",
+    }
+
+
+@pytest.mark.parametrize(
+    "answers",
+    [
+        {"cf_dateofbirth": "1990-05-04"},  # required question left out
+        {**GOOD_ANSWERS, "cf_gender": "female"},  # not one of the options
+        {**GOOD_ANSWERS, "cf_dateofbirth": "04/05/1990"},  # not ISO
+        {**GOOD_ANSWERS, "cf_dateofbirth": "2999-01-01"},  # in the future
+        {**GOOD_ANSWERS, "cf_dateofbirth": "1800-01-01"},  # implausibly old
+        {**GOOD_ANSWERS, "cf_communityororganizationname": "x" * 11},  # too long
+        {**GOOD_ANSWERS, "cf_salary": "1"},  # not a question the school asks
+    ],
+)
+def test_answers_that_do_not_fit_are_refused(answers):
+    with pytest.raises(learnworlds_service.SignupAnswersError):
+        learnworlds_service.clean_signup_answers(SIGNUP_FIELDS, answers)
+
+
+@pytest.fixture
+def questions(lw):
+    """The school asks SIGNUP_FIELDS; storing the answers succeeds."""
+    with (
+        patch.object(
+            sso_route.learnworlds_client,
+            "signup_fields",
+            new=AsyncMock(return_value=SIGNUP_FIELDS),
+        ),
+        patch.object(
+            sso_route.learnworlds_client, "update_user_fields", new=AsyncMock()
+        ),
+        patch.object(
+            sso_route.hanko_lookup, "verified_emails", new=AsyncMock(return_value=[])
+        ),
+    ):
+        yield lw
+
+
+@pytest.mark.asyncio
+async def test_signup_fields_are_served_to_the_screen(client, questions):
+    response = await client.get("/api/sso/learnworlds/signup-fields")
+
+    assert response.status_code == 200
+    assert response.json() == {"fields": SIGNUP_FIELDS}
+
+
+@pytest.mark.asyncio
+async def test_new_account_gets_the_answers(client, db, questions):
+    response = await client.post(
+        NEW_PATH,
+        json={"redirectUrl": f"{SCHOOL}/course/x", "fields": GOOD_ANSWERS},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"url": LOGIN_URL}
+    assert questions.sso_login.await_args.kwargs["email"] == USER_A.email
+    assert questions.sso_login.await_args.kwargs["redirect_url"] == f"{SCHOOL}/course/x"
+    questions.update_user_fields.assert_awaited_once_with("lw-user-1", GOOD_ANSWERS)
+    assert [r.app_user_id for r in await _mappings(db)] == ["lw-user-1"]
+
+
+@pytest.mark.asyncio
+async def test_new_account_refuses_bad_answers_before_creating(client, db, questions):
+    response = await client.post(
+        NEW_PATH, json={"fields": {**GOOD_ANSWERS, "cf_gender": "Other"}}
+    )
+
+    assert response.status_code == 422
+    questions.sso_login.assert_not_awaited()
+    assert await _mappings(db) == []
+
+
+@pytest.mark.asyncio
+async def test_new_account_survives_failing_to_store_answers(client, db, questions):
+    """The person still gets in; the answers are only logged as lost."""
+    questions.update_user_fields.side_effect = learnworlds_service.LearnWorldsError(
+        "boom"
+    )
+
+    response = await client.post(NEW_PATH, json={"fields": GOOD_ANSWERS})
+
+    assert response.status_code == 200
+    assert response.json() == {"url": LOGIN_URL}
+
+
+@pytest.mark.asyncio
+async def test_new_account_without_questions_just_creates(client, db, questions):
+    """An unreadable sign-up page asks nothing and stores nothing."""
+    questions.signup_fields.return_value = []
+
+    response = await client.post(NEW_PATH, json={"fields": {}})
+
+    assert response.status_code == 200
+    questions.update_user_fields.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_new_account_uses_an_account_that_turned_up(client, db, questions):
+    """Linked meanwhile: log into that one and leave its profile alone."""
+    db.add(
+        HankoUserMapping(
+            hanko_user_id=USER_A.id, app_name="learnworlds", app_user_id="lw-linked"
+        )
+    )
+    await db.commit()
+    questions.sso_login.return_value = (LOGIN_URL, "lw-linked")
+
+    response = await client.post(NEW_PATH, json={"fields": GOOD_ANSWERS})
+
+    assert response.status_code == 200
+    assert questions.sso_login.await_args.kwargs["user_id"] == "lw-linked"
+    questions.update_user_fields.assert_not_awaited()

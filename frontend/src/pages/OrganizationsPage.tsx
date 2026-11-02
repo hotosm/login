@@ -24,7 +24,6 @@ function OrganizationsPage() {
           name: payload.name,
           contact_email: payload.contactEmail || undefined,
           website: payload.website || undefined,
-          description: payload.description || undefined,
           avatarFile: payload.avatarFile,
           bannerFile: payload.bannerFile,
         },
@@ -85,7 +84,7 @@ function OrganizationsPage() {
               <GroupCard
                 key={group.id}
                 group={group}
-                to={`/organizations/${group.id}`}
+                to={`/org/${group.slug}`}
                 showStatus
               />
             ))}
