@@ -7,7 +7,7 @@ import DropdownItem from "./shared/DropdownItem";
 import Icon from "./shared/Icon";
 
 function LanguageSwitcher() {
-  const { currentLanguage, setLanguage } = useLanguage();
+  const { setLanguage } = useLanguage();
 
   return (
     <div className="flex justify-end">
