@@ -52,7 +52,7 @@ function AccountInfoPanel({
               profile?.osm_avatar_url ||
               `https://www.gravatar.com/avatar/?d=identicon&s=80`
             }
-            alt="Profile"
+            alt="Account picture"
             className="w-20 h-20 rounded-full object-cover border-2 border-hot-gray-200"
           />
           <div className="flex-1">
