@@ -1,8 +1,10 @@
 import { useLanguage } from "../contexts/LanguageContext";
 import { LANGUAGES } from "../translations";
 import translateIcon from "../assets/images/icon-translate.svg";
+import Button from "./shared/Button";
 import Dropdown from "./shared/Dropdown";
 import DropdownItem from "./shared/DropdownItem";
+import Icon from "./shared/Icon";
 
 function LanguageSwitcher() {
   const { currentLanguage, setLanguage } = useLanguage();
@@ -17,19 +19,13 @@ function LanguageSwitcher() {
           if (selected) setLanguage(selected);
         }}
       >
-        <button
-          type="button"
-          slot="trigger"
-          className="flex items-center gap-1.5 rounded-md px-2 py-1 cursor-pointer"
-        >
-          <img src={translateIcon} alt="Language" className="w-4 h-4 pointer-events-none" />
-        </button>
+        <Button slot="trigger" appearance="plain">
+          <Icon src={translateIcon} label="Language" className="text-base" />
+        </Button>
         {LANGUAGES.map((lang) => (
           <DropdownItem
             key={lang.code}
             value={lang.code}
-            type="checkbox"
-            checked={currentLanguage === lang.code}
           >
             {lang.name}
           </DropdownItem>
