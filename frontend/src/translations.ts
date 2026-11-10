@@ -92,12 +92,15 @@ export interface Translations {
   noTokensYet: string;
 
   // Data deletion across HOT apps
+  dataDeletionPanelTitle: string;
   dataDeletionTitle: string;
   dataDeletionDescription: string;
   dataDeletionPrivacyPolicy: string;
   dataDeletionRequestButton: string;
   dataDeletionConfirmTitle: string;
-  dataDeletionConfirmBody: string;
+  dataDeletionAckEmail: string;
+  dataDeletionAckContact: string;
+  dataDeletionAckIrreversible: string;
   dataDeletionConfirmButton: string;
   dataDeletionSubmitting: string;
   dataDeletionSent: string;
@@ -377,7 +380,7 @@ export const translations: Record<string, Translations> = {
     accessAllTools: 'Access all HOT tools and services',
     myProfile: 'My Profile',
     back: 'Back',
-    profileInformation: 'Profile Information',
+    profileInformation: 'Account Information',
     pictureUrl: 'Picture URL',
     firstName: 'First Name',
     lastName: 'Last Name',
@@ -400,7 +403,7 @@ export const translations: Record<string, Translations> = {
     deleteComingSoon: 'Account deletion will be available soon.',
     accountCreated: 'Account created',
     accountDeleted: 'Your account has been deleted successfully.',
-    profileUpdated: 'Profile updated successfully',
+    profileUpdated: 'Account updated successfully',
     publicProfileTitle: 'Public profile',
     publicProfileDescription:
       'Share who you are with the HOT community. Your public profile shows your name and your work across HOT tools.',
@@ -448,14 +451,18 @@ export const translations: Record<string, Translations> = {
       'This will invalidate the previous token immediately. Continue?',
     revokeConfirm: 'This will permanently revoke this token. Continue?',
     noTokensYet: 'No tokens generated yet.',
+    dataDeletionPanelTitle: 'Request Data Deletion',
     dataDeletionTitle: 'Data across HOT apps',
     dataDeletionDescription:
-      'Request the permanent removal of your personal data from specific apps or the entire HOT Tech Suite. For more information on how we handle your information, please review our',
+      'Request the permanent removal of your personal data from the entire HOT Tech Suite. For more information on how we handle your information, please review our',
     dataDeletionPrivacyPolicy: 'Privacy Policy',
-    dataDeletionRequestButton: 'Request data deletion',
+    dataDeletionRequestButton: 'Request Deletion',
     dataDeletionConfirmTitle: 'Request data deletion',
-    dataDeletionConfirmBody:
-      'We will email HOT admins asking them to remove your data from all HOT apps. They may contact you to coordinate.',
+    dataDeletionAckEmail:
+      'I understand an email will be sent to HOT admins asking them to remove your data from all HOT apps.',
+    dataDeletionAckContact:
+      'I understand that they may contact me to coordinate my request.',
+    dataDeletionAckIrreversible: 'I understand this action is irreversible',
     dataDeletionConfirmButton: 'Send request',
     dataDeletionSubmitting: 'Sending...',
     dataDeletionSent:
@@ -466,7 +473,7 @@ export const translations: Record<string, Translations> = {
     no_existing_osm_account:
       "No existing account found for your OSM user. Please select 'Continue' to create a new account.",
     hotAccount: 'HOT Account',
-    navProfile: 'Profile',
+    navProfile: 'Account',
     navOrganizations: 'Organizations',
     navTeams: 'Teams',
     navUsers: 'Users',
@@ -715,7 +722,7 @@ export const translations: Record<string, Translations> = {
     accessAllTools: 'Accede a todas las herramientas y servicios de HOT',
     myProfile: 'Mi Perfil',
     back: 'Volver',
-    profileInformation: 'Información del Perfil',
+    profileInformation: 'Información de la cuenta',
     pictureUrl: 'URL de imagen',
     firstName: 'Nombre',
     lastName: 'Apellido',
@@ -739,7 +746,7 @@ export const translations: Record<string, Translations> = {
     deleteComingSoon: 'La eliminación de cuenta estará disponible pronto.',
     accountCreated: 'Cuenta creada',
     accountDeleted: 'Tu cuenta ha sido eliminada exitosamente.',
-    profileUpdated: 'Perfil actualizado exitosamente',
+    profileUpdated: 'Cuenta actualizada exitosamente',
     publicProfileTitle: 'Perfil público',
     publicProfileDescription:
       'Contá quién sos a la comunidad de HOT. Tu perfil público muestra tu nombre y tu trabajo en las herramientas de HOT.',
@@ -787,14 +794,18 @@ export const translations: Record<string, Translations> = {
       'Esto invalidará el token anterior inmediatamente. ¿Continuar?',
     revokeConfirm: 'Esto revocará permanentemente este token. ¿Continuar?',
     noTokensYet: 'No hay tokens generados aún.',
+    dataDeletionPanelTitle: 'Solicitar eliminación de datos',
     dataDeletionTitle: 'Datos en las apps de HOT',
     dataDeletionDescription:
-      'Solicitá la eliminación permanente de tus datos personales de apps específicas o de todo el HOT Tech Suite. Para más información sobre cómo manejamos tu información, consultá nuestra',
+      'Solicitá la eliminación permanente de tus datos personales de todo el HOT Tech Suite. Para más información sobre cómo manejamos tu información, consultá nuestra',
     dataDeletionPrivacyPolicy: 'Política de Privacidad',
-    dataDeletionRequestButton: 'Solicitar eliminación de datos',
+    dataDeletionRequestButton: 'Solicitar eliminación',
     dataDeletionConfirmTitle: 'Solicitar eliminación de datos',
-    dataDeletionConfirmBody:
-      'Enviaremos un email a los administradores de HOT pidiendo que eliminen tus datos de todas las apps. Es posible que se contacten con vos para coordinar.',
+    dataDeletionAckEmail:
+      'Entiendo que se enviará un email a los administradores de HOT pidiéndoles que eliminen mis datos de todas las apps de HOT.',
+    dataDeletionAckContact:
+      'Entiendo que pueden contactarme para coordinar mi solicitud.',
+    dataDeletionAckIrreversible: 'Entiendo que esta acción es irreversible',
     dataDeletionConfirmButton: 'Enviar solicitud',
     dataDeletionSubmitting: 'Enviando...',
     dataDeletionSent:
@@ -806,7 +817,7 @@ export const translations: Record<string, Translations> = {
     no_existing_osm_account:
       "No se encontró una cuenta existente para tu usuario de OSM. Por favor selecciona 'Continuar' para crear una nueva cuenta.",
     hotAccount: 'Cuenta HOT',
-    navProfile: 'Perfil',
+    navProfile: 'Cuenta',
     navOrganizations: 'Organizaciones',
     navTeams: 'Equipos',
     navUsers: 'Usuarios',
@@ -1057,7 +1068,7 @@ export const translations: Record<string, Translations> = {
     accessAllTools: 'Accédez à tous les outils et services HOT',
     myProfile: 'Mon Profil',
     back: 'Retour',
-    profileInformation: 'Informations du Profil',
+    profileInformation: 'Informations du compte',
     pictureUrl: "URL de l'image",
     firstName: 'Prénom',
     lastName: 'Nom',
@@ -1080,7 +1091,7 @@ export const translations: Record<string, Translations> = {
     deleteComingSoon: 'La suppression de compte sera bientôt disponible.',
     accountCreated: 'Compte créé',
     accountDeleted: 'Votre compte a été supprimé avec succès.',
-    profileUpdated: 'Profil mis à jour avec succès',
+    profileUpdated: 'Compte mis à jour avec succès',
     publicProfileTitle: 'Profil public',
     publicProfileDescription:
       'Présentez-vous à la communauté HOT. Votre profil public affiche votre nom et votre travail sur les outils HOT.',
@@ -1129,14 +1140,19 @@ export const translations: Record<string, Translations> = {
       'Cela invalidera immédiatement le token précédent. Continuer ?',
     revokeConfirm: 'Cela révoquera définitivement ce token. Continuer ?',
     noTokensYet: "Aucun token généré pour l'instant.",
+    dataDeletionPanelTitle: 'Demander la suppression des données',
     dataDeletionTitle: 'Données sur les apps HOT',
     dataDeletionDescription:
-      "Demandez la suppression définitive de vos données personnelles d'apps spécifiques ou de l'ensemble de la HOT Tech Suite. Pour plus d'informations sur la façon dont nous traitons vos données, consultez notre",
+      "Demandez la suppression définitive de vos données personnelles de l'ensemble de la HOT Tech Suite. Pour plus d'informations sur la façon dont nous traitons vos données, consultez notre",
     dataDeletionPrivacyPolicy: 'Politique de confidentialité',
-    dataDeletionRequestButton: 'Demander la suppression des données',
+    dataDeletionRequestButton: 'Demander la suppression',
     dataDeletionConfirmTitle: 'Demander la suppression des données',
-    dataDeletionConfirmBody:
-      'Nous enverrons un email aux administrateurs de HOT pour leur demander de supprimer vos données de toutes les apps. Ils pourraient vous contacter pour coordonner.',
+    dataDeletionAckEmail:
+      "Je comprends qu'un email sera envoyé aux administrateurs de HOT pour leur demander de supprimer mes données de toutes les apps HOT.",
+    dataDeletionAckContact:
+      "Je comprends qu'ils pourraient me contacter pour coordonner ma demande.",
+    dataDeletionAckIrreversible:
+      'Je comprends que cette action est irréversible',
     dataDeletionConfirmButton: 'Envoyer la demande',
     dataDeletionSubmitting: 'Envoi en cours...',
     dataDeletionSent:
@@ -1147,7 +1163,7 @@ export const translations: Record<string, Translations> = {
     no_existing_osm_account:
       "Aucun compte existant trouvé pour votre utilisateur OSM. Veuillez sélectionner 'Continuer' pour créer un nouveau compte.",
     hotAccount: 'Compte HOT',
-    navProfile: 'Profil',
+    navProfile: 'Compte',
     navOrganizations: 'Organisations',
     navTeams: 'Équipes',
     navUsers: 'Utilisateurs',
@@ -1402,7 +1418,7 @@ export const translations: Record<string, Translations> = {
     accessAllTools: 'Acesse todas as ferramentas e serviços HOT',
     myProfile: 'Meu Perfil',
     back: 'Voltar',
-    profileInformation: 'Informações do Perfil',
+    profileInformation: 'Informações da conta',
     pictureUrl: 'URL da imagem',
     firstName: 'Nome',
     lastName: 'Sobrenome',
@@ -1424,7 +1440,7 @@ export const translations: Record<string, Translations> = {
     deleteComingSoon: 'A exclusão de conta estará disponível em breve.',
     accountCreated: 'Conta criada',
     accountDeleted: 'Sua conta foi excluída com sucesso.',
-    profileUpdated: 'Perfil atualizado com sucesso',
+    profileUpdated: 'Conta atualizada com sucesso',
     publicProfileTitle: 'Perfil público',
     publicProfileDescription:
       'Mostre quem você é para a comunidade HOT. Seu perfil público exibe seu nome e seu trabalho nas ferramentas da HOT.',
@@ -1472,14 +1488,18 @@ export const translations: Record<string, Translations> = {
       'Isso invalidará o token anterior imediatamente. Continuar?',
     revokeConfirm: 'Isso revogará permanentemente este token. Continuar?',
     noTokensYet: 'Nenhum token gerado ainda.',
+    dataDeletionPanelTitle: 'Solicitar exclusão de dados',
     dataDeletionTitle: 'Dados nos apps HOT',
     dataDeletionDescription:
-      'Solicite a remoção permanente dos seus dados pessoais de apps específicos ou de todo o HOT Tech Suite. Para mais informações sobre como tratamos seus dados, consulte nossa',
+      'Solicite a remoção permanente dos seus dados pessoais de todo o HOT Tech Suite. Para mais informações sobre como tratamos seus dados, consulte nossa',
     dataDeletionPrivacyPolicy: 'Política de Privacidade',
-    dataDeletionRequestButton: 'Solicitar exclusão de dados',
+    dataDeletionRequestButton: 'Solicitar exclusão',
     dataDeletionConfirmTitle: 'Solicitar exclusão de dados',
-    dataDeletionConfirmBody:
-      'Enviaremos um email aos administradores do HOT pedindo que removam seus dados de todos os apps. Eles podem entrar em contato para coordenar.',
+    dataDeletionAckEmail:
+      'Entendo que um email será enviado aos administradores do HOT pedindo que removam meus dados de todos os apps HOT.',
+    dataDeletionAckContact:
+      'Entendo que eles podem entrar em contato comigo para coordenar minha solicitação.',
+    dataDeletionAckIrreversible: 'Entendo que esta ação é irreversível',
     dataDeletionConfirmButton: 'Enviar solicitação',
     dataDeletionSubmitting: 'Enviando...',
     dataDeletionSent:
@@ -1491,7 +1511,7 @@ export const translations: Record<string, Translations> = {
     no_existing_osm_account:
       "Nenhuma conta existente encontrada para o seu usuário OSM. Por favor selecione 'Continuar' para criar uma nova conta.",
     hotAccount: 'Conta HOT',
-    navProfile: 'Perfil',
+    navProfile: 'Conta',
     navOrganizations: 'Organizações',
     navTeams: 'Equipes',
     navUsers: 'Usuários',
