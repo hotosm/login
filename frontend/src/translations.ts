@@ -17,6 +17,12 @@ export interface Translations {
   goBack: string;
   cancelOnboarding: string;
   settingUpAccount: string;
+  // Onboarding of apps that connect OSM with their own client (Tasking Manager)
+  osmRequiredToMap: string;
+  osmSameAccountKeepsHistory: string;
+  osmReconnectTitle: string;
+  osmReconnectText: string;
+  connectWithOsm: string;
   accessAllTools: string;
 
   // ProfilePage
@@ -377,6 +383,14 @@ export const translations: Record<string, Translations> = {
     goBack: '← Go back',
     cancelOnboarding: 'Cancel',
     settingUpAccount: 'Setting up your account...',
+    osmRequiredToMap:
+      'To map you need to connect your OpenStreetMap account. Your edits are saved to OpenStreetMap under your name.',
+    osmSameAccountKeepsHistory:
+      'If you have used it before, connect the same account to keep your projects and history.',
+    osmReconnectTitle: 'Reconnect your OpenStreetMap account',
+    osmReconnectText:
+      'The authorization of your OpenStreetMap account is no longer valid. Connect it again to keep mapping.',
+    connectWithOsm: 'Connect with OpenStreetMap',
     accessAllTools: 'Access all HOT tools and services',
     myProfile: 'My Profile',
     back: 'Back',
@@ -719,6 +733,14 @@ export const translations: Record<string, Translations> = {
     goBack: '← Volver',
     cancelOnboarding: 'Cancelar',
     settingUpAccount: 'Configurando tu cuenta...',
+    osmRequiredToMap:
+      'Para mapear necesitas conectar tu cuenta de OpenStreetMap. Tus ediciones se guardan en OpenStreetMap a tu nombre.',
+    osmSameAccountKeepsHistory:
+      'Si ya lo usabas, conecta la misma cuenta para conservar tus proyectos y tu historial.',
+    osmReconnectTitle: 'Vuelve a conectar tu cuenta de OpenStreetMap',
+    osmReconnectText:
+      'La autorización de tu cuenta de OpenStreetMap ya no es válida. Conéctala de nuevo para seguir mapeando.',
+    connectWithOsm: 'Conectar con OpenStreetMap',
     accessAllTools: 'Accede a todas las herramientas y servicios de HOT',
     myProfile: 'Mi Perfil',
     back: 'Volver',
@@ -1065,6 +1087,14 @@ export const translations: Record<string, Translations> = {
     goBack: '← Retour',
     cancelOnboarding: 'Annuler',
     settingUpAccount: 'Configuration de votre compte...',
+    osmRequiredToMap:
+      'Pour cartographier, vous devez connecter votre compte OpenStreetMap. Vos modifications sont enregistrées dans OpenStreetMap à votre nom.',
+    osmSameAccountKeepsHistory:
+      "Si vous l'avez déjà utilisé, connectez le même compte pour conserver vos projets et votre historique.",
+    osmReconnectTitle: 'Reconnectez votre compte OpenStreetMap',
+    osmReconnectText:
+      "L'autorisation de votre compte OpenStreetMap n'est plus valide. Connectez-le à nouveau pour continuer à cartographier.",
+    connectWithOsm: 'Se connecter avec OpenStreetMap',
     accessAllTools: 'Accédez à tous les outils et services HOT',
     myProfile: 'Mon Profil',
     back: 'Retour',
@@ -1415,6 +1445,14 @@ export const translations: Record<string, Translations> = {
     goBack: '← Voltar',
     cancelOnboarding: 'Cancelar',
     settingUpAccount: 'Configurando sua conta...',
+    osmRequiredToMap:
+      'Para mapear, você precisa conectar sua conta do OpenStreetMap. Suas edições são salvas no OpenStreetMap em seu nome.',
+    osmSameAccountKeepsHistory:
+      'Se você já o usava, conecte a mesma conta para manter seus projetos e seu histórico.',
+    osmReconnectTitle: 'Reconecte sua conta do OpenStreetMap',
+    osmReconnectText:
+      'A autorização da sua conta do OpenStreetMap não é mais válida. Conecte-a novamente para continuar mapeando.',
+    connectWithOsm: 'Conectar com o OpenStreetMap',
     accessAllTools: 'Acesse todas as ferramentas e serviços HOT',
     myProfile: 'Meu Perfil',
     back: 'Voltar',
