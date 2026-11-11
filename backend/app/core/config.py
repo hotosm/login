@@ -2,6 +2,59 @@
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Used when CORS_ORIGINS is unset, so local and dev setups need no extra config.
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3040",
+    "http://127.0.0.1:3040",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    # Subdomain routing for development (HTTPS)
+    "https://portal.hotosm.test",
+    "https://login.hotosm.test",
+    "https://dronetm.hotosm.test",
+    "https://fair.hotosm.test",
+    "https://openaerialmap.hotosm.test",
+    "https://chatmap.hotosm.test",
+    "https://umap.hotosm.test",
+    "https://export-tool.hotosm.test",
+    # Production domains
+    "https://portal.hotosm.org",
+    "https://dev.portal.hotosm.org",
+    "https://dev.login.hotosm.org",
+    "https://login.hotosm.org",
+    "https://chatmap.hotosm.org",
+    "https://chatmap-dev.hotosm.org",
+    "https://dev.chatmap.hotosm.org",
+    "https://fair.hotosm.org",
+    "https://fair-dev.hotosm.org",
+    "https://ai.hotosm.org",
+    "https://stage.ai.hotosm.org",
+    "https://dev.ai.hotosm.org",
+    "https://umap.hotosm.org",
+    "https://umap-dev.hotosm.org",
+    "https://field.hotosm.org",
+    "https://fieldtm.hotosm.org",
+    "https://export.hotosm.org",
+    "https://upload.imagery.hotosm.org",
+    "https://upload.stage.imagery.hotosm.org",
+    "https://imagery.hotosm.org",
+    "https://stage.imagery.hotosm.org",
+    "https://dev.umap.hotosm.org",
+    # Test environments
+    "https://dronetm.testlogin.hotosm.org",
+    "https://fair.testlogin.hotosm.org",
+    "https://umap.testlogin.hotosm.org",
+    "https://export.testlogin.hotosm.org",
+    "https://fieldtm.testlogin.hotosm.org",
+    "https://drone.hotosm.org",
+    "https://drone-dev.hotosm.org",
+    "https://dev.drone.hotosm.org",
+]
+
 
 class Settings(BaseSettings):
     """Application settings."""
@@ -32,6 +85,18 @@ class Settings(BaseSettings):
     def admin_email_list(self) -> list[str]:
         """Parse admin_emails into a list of lowercase email addresses."""
         return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
+
+    # CORS: origins allowed to call this API with credentials (comma-separated).
+    # Setting it replaces DEFAULT_CORS_ORIGINS rather than adding to it.
+    cors_origins: str = ""
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """Parse cors_origins, falling back to DEFAULT_CORS_ORIGINS when unset."""
+        origins = [
+            o.strip().rstrip("/") for o in self.cors_origins.split(",") if o.strip()
+        ]
+        return origins or DEFAULT_CORS_ORIGINS
 
     # App URLs for admin proxy
     portal_backend_url: str = "http://portal-backend:8000"
