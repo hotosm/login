@@ -169,6 +169,8 @@ services:
       # LinkedIn lookup on the LearnWorlds linking screen. Unset => hidden.
       - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID:-}
       - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET:-}
+      # Origins allowed to call this API with credentials. No default in the app.
+      - CORS_ORIGINS=https://portal.hotosm.org,https://dev.portal.hotosm.org,https://dev.login.hotosm.org,https://login.hotosm.org,https://chatmap.hotosm.org,https://chatmap-dev.hotosm.org,https://dev.chatmap.hotosm.org,https://fair.hotosm.org,https://fair-dev.hotosm.org,https://ai.hotosm.org,https://stage.ai.hotosm.org,https://dev.ai.hotosm.org,https://umap.hotosm.org,https://umap-dev.hotosm.org,https://field.hotosm.org,https://fieldtm.hotosm.org,https://export.hotosm.org,https://upload.imagery.hotosm.org,https://upload.stage.imagery.hotosm.org,https://imagery.hotosm.org,https://stage.imagery.hotosm.org,https://dev.umap.hotosm.org,https://dronetm.testlogin.hotosm.org,https://fair.testlogin.hotosm.org,https://umap.testlogin.hotosm.org,https://export.testlogin.hotosm.org,https://fieldtm.testlogin.hotosm.org,https://drone.hotosm.org,https://drone-dev.hotosm.org,https://dev.drone.hotosm.org
       - ADMIN_EMAILS=hernangigena@gmail.com,justina@animus.com.ar,andreatchirillano@hotmail.com,emilio.mariscal@hotosm.org,dakota.benjamin@hotosm.org,sam.woodcock@hotosm.org,elenaficher.di@gmail.com
       # App URLs for admin proxy (public URLs, not internal Docker)
       - DRONETM_BACKEND_URL=https://dev.drone.hotosm.org

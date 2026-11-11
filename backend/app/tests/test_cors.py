@@ -2,19 +2,24 @@
 
 import uuid
 
-from app.core.config import DEFAULT_CORS_ORIGINS, Settings
+import pytest
+from pydantic import ValidationError
+
+from app.core.config import Settings
 
 ALLOWED = "https://portal.hotosm.org"
 UNKNOWN = "https://evil.example.com"
 
 
-def test_cors_origins_env_replaces_default():
+def test_cors_origins_parsed():
     settings = Settings(cors_origins=" https://a.hotosm.org, https://b.hotosm.org/ ,")
     assert settings.cors_origin_list == ["https://a.hotosm.org", "https://b.hotosm.org"]
 
 
-def test_cors_origins_unset_uses_default():
-    assert Settings(cors_origins="").cors_origin_list == DEFAULT_CORS_ORIGINS
+@pytest.mark.parametrize("value", ["", " , "])
+def test_cors_origins_cannot_be_empty(value):
+    with pytest.raises(ValidationError):
+        Settings(cors_origins=value)
 
 
 async def test_error_echoes_allowed_origin(client):
