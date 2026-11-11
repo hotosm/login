@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     umap_backend_url: str = "http://umap-app:8000"
     export_tool_backend_url: str = "http://export-tool-app:8000"
     chatmap_backend_url: str = "http://chatmap-api:8000"
+    tasking_manager_backend_url: str = "http://tm-backend:5000"
 
     # Hanko database for admin lookups
     hanko_db_url: str = "postgresql://hanko:hanko@hanko-db:5432/hanko"
@@ -93,6 +94,7 @@ class Settings(BaseSettings):
             "umap": self.umap_backend_url,
             "osm-export-tool": self.export_tool_backend_url,
             "chatmap": self.chatmap_backend_url,
+            "tasking-manager": self.tasking_manager_backend_url,
         }
 
 

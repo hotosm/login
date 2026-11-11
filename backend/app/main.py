@@ -62,6 +62,7 @@ app.add_middleware(
         "https://chatmap.hotosm.test",
         "https://umap.hotosm.test",
         "https://export-tool.hotosm.test",
+        "https://tm.hotosm.test",
         # Production domains
         "https://portal.hotosm.org",
         "https://dev.portal.hotosm.org",
@@ -91,6 +92,7 @@ app.add_middleware(
         "https://umap.testlogin.hotosm.org",
         "https://export.testlogin.hotosm.org",
         "https://fieldtm.testlogin.hotosm.org",
+        "https://tm.testlogin.hotosm.org",
         "https://drone.hotosm.org",
         "https://drone-dev.hotosm.org",
         "https://dev.drone.hotosm.org",

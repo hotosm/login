@@ -6,6 +6,7 @@ const ALLOWED_APPS = [
   { id: "fair", label: "fAIr" },
   { id: "drone-tm", label: "Drone TM" },
   { id: "oam", label: "OpenAerialMap" },
+  { id: "tasking-manager", label: "Tasking Manager" },
 ];
 
 interface DeveloperSettingsPanelProps {
