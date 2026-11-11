@@ -57,13 +57,19 @@ app.add_middleware(
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Add CORS headers to HTTP exceptions."""
+    # Only echo an origin the middleware would also accept. Reflecting any
+    # origin here made errors look CORS-clean to curl while the browser still
+    # blocked real responses, and handed credentialed CORS to any site.
+    headers: dict[str, str] = {}
+    origin = request.headers.get("origin")
+    if origin and origin in settings.cors_origin_list:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Vary"] = "Origin"
     return JSONResponse(
         status_code=exc.status_code,
         content={"code": exc.status_code, "message": exc.detail},
-        headers={
-            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
-            "Access-Control-Allow-Credentials": "true",
-        },
+        headers=headers,
     )
 
 
