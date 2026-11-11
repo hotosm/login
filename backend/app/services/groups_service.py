@@ -200,9 +200,13 @@ async def manager_ids(db: AsyncSession, group_id: str) -> list[str]:
 
 
 async def list_user_groups(
-    db: AsyncSession, user_id: str, group_type: str | None = None
+    db: AsyncSession,
+    user_id: str,
+    group_type: str | None = None,
+    *,
+    include_unapproved: bool = False,
 ) -> list[tuple[Group, str]]:
-    """Return (group, role) pairs for every group the user belongs to."""
+    """Return the user's (group, role) pairs; only approved groups by default."""
     stmt = (
         select(Group, GroupMembership.role)
         .join(GroupMembership, GroupMembership.group_id == Group.id)
@@ -210,6 +214,8 @@ async def list_user_groups(
     )
     if group_type is not None:
         stmt = stmt.where(Group.type == group_type)
+    if not include_unapproved:
+        stmt = stmt.where(Group.status == "approved")
     stmt = stmt.order_by(Group.name)
     result = await db.execute(stmt)
     return [(row[0], row[1]) for row in result.all()]

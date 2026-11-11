@@ -167,14 +167,22 @@ async def list_my_groups(
     user: CurrentUser,
     db: DB,
     type: Annotated[str | None, Query()] = None,
+    include_unapproved: Annotated[bool, Query()] = False,
 ) -> MyGroupsResponse:
     """List the groups the current user belongs to (consumer contract).
 
     This is the canonical endpoint portal consumes (forwarding the hanko
     cookie) to resolve membership, and that the login frontend uses to render
     the Organizations/Teams lists. Optional ``type`` filters team|organization.
+
+    By default only approved groups are returned (the contract portal relies
+    on). ``include_unapproved=true`` also returns pending/rejected groups; the
+    login frontend uses it to show creators their pending orgs with a status
+    badge.
     """
-    pairs = await groups_service.list_user_groups(db, user.id, type)
+    pairs = await groups_service.list_user_groups(
+        db, user.id, type, include_unapproved=include_unapproved
+    )
     return MyGroupsResponse(
         groups=[groups_service.to_my_group_item(g, role) for g, role in pairs]
     )
