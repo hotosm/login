@@ -11,6 +11,7 @@ import os
 # importing anything under ``app``.
 os.environ.setdefault("COOKIE_SECRET", "x" * 40)
 os.environ.setdefault("ADMIN_EMAILS", "admin@test.org")
+os.environ.setdefault("CORS_ORIGINS", "https://portal.hotosm.org")
 
 from collections.abc import AsyncGenerator  # noqa: E402
 from datetime import datetime, timezone  # noqa: E402

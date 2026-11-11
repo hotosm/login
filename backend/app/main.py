@@ -21,6 +21,7 @@ from app.api.routes import profile as profile_routes
 from app.api.routes import public as public_routes
 from app.api.routes import sso as sso_routes
 from app.api.routes import users as users_routes
+from app.core.config import settings
 from app.schemas.auth import UserInfoResponse
 
 
@@ -44,57 +45,7 @@ app = FastAPI(
 # CORS configuration - allow credentials for cookie-based auth
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost",
-        "http://127.0.0.1",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3040",
-        "http://127.0.0.1:3040",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        # Subdomain routing for development (HTTPS)
-        "https://portal.hotosm.test",
-        "https://login.hotosm.test",
-        "https://dronetm.hotosm.test",
-        "https://fair.hotosm.test",
-        "https://openaerialmap.hotosm.test",
-        "https://chatmap.hotosm.test",
-        "https://umap.hotosm.test",
-        "https://export-tool.hotosm.test",
-        # Production domains
-        "https://portal.hotosm.org",
-        "https://dev.portal.hotosm.org",
-        "https://dev.login.hotosm.org",
-        "https://login.hotosm.org",
-        "https://chatmap.hotosm.org",
-        "https://chatmap-dev.hotosm.org",
-        "https://dev.chatmap.hotosm.org",
-        "https://fair.hotosm.org",
-        "https://fair-dev.hotosm.org",
-        "https://ai.hotosm.org",
-        "https://stage.ai.hotosm.org",
-        "https://dev.ai.hotosm.org",
-        "https://umap.hotosm.org",
-        "https://umap-dev.hotosm.org",
-        "https://field.hotosm.org",
-        "https://fieldtm.hotosm.org",
-        "https://export.hotosm.org",
-        "https://upload.imagery.hotosm.org",
-        "https://upload.stage.imagery.hotosm.org",
-        "https://imagery.hotosm.org",
-        "https://stage.imagery.hotosm.org",
-        "https://dev.umap.hotosm.org",
-        # Test environments
-        "https://dronetm.testlogin.hotosm.org",
-        "https://fair.testlogin.hotosm.org",
-        "https://umap.testlogin.hotosm.org",
-        "https://export.testlogin.hotosm.org",
-        "https://fieldtm.testlogin.hotosm.org",
-        "https://drone.hotosm.org",
-        "https://drone-dev.hotosm.org",
-        "https://dev.drone.hotosm.org",
-    ],
+    allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -106,13 +57,19 @@ app.add_middleware(
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Add CORS headers to HTTP exceptions."""
+    # Only echo an origin the middleware would also accept. Reflecting any
+    # origin here made errors look CORS-clean to curl while the browser still
+    # blocked real responses, and handed credentialed CORS to any site.
+    headers: dict[str, str] = {}
+    origin = request.headers.get("origin")
+    if origin and origin in settings.cors_origin_list:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Vary"] = "Origin"
     return JSONResponse(
         status_code=exc.status_code,
         content={"code": exc.status_code, "message": exc.detail},
-        headers={
-            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
-            "Access-Control-Allow-Credentials": "true",
-        },
+        headers=headers,
     )
 
 

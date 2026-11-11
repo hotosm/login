@@ -1,5 +1,6 @@
 """Runtime configuration for the backend service."""
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -32,6 +33,24 @@ class Settings(BaseSettings):
     def admin_email_list(self) -> list[str]:
         """Parse admin_emails into a list of lowercase email addresses."""
         return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
+
+    # CORS: origins allowed to call this API with credentials (comma-separated).
+    # Required and with no default: each deployment lists its own origins.
+    cors_origins: str
+
+    @field_validator("cors_origins")
+    @classmethod
+    def _require_cors_origins(cls, value: str) -> str:
+        if not value.strip(" ,"):
+            raise ValueError("CORS_ORIGINS must list at least one origin")
+        return value
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        """Parse cors_origins into a list of origins."""
+        return [
+            o.strip().rstrip("/") for o in self.cors_origins.split(",") if o.strip()
+        ]
 
     # App URLs for admin proxy
     portal_backend_url: str = "http://portal-backend:8000"
