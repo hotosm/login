@@ -82,6 +82,9 @@ app.add_middleware(
         "https://export.hotosm.org",
         "https://upload.imagery.hotosm.org",
         "https://upload.stage.imagery.hotosm.org",
+        "https://imagery.hotosm.org",
+        "https://stage.imagery.hotosm.org",
+        "https://dev.umap.hotosm.org",
         # Test environments
         "https://dronetm.testlogin.hotosm.org",
         "https://fair.testlogin.hotosm.org",
