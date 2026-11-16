@@ -102,7 +102,7 @@ def _safe_redirect_url(redirect_url: str | None) -> str:
     except ValueError:
         return school_url
 
-    if target.hostname and target.hostname == school_host:
+    if target.scheme == "https" and target.hostname and target.hostname == school_host:
         if target.path.rstrip("/").lower() in DEAD_END_PATHS:
             return school_url
         return redirect_url
