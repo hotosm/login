@@ -116,13 +116,14 @@ type Period = 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
 // Fallback only: the real list comes from GET /admin/apps, which knows both
 // the apps with a backend of their own and the ones whose mappings login keeps
 // itself (LearnWorlds). Hardcoding it here is how this list fell behind.
-const FALLBACK_APPS = ['drone-tm', 'fair', 'umap', 'osm-export-tool', 'chatmap'];
+const FALLBACK_APPS = ['drone-tm', 'fair', 'umap', 'osm-export-tool', 'chatmap', 'tasking-manager'];
 const APP_COLORS: Record<string, string> = {
   'drone-tm': '#D73F3F',
   'fair': '#4A90A4',
   'umap': '#7CB342',
   'osm-export-tool': '#FF9800',
   'chatmap': '#9C27B0',
+  'tasking-manager': '#2C3038',
 };
 
 const PERIOD_LABELS: Record<Period, string> = {

@@ -19,6 +19,12 @@ const APP_DISPLAY_NAMES: Record<string, string> = {
   "tasking-manager": "Tasking Manager",
 };
 
+// Apps that connect OSM with their own OAuth client, because they need a token to
+// edit OSM. They skip the "did you have an account?" question: OSM is always
+// required, so one step explains why and sends the user to the app's own OSM
+// connect URL (`callback`).
+const OWN_OSM_CONNECT_APPS = new Set(["tasking-manager"]);
+
 function LoginPage() {
   const [searchParams] = useSearchParams();
   const { t, currentLanguage } = useLanguage();
@@ -53,6 +59,9 @@ function LoginPage() {
   const callback = validateReturnTo(searchParams.get("callback"));
   const osmRequired = searchParams.get("osm_required") === "true";
   const autoConnect = searchParams.get("auto_connect") === "true";
+  const ownOsmConnect =
+    isOnboarding && OWN_OSM_CONNECT_APPS.has(onboardingApp) && !!callback;
+  const osmReconnect = searchParams.get("osm_reconnect") === "true";
   const errorMessage = searchParams.get("error");
 
   // Apps that send no callback get it derived from return_to, as before.
@@ -210,8 +219,42 @@ function LoginPage() {
             />
           </div>
 
+          {/* Onboarding of apps with their own OSM connection */}
+          {ownOsmConnect && (
+            <div className="max-w-[360px] mx-auto flex flex-col items-center">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-semibold text-hot-gray-900 mb-2">
+                  {osmReconnect
+                    ? t("osmReconnectTitle")
+                    : `${t("welcomeTo")} ${appDisplayName}!`}
+                </h2>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 p-5 mb-6">
+                <p className="text-center text-hot-gray-900 font-bold mb-3">
+                  {osmReconnect ? t("osmReconnectText") : t("osmRequiredToMap")}
+                </p>
+                {!osmReconnect && (
+                  <p className="text-center text-sm text-hot-gray-600">
+                    {t("osmSameAccountKeepsHistory")}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = callback;
+                }}
+                className="btn-primary-hot"
+              >
+                {t("connectWithOsm")}
+              </button>
+            </div>
+          )}
+
           {/* Onboarding: Question step */}
-          {isOnboarding && onboardingStep === "question" && (
+          {isOnboarding && !ownOsmConnect && onboardingStep === "question" && (
             <div className="max-w-[360px] mx-auto flex flex-col items-center">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-semibold text-hot-gray-900 mb-2">
@@ -250,7 +293,7 @@ function LoginPage() {
           )}
 
           {/* Onboarding: OSM Connect step */}
-          {isOnboarding && onboardingStep === "osm_connect" && (
+          {isOnboarding && !ownOsmConnect && onboardingStep === "osm_connect" && (
             <div className="max-w-[400px] mx-auto">
               <div className="text-center mb-6">
                 <h2 className="text-lg font-semibold text-hot-gray-900 mb-2">
@@ -273,7 +316,7 @@ function LoginPage() {
           )}
 
           {/* Onboarding: Redirecting step */}
-          {isOnboarding && onboardingStep === "redirecting" && (
+          {isOnboarding && !ownOsmConnect && onboardingStep === "redirecting" && (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-hot-red-200 border-t-hot-red-600 mx-auto mb-4"></div>
               <p className="text-hot-gray-600">{t("settingUpAccount")}</p>

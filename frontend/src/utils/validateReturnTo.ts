@@ -4,6 +4,7 @@ export function validateReturnTo(url: string | null): string | null {
   if (!url) return null;
   try {
     const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return null;
     const isAllowed = ALLOWED_DOMAINS.some(
       (domain) => parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`)
     );

@@ -10,3 +10,4 @@ class AllowedApp(StrEnum):
     DRONE_TM = "drone-tm"
     OAM = "oam"
     PORTAL = "portal"
+    TASKING_MANAGER = "tasking-manager"

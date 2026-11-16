@@ -60,7 +60,7 @@ export function useGroupList(type: GroupType) {
   const refresh = useCallback(async () => {
     try {
       setLoadError(null);
-      const response = await request(`/groups?type=${type}`);
+      const response = await request(`/groups?type=${type}&include_unapproved=true`);
       if (!response) return;
       const data = await response.json();
       setGroups(data.groups || []);

@@ -1,13 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import '@hotosm/ui';
 import externalLinkIcon from '../assets/icons/box-arrow-up-right.svg';
-import hotLogo from '../assets/images/hot-logo.svg';
+import Header from '../components/Header';
 import SidebarNav, { type SidebarNavItem } from '../components/SidebarNav';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNotifications } from '../hooks/useNotifications';
 import { useMyInvitations } from '../hooks/useOrgs';
 import { useRoles } from '../hooks/useRoles';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 
 function AccountLayout() {
@@ -43,14 +41,8 @@ function AccountLayout() {
 
   return (
     <div className="min-h-screen bg-hot-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <img src={hotLogo} alt="HOT" className="h-10" />
-          <span className='flex items-center'>
-            <LanguageSwitcher />
-            <hotosm-tool-menu />
-          </span>
-        </div>
+      <header className="bg-white h-[68px] flex">
+        <Header />
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">

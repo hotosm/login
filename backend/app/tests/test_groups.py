@@ -54,10 +54,28 @@ async def test_list_my_groups_only_mine(client, auth):
 async def test_list_my_groups_type_filter(client):
     await _create_team(client, name="My Team")
     await client.post("/api/groups", json={"type": "organization", "name": "My Org"})
-    resp = await client.get("/api/groups", params={"type": "organization"})
+    resp = await client.get(
+        "/api/groups", params={"type": "organization", "include_unapproved": "true"}
+    )
     groups = resp.json()["groups"]
     assert len(groups) == 1
     assert groups[0]["type"] == "organization"
+
+
+async def test_list_my_groups_hides_unapproved_by_default(client):
+    await _create_team(client, name="My Team")
+    org = await client.post(
+        "/api/groups", json={"type": "organization", "name": "My Org"}
+    )
+    assert org.json()["status"] == "pending"
+
+    resp = await client.get("/api/groups")
+    groups = resp.json()["groups"]
+    assert [g["type"] for g in groups] == ["team"]
+
+    resp = await client.get("/api/groups", params={"include_unapproved": "true"})
+    types = sorted(g["type"] for g in resp.json()["groups"])
+    assert types == ["organization", "team"]
 
 
 async def test_non_member_gets_404(client, auth):
