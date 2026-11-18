@@ -97,6 +97,8 @@ async def _serialize_public_group_profile(
 # Not validated: an unknown locale simply gets the base content.
 Locale = Annotated[str | None, Query()]
 
+_MAX_PUBLIC_GROUP_IDS = 100
+
 
 @router.get("/org/{slug}", response_model=PublicGroupProfileResponse)
 async def public_organization(
@@ -123,18 +125,28 @@ async def public_groups(
     q: Annotated[str | None, Query()] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    ids: Annotated[list[str] | None, Query()] = None,
 ) -> PublicGroupListResponse:
     """Paginated list of public organizations and teams.
 
     Only ``is_public`` groups are listed; organizations are additionally
     required to be ``approved`` (an org with a staged name change shows its
-    current name). ``q`` matches the name case-insensitively. Ordered by
+    current name). ``q`` matches the name case-insensitively. ``ids``
+    (repeatable, at most 100) limits the list to those groups. Ordered by
     name, then id, so pages are stable.
 
-    Used by other HOT tools to search groups (e.g. a share dialog) and to
-    attribute items to them.
+    Used by other HOT tools to search groups (e.g. a share dialog), to
+    attribute items to them, and to resolve names of public groups by id
+    (e.g. for share grants).
     """
+    if ids and len(ids) > _MAX_PUBLIC_GROUP_IDS:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"At most {_MAX_PUBLIC_GROUP_IDS} ids are allowed",
+        )
     conditions = [Group.is_public.is_(True)]
+    if ids:
+        conditions.append(Group.id.in_(ids))
     if type == "organization":
         conditions += [Group.type == "organization", Group.status == "approved"]
     elif type == "team":
