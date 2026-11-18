@@ -10,6 +10,14 @@ from hotosm_permissions.context import (
     PermissionContext,
 )
 from hotosm_permissions.engine import GrantLike, SubjectType, can, effective_role
+from hotosm_permissions.login_client import (
+    LoginClient,
+    LoginGroup,
+    LoginUnavailable,
+    LoginUser,
+    PublicGroup,
+    PublicGroupPage,
+)
 from hotosm_permissions.roles import (
     DEFAULT_ROLE_DISPLAY,
     LOCALES,
@@ -59,6 +67,13 @@ __all__ = [
     "GrantLike",
     "effective_role",
     "can",
+    # Login client
+    "LoginClient",
+    "LoginGroup",
+    "LoginUser",
+    "PublicGroup",
+    "PublicGroupPage",
+    "LoginUnavailable",
     # REST contract
     "AccessOwner",
     "AccessAttribution",

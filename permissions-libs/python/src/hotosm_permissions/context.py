@@ -7,7 +7,10 @@ membership fails closed when Login can't be reached.
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from hotosm_permissions.login_client import LoginGroup
 
 GroupType = Literal["team", "organization"]
 GroupRole = Literal["owner", "manager", "member"]
@@ -56,6 +59,21 @@ class PermissionContext:
     ) -> "PermissionContext":
         """Context for a logged-in user with the groups Login returned."""
         return cls(user_id=user_id, memberships=tuple(memberships))
+
+    @classmethod
+    def from_login_groups(
+        cls, user_id: str, groups: Iterable["LoginGroup"]
+    ) -> "PermissionContext":
+        """Context for a logged-in user from `LoginClient.get_user_groups`."""
+        return cls.from_memberships(
+            user_id,
+            (
+                Membership(
+                    group_type=g.type, group_id=g.id, role=g.role, status=g.status
+                )
+                for g in groups
+            ),
+        )
 
     def _approved(
         self, group_type: str | None, group_id: str | None

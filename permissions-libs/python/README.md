@@ -5,7 +5,7 @@ roles, one rule to resolve a user's role on an item, and one REST contract for
 sharing. Each tool keeps its own grants table; this library only decides what
 those grants mean.
 
-No framework code and no calls to Login: the only dependency is `pydantic`.
+No framework code. Dependencies: `pydantic`, and `httpx` for the Login client.
 
 ## Roles
 
@@ -56,6 +56,39 @@ if can("chatmap:points.edit", map.owner_id, map.grants, ctx, CHATMAP_ROLES):
 so it works when Login is down); otherwise the highest grant that matches the
 user, an approved team/organization they belong to, or the link. Anything
 unknown fails closed.
+
+## Talking to Login
+
+`LoginClient` wraps the Login endpoints a tool needs:
+
+- `GET /api/groups`: the user's groups (`get_user_groups`), forwarding the
+  `hanko` cookie. Cached per user for `groups_ttl` seconds (60 by default);
+  concurrent misses for the same user share one request. A rejected session
+  (401/403) returns `[]` without caching it. Call `invalidate(user_id)` after
+  a membership change.
+- `GET /api/users/lookup?email=`: resolve an email to an account
+  (`lookup_user_by_email`). Not cached. Today Login returns Hanko's internal
+  user id here instead of `public_id` (known bug, tracked separately); the
+  client passes it through as is.
+- `GET /api/public/groups`: search public teams and organizations
+  (`list_public_groups`). No cookie, not cached.
+
+Every failure (unreachable Login, an error response, a malformed payload)
+raises `LoginUnavailable` and is never cached, so the tool can fail closed.
+Whether Login is enabled at all is the tool's decision.
+
+```python
+from hotosm_permissions import LoginClient, LoginUnavailable, PermissionContext
+
+login = LoginClient("https://login.hotosm.org")  # once, at startup
+
+# per request
+try:
+    groups = await login.get_user_groups(user.id, hanko_cookie)
+    ctx = PermissionContext.from_login_groups(user.id, groups)
+except LoginUnavailable:
+    ctx = PermissionContext.login_unavailable(user.id)
+```
 
 ## Adding a permission
 
