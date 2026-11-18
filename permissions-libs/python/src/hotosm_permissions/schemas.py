@@ -2,7 +2,8 @@
 
 Routes, relative to the item URL (e.g. `/api/plans/{plan_id}`):
 
-- `GET /access`: owner, attribution, grants and link state. Any viewer.
+- `GET /access`: owner, attribution, grants and link state. Owner only (the
+  `*.share` permission); a viewer or editor gets 403.
 - `PUT /access/link` (`LinkUpdate`): let anyone with the link access the item.
 - `DELETE /access/link`: remove link access.
 - `POST /access/user` (`UserGrantCreate`): share with a person, by email.

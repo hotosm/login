@@ -218,10 +218,6 @@ class LoginClient:
         Forwards the caller's `hanko` cookie. Returns None when Login reports
         no such account. Not cached.
 
-        Note: today Login returns Hanko's internal user id here
-        (`hanko_user_id`) instead of the account's `public_id`. That's a known
-        bug tracked separately; this client passes the id through as is.
-
         Raises:
             LoginUnavailable: Login couldn't be reached, answered with an error
                 (including a rejected session), or sent a malformed payload.

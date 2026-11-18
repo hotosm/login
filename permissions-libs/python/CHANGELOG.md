@@ -14,3 +14,8 @@
   `/api/users/lookup` and `/api/public/groups`, raising `LoginUnavailable` on
   any failure; `PermissionContext.from_login_groups`. New dependency:
   `httpx>=0.25.0`.
+
+### Changed
+
+- REST contract: `GET /access` is owner only (the `*.share` permission); a
+  non-owner gets 403.

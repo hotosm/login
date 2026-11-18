@@ -67,9 +67,7 @@ unknown fails closed.
   (401/403) returns `[]` without caching it. Call `invalidate(user_id)` after
   a membership change.
 - `GET /api/users/lookup?email=`: resolve an email to an account
-  (`lookup_user_by_email`). Not cached. Today Login returns Hanko's internal
-  user id here instead of `public_id` (known bug, tracked separately); the
-  client passes it through as is.
+  (`lookup_user_by_email`). Not cached.
 - `GET /api/public/groups`: search public teams and organizations
   (`list_public_groups`). No cookie, not cached.
 
@@ -115,6 +113,9 @@ in `schemas.py`. Every write returns `ItemAccess`, which includes
 | `PUT`            | `/access/{subject_type}/{subject_id}` | `GrantRoleUpdate`   |
 | `DELETE`         | `/access/{subject_type}/{subject_id}` |                     |
 | `PUT`            | `/attribution`                        | `AttributionUpdate` |
+
+`GET /access` is owner only (the `*.share` permission): viewers and editors
+must not see who else has access, so a non-owner gets 403.
 
 The schemas accept any grantable role; each tool must check it against its
 `ToolRoles` and reject the ones it doesn't enable.
