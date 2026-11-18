@@ -501,3 +501,22 @@ class PublicUserGroupsResponse(BaseModel):
     """Public organizations/teams a user owns."""
 
     items: list[PublicGroupResponse]
+
+
+class PublicGroupListItem(BaseModel):
+    """Minimal public group, for search and attribution in other tools."""
+
+    id: str
+    type: GroupType
+    slug: str
+    name: str
+    avatar_url: str | None = None
+
+
+class PublicGroupListResponse(BaseModel):
+    """Paginated list of public organizations and teams."""
+
+    items: list[PublicGroupListItem]
+    total: int
+    page: int
+    page_size: int

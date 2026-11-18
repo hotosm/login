@@ -7,12 +7,15 @@ exposed. Data lives here in login; portal fetches it by slug.
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
 from app.db.models import Group, GroupMembership, UserProfile
 from app.schemas.groups import (
+    GroupType,
+    PublicGroupListItem,
+    PublicGroupListResponse,
     PublicGroupProfileResponse,
     PublicGroupResponse,
     PublicUserGroupsResponse,
@@ -111,6 +114,66 @@ async def public_team(
     """Public profile of a public team."""
     group = await _public_group_by_slug(db, "team", slug, require_approved=False)
     return await _serialize_public_group_profile(db, group, locale)
+
+
+@router.get("/groups", response_model=PublicGroupListResponse)
+async def public_groups(
+    db: DB,
+    type: Annotated[GroupType | None, Query()] = None,
+    q: Annotated[str | None, Query()] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> PublicGroupListResponse:
+    """Paginated list of public organizations and teams.
+
+    Only ``is_public`` groups are listed; organizations are additionally
+    required to be ``approved`` (an org with a staged name change shows its
+    current name). ``q`` matches the name case-insensitively. Ordered by
+    name, then id, so pages are stable.
+
+    Used by other HOT tools to search groups (e.g. a share dialog) and to
+    attribute items to them.
+    """
+    conditions = [Group.is_public.is_(True)]
+    if type == "organization":
+        conditions += [Group.type == "organization", Group.status == "approved"]
+    elif type == "team":
+        conditions.append(Group.type == "team")
+    else:
+        conditions.append(or_(Group.type == "team", Group.status == "approved"))
+    if q:
+        escaped = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        conditions.append(Group.name.ilike(f"%{escaped}%", escape="\\"))
+
+    total_result = await db.execute(
+        select(func.count()).select_from(Group).where(*conditions)
+    )
+    total = int(total_result.scalar_one())
+
+    result = await db.execute(
+        select(Group)
+        .where(*conditions)
+        .order_by(func.lower(Group.name).asc(), Group.id.asc())
+        .limit(page_size)
+        .offset((page - 1) * page_size)
+    )
+    items = [
+        PublicGroupListItem(
+            id=group.id,
+            type=group.type,
+            slug=group.slug,
+            name=group.name,
+            avatar_url=(
+                groups_service.image_url(group.id, "avatar", group.avatar_key)
+                if group.avatar_key
+                else None
+            ),
+        )
+        for group in result.scalars().all()
+    ]
+    return PublicGroupListResponse(
+        items=items, total=total, page=page, page_size=page_size
+    )
 
 
 async def _public_profile_by_slug(db: AsyncSession, slug: str) -> UserProfile:
