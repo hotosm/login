@@ -118,6 +118,9 @@ in `schemas.py`. Every write returns `ItemAccess`, which includes
 `GET /access` is owner only (the `*.share` permission): viewers and editors
 must not see who else has access, so a non-owner gets 403.
 
+`POST /access/user` answers 404 when no account has that email and 409 when
+that person already owns the item.
+
 The schemas accept any grantable role; each tool must check it against its
 `ToolRoles` and reject the ones it doesn't enable.
 

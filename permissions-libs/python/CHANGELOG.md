@@ -19,6 +19,8 @@
 - REST contract: every `/access…` and `/attribution` route accepts
   `?locale=` (`en|es|fr|pt`, default `en`) for `available_roles`.
 - `LoginClient.list_public_groups(ids=...)` to resolve public groups by id.
+- REST contract: `POST /access/user` answers 404 when no account has that
+  email and 409 when that person already owns the item.
 
 ### Changed
 

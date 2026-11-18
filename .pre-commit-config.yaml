@@ -68,6 +68,8 @@ repos:
           - --exclude
           - auth-libs/web-component/src/translations.ts
           - --exclude
+          - permissions-libs/web-component/src/translations.ts
+          - --exclude
           - auth-libs/web-component/CHANGELOG.md
 
   # Lint: Bash scripts

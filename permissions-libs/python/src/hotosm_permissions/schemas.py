@@ -7,6 +7,8 @@ Routes, relative to the item URL (e.g. `/api/plans/{plan_id}`):
 - `PUT /access/link` (`LinkUpdate`): let anyone with the link access the item.
 - `DELETE /access/link`: remove link access.
 - `POST /access/user` (`UserGrantCreate`): share with a person, by email.
+  Answers 404 when no account has that email and 409 when that person
+  already owns the item.
 - `PUT /access/{subject_type}/{subject_id}` (`GrantRoleUpdate`): set the role
   of a user, team or organization.
 - `DELETE /access/{subject_type}/{subject_id}`: remove that access.
