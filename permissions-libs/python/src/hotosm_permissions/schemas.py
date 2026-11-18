@@ -18,6 +18,24 @@ Every write returns `ItemAccess`.
 The role fields accept any grantable role key. Each tool must validate the
 role against its `ToolRoles` (`role in tool_roles.grantable_roles`) and reject
 roles it does not enable. Which roles a link may carry is the tool's decision.
+
+Every `/access…` and `/attribution` route accepts `?locale=` (`en`, `es`,
+`fr` or `pt`; default `en`, anything unknown falls back to `en`) and passes it
+to `ToolRoles.role_options(locale)` to build `available_roles`.
+
+`ItemAccess` tells the dialog what the tool offers, so it needs no
+tool-specific config:
+
+- `link_roles`: the roles "anyone with the link" may get. `PUT /access/link`
+  must reject any other role. Empty means the tool has no link sharing.
+- `attribution_enabled`: whether the tool offers the "By" (attribute to an
+  organization). `PUT /attribution` must answer 400 when it is false.
+
+`PUT /access/{team|organization}/{id}` accepts any group the owner belongs to
+or any public group (public and approved, for organizations), not only the
+owner's groups. The tool resolves the group's name for the grant snapshot:
+the owner's groups from Login's `/api/groups`, others from
+`/api/public/groups?ids=`.
 """
 
 from typing import Literal
@@ -62,6 +80,10 @@ class ItemAccess(BaseModel):
     my_role: Role | None = None
     # The tool's roles, localized, so the dialog needs no tool-specific config.
     available_roles: list[RoleOption]
+    # Roles "anyone with the link" may get; empty = no link sharing.
+    link_roles: list[GrantableRole] = []
+    # Whether the tool offers the "By" (attribute to an organization).
+    attribution_enabled: bool = False
 
 
 class GrantRoleUpdate(BaseModel):

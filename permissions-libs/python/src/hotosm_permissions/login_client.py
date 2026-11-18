@@ -7,7 +7,7 @@ Endpoints used:
 - `GET /api/users/lookup?email=`: resolve an email to a Login account
   (forwards the `hanko` cookie). Not cached.
 - `GET /api/public/groups`: paginated search of public teams and
-  organizations (no cookie). Not cached.
+  organizations, optionally by id (no cookie). Not cached.
 
 Failures are never cached and raise `LoginUnavailable`, so callers can fail
 closed. The caller decides whether Login is enabled at all; this client
@@ -16,6 +16,7 @@ always calls it.
 
 import asyncio
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -245,20 +246,31 @@ class LoginClient:
         q: str | None = None,
         page: int = 1,
         page_size: int = 20,
+        ids: Sequence[str] | None = None,
     ) -> PublicGroupPage:
         """Search public teams and organizations via `GET /api/public/groups`.
 
-        Public endpoint, no cookie. Not cached.
+        `ids` limits the results to those groups (sent as repeated `ids`
+        params), e.g. to resolve names for share grants; an empty `ids`
+        returns an empty page without calling Login. Public endpoint, no
+        cookie. Not cached.
 
         Raises:
             LoginUnavailable: Login couldn't be reached, answered with an
                 error, or sent a malformed payload.
         """
-        params: dict[str, str | int] = {"page": page, "page_size": page_size}
+        if ids is not None and not ids:
+            return PublicGroupPage(items=[], total=0, page=page, page_size=page_size)
+        params: dict[str, str | int | list[str]] = {
+            "page": page,
+            "page_size": page_size,
+        }
         if type is not None:
             params["type"] = type
         if q is not None:
             params["q"] = q
+        if ids is not None:
+            params["ids"] = list(ids)
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.get(

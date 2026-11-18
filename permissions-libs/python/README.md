@@ -69,7 +69,8 @@ unknown fails closed.
 - `GET /api/users/lookup?email=`: resolve an email to an account
   (`lookup_user_by_email`). Not cached.
 - `GET /api/public/groups`: search public teams and organizations
-  (`list_public_groups`). No cookie, not cached.
+  (`list_public_groups`). No cookie, not cached. Pass `ids=` to resolve
+  public groups by id (e.g. names for share grants).
 
 Every failure (unreachable Login, an error response, a malformed payload)
 raises `LoginUnavailable` and is never cached, so the tool can fail closed.
@@ -119,6 +120,23 @@ must not see who else has access, so a non-owner gets 403.
 
 The schemas accept any grantable role; each tool must check it against its
 `ToolRoles` and reject the ones it doesn't enable.
+
+Every `/access…` and `/attribution` route accepts `?locale=` (`en`, `es`,
+`fr`, `pt`; default `en`, unknown values fall back to `en`) and passes it to
+`ToolRoles.role_options(locale)` to localize `available_roles`.
+
+`ItemAccess` also says what the tool offers, so the dialog needs no
+tool-specific config:
+
+- `link_roles`: roles "anyone with the link" may get. `PUT /access/link` must
+  reject any other role. Empty means the tool has no link sharing.
+- `attribution_enabled`: whether the tool offers the "By" (attribute to an
+  organization). `PUT /attribution` must answer 400 when it is false.
+
+`PUT /access/{team|organization}/{id}` accepts any group the owner belongs to
+or any public group (public and approved, for organizations), not only the
+owner's groups. The tool resolves the group's name for the grant snapshot:
+the owner's groups from `/api/groups`, others from `/api/public/groups?ids=`.
 
 ## Local development
 
