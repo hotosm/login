@@ -1,0 +1,44 @@
+name: Build dev images
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  backend:
+    uses: hotosm/gh-workflows/.github/workflows/image_build.yml@4.1.0
+    with:
+      context: backend
+      build_target: production
+      multi_arch: true
+      image_tags: |
+        ghcr.io/${{ github.repository }}-backend:latest
+        ghcr.io/${{ github.repository }}-backend:${{ github.sha }}
+
+  frontend:
+    uses: hotosm/gh-workflows/.github/workflows/image_build.yml@4.1.0
+    with:
+      context: frontend
+      build_target: production
+      multi_arch: true
+      extra_build_args: |
+        VITE_HANKO_URL=https://dev.login.hotosm.org
+        VITE_BACKEND_URL=https://dev.login.hotosm.org/api
+        VITE_PORTAL_URL=https://dev.portal.hotosm.org
+      image_tags: |
+        ghcr.io/${{ github.repository }}-frontend:latest
+        ghcr.io/${{ github.repository }}-frontend:${{ github.sha }}
+
+  osm-userinfo:
+    uses: hotosm/gh-workflows/.github/workflows/image_build.yml@4.1.0
+    with:
+      context: osm-userinfo
+      multi_arch: true
+      image_tags: |
+        ghcr.io/${{ github.repository }}-osm-userinfo:latest
+        ghcr.io/${{ github.repository }}-osm-userinfo:${{ github.sha }}
