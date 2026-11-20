@@ -14,8 +14,8 @@ The login service consists of four main components:
 - **Frontend**: React application for login UI and user management
 - **OSM-userinfo**: Go service for fetching OpenStreetMap user information
 
-All services are orchestrated with Docker Compose and deployed to EC2 with
-GitHub Actions.
+All services run with Docker Compose locally and are deployed to Kubernetes
+([hotosm/k8s-infra](https://github.com/hotosm/k8s-infra)).
 
 ## Quick Start (Local Development)
 
@@ -147,74 +147,16 @@ docker build -t test-osm-userinfo ./osm-userinfo
 
 ## Deployment
 
-### Automatic Deployment (GitHub Actions)
+Both environments run in Kubernetes, managed with ArgoCD in
+[hotosm/k8s-infra](https://github.com/hotosm/k8s-infra).
 
-The service deploys automatically to EC2:
-
-### Testing Environment
-
-- Branch: `develop`
-- Workflow: `.github/workflows/deploy-testing.yml`
-- Triggered by: Push to `develop` branch
-- Deploys to: EC2 testing server with `--profile dev`
-
-### Production Environment
-
-- Branch: `main`
-- Workflow: `.github/workflows/deploy-production.yml`
-- Triggered by: Push to `main` branch
-- Deploys to: EC2 production server with `--profile prod`
-
-### Deployment Flow
-
-1. Push to `develop` or `main` branch
-2. GitHub Actions builds Docker images:
-   - `ghcr.io/hotosm/login-backend:latest`
-   - `ghcr.io/hotosm/login-frontend:latest`
-   - `ghcr.io/hotosm/login-osm-userinfo:latest`
-3. Pushes images to GitHub Container Registry (ghcr.io)
-4. SSH to EC2 server
-5. Pulls latest changes and images
-6. Runs `docker compose --profile {dev|prod} up -d`
-
-### Required GitHub Secrets
-
-Configure these secrets in GitHub Settings → Environments:
-
-### Environment: Development
-
-- `EC2_HOST`: Hostname of testing EC2 server
-- `EC2_USER`: SSH user (usually `admin`)
-- `EC2_SSH_KEY`: Private SSH key for EC2 access
-- `POSTGRES_PASSWORD`: PostgreSQL password for Hanko database
-
-### Environment: Production
-
-- Same secrets but for production EC2 server
-
-### Manual Deployment
-
-If you need to deploy manually:
-
-```bash
-# SSH to EC2 server
-ssh admin@dev.login.hotosm.org  # or login.hotosm.org for prod
-
-# Navigate to repo
-cd /opt/login
-
-# Pull latest changes
-git pull origin develop  # or main for prod
-
-# Pull latest images
-docker compose pull
-
-# Restart services
-docker compose --profile dev up -d --force-recreate  # or --profile prod
-
-# Clean up old images
-docker image prune -af
-```
+| | Production | Dev |
+|---|---|---|
+| Domain | `login.hotosm.org` | `dev.login.hotosm.org` |
+| Branch | `main` | `develop` |
+| Workflow | `build-prod.yml` | `build-dev.yml` |
+| Image tags | release version | commit SHA |
+| Deploy | bump the chart in `apps/login.yaml` | update the image tags in `apps/staging/login` |
 
 ## Configuration
 
