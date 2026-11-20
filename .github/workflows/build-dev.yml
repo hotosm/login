@@ -5,60 +5,40 @@ on:
     branches:
       - develop
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository }}
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  deploy:
-    name: Build dev images
-    runs-on: ubuntu-latest
-    environment: Development
-    if: github.ref == 'refs/heads/develop'
+  backend:
+    uses: hotosm/gh-workflows/.github/workflows/image_build.yml@4.1.0
+    with:
+      context: backend
+      build_target: production
+      multi_arch: true
+      image_tags: |
+        ghcr.io/${{ github.repository }}-backend:latest
+        ghcr.io/${{ github.repository }}-backend:${{ github.sha }}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  frontend:
+    uses: hotosm/gh-workflows/.github/workflows/image_build.yml@4.1.0
+    with:
+      context: frontend
+      build_target: production
+      multi_arch: true
+      extra_build_args: |
+        VITE_HANKO_URL=https://dev.login.hotosm.org
+        VITE_BACKEND_URL=https://dev.login.hotosm.org/api
+        VITE_PORTAL_URL=https://dev.portal.hotosm.org
+      image_tags: |
+        ghcr.io/${{ github.repository }}-frontend:latest
+        ghcr.io/${{ github.repository }}-frontend:${{ github.sha }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push backend image
-        run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:latest \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ github.sha }} \
-            --target production \
-            --pull \
-            ./backend
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ github.sha }}
-
-      - name: Build and push frontend image
-        run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:latest \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }} \
-            --target production \
-            --build-arg VITE_HANKO_URL=https://dev.login.hotosm.org \
-            --build-arg VITE_BACKEND_URL=https://dev.login.hotosm.org/api \
-            --build-arg VITE_PORTAL_URL=https://dev.portal.hotosm.org \
-            --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
-            --no-cache \
-            --pull \
-            ./frontend
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }}
-
-      - name: Build and push osm-userinfo image
-        run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-osm-userinfo:latest \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-osm-userinfo:${{ github.sha }} \
-            ./osm-userinfo
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-osm-userinfo:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-osm-userinfo:${{ github.sha }}
+  osm-userinfo:
+    uses: hotosm/gh-workflows/.github/workflows/image_build.yml@4.1.0
+    with:
+      context: osm-userinfo
+      multi_arch: true
+      image_tags: |
+        ghcr.io/${{ github.repository }}-osm-userinfo:latest
+        ghcr.io/${{ github.repository }}-osm-userinfo:${{ github.sha }}
