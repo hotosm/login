@@ -206,6 +206,31 @@ function LoginPage() {
     }
   })();
 
+  // HOT account of the session, shown so the user knows which one they are connecting
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  useEffect(() => {
+    if (!ownOsmConnect) return;
+    fetch("/api/profile/me", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((profile) => setSessionEmail(profile?.email ?? null))
+      .catch(() => {});
+  }, [ownOsmConnect]);
+
+  // Log out of this HOT account and log in with another one, coming back to this
+  // same onboarding afterwards.
+  const useAnotherAccount = async () => {
+    try {
+      await fetch(`${import.meta.env.VITE_HANKO_URL || ""}/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // Even if the call fails, the login page lets them pick another account.
+    }
+    const login = new URLSearchParams({ return_to: window.location.href });
+    window.location.href = `${window.location.pathname}?${login}`;
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-hot-gray-50 p-4">
       <div className="w-full max-w-md">
@@ -250,6 +275,30 @@ function LoginPage() {
               >
                 {t("connectWithOsm")}
               </button>
+
+              {/* Ways out: back to the app without connecting, or switch HOT account */}
+              <div className="mt-5 flex flex-col items-center gap-2 text-sm text-hot-gray-600 text-center">
+                {returnTo && (
+                  <a href={returnTo} className="underline hover:text-hot-gray-900">
+                    {t("notNowBackTo")} {appDisplayName}
+                  </a>
+                )}
+                {sessionEmail && (
+                  <>
+                    <p>
+                      {t("loggedInAs")}{" "}
+                      <span className="font-semibold text-hot-gray-900">{sessionEmail}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={useAnotherAccount}
+                      className="underline hover:text-hot-gray-900"
+                    >
+                      {t("useAnotherAccount")}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           )}
 

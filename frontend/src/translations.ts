@@ -23,6 +23,9 @@ export interface Translations {
   osmReconnectTitle: string;
   osmReconnectText: string;
   connectWithOsm: string;
+  notNowBackTo: string;
+  loggedInAs: string;
+  useAnotherAccount: string;
   accessAllTools: string;
 
   // ProfilePage
@@ -391,6 +394,9 @@ export const translations: Record<string, Translations> = {
     osmReconnectText:
       'The authorization of your OpenStreetMap account is no longer valid. Connect it again to keep mapping.',
     connectWithOsm: 'Connect with OpenStreetMap',
+    notNowBackTo: 'Not now, go back to',
+    loggedInAs: 'Logged in as',
+    useAnotherAccount: 'Use another account',
     accessAllTools: 'Access all HOT tools and services',
     myProfile: 'My Profile',
     back: 'Back',
@@ -741,6 +747,9 @@ export const translations: Record<string, Translations> = {
     osmReconnectText:
       'La autorización de tu cuenta de OpenStreetMap ya no es válida. Conéctala de nuevo para seguir mapeando.',
     connectWithOsm: 'Conectar con OpenStreetMap',
+    notNowBackTo: 'Ahora no, volver a',
+    loggedInAs: 'Sesión iniciada como',
+    useAnotherAccount: 'Usar otra cuenta',
     accessAllTools: 'Accede a todas las herramientas y servicios de HOT',
     myProfile: 'Mi Perfil',
     back: 'Volver',
@@ -1095,6 +1104,9 @@ export const translations: Record<string, Translations> = {
     osmReconnectText:
       "L'autorisation de votre compte OpenStreetMap n'est plus valide. Connectez-le à nouveau pour continuer à cartographier.",
     connectWithOsm: 'Se connecter avec OpenStreetMap',
+    notNowBackTo: 'Pas maintenant, revenir à',
+    loggedInAs: 'Connecté en tant que',
+    useAnotherAccount: 'Utiliser un autre compte',
     accessAllTools: 'Accédez à tous les outils et services HOT',
     myProfile: 'Mon Profil',
     back: 'Retour',
@@ -1453,6 +1465,9 @@ export const translations: Record<string, Translations> = {
     osmReconnectText:
       'A autorização da sua conta do OpenStreetMap não é mais válida. Conecte-a novamente para continuar mapeando.',
     connectWithOsm: 'Conectar com o OpenStreetMap',
+    notNowBackTo: 'Agora não, voltar para',
+    loggedInAs: 'Sessão iniciada como',
+    useAnotherAccount: 'Usar outra conta',
     accessAllTools: 'Acesse todas as ferramentas e serviços HOT',
     myProfile: 'Meu Perfil',
     back: 'Voltar',
