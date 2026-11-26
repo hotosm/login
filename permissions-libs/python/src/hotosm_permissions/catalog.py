@@ -1,4 +1,7 @@
-"""Permission catalog: which permissions each tool has and which role gets them.
+"""Permission catalog: which permissions a tool has and which role gets them.
+
+Each tool defines its own `ToolCatalog` and passes it to `ToolRoles`; this
+library holds no tool's catalog.
 
 Permission keys are strings `tool:resource.action` (e.g. `portal:plans.edit`).
 Roles are cumulative: a role gets its own permissions plus those of every
@@ -51,74 +54,3 @@ class ToolCatalog:
             if ROLE_RANK[granted_role] <= ROLE_RANK[role]
             for key in keys
         )
-
-
-PORTAL = ToolCatalog(
-    tool="portal",
-    available_roles=("viewer", "editor", "owner"),
-    permissions=(
-        Permission("portal:plans.view", "View a plan"),
-        Permission("portal:plans.edit", "Edit a plan and its projects"),
-        Permission("portal:plans.share", "Share a plan with others"),
-        Permission("portal:plans.attribute", "Attribute a plan to an organization"),
-        Permission("portal:plans.delete", "Delete a plan"),
-    ),
-    role_permissions={
-        "viewer": ("portal:plans.view",),
-        "editor": ("portal:plans.edit",),
-        "owner": (
-            "portal:plans.share",
-            "portal:plans.attribute",
-            "portal:plans.delete",
-        ),
-    },
-)
-
-CHATMAP = ToolCatalog(
-    tool="chatmap",
-    available_roles=("viewer", "contributor", "editor", "owner"),
-    permissions=(
-        Permission("chatmap:maps.view", "View a map"),
-        Permission("chatmap:tags.add", "Add tags to points"),
-        Permission("chatmap:points.edit", "Edit points"),
-        Permission("chatmap:maps.share", "Share a map with others"),
-        Permission("chatmap:maps.delete", "Delete a map"),
-    ),
-    role_permissions={
-        "viewer": ("chatmap:maps.view",),
-        "contributor": ("chatmap:tags.add",),
-        "editor": ("chatmap:points.edit",),
-        "owner": ("chatmap:maps.share", "chatmap:maps.delete"),
-    },
-)
-
-# `oam:imagery.moderate` is for platform admins only and is not modeled here:
-# platform roles are out of scope for item-level permissions for now.
-OAM = ToolCatalog(
-    tool="oam",
-    available_roles=("viewer", "owner"),
-    permissions=(
-        Permission("oam:imagery.view", "View imagery"),
-        Permission("oam:imagery.attribute", "Attribute imagery to an organization"),
-        Permission("oam:imagery.delete", "Delete imagery"),
-    ),
-    role_permissions={
-        "viewer": ("oam:imagery.view",),
-        "owner": ("oam:imagery.attribute", "oam:imagery.delete"),
-    },
-)
-
-CATALOGS: dict[str, ToolCatalog] = {c.tool: c for c in (PORTAL, CHATMAP, OAM)}
-
-
-def get_catalog(tool: str) -> ToolCatalog:
-    """Return the catalog of a tool.
-
-    Raises:
-        ValueError: If the tool has no catalog.
-    """
-    try:
-        return CATALOGS[tool]
-    except KeyError:
-        known = ", ".join(sorted(CATALOGS))
-        raise ValueError(f"Unknown tool {tool!r}; known tools: {known}") from None

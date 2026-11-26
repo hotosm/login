@@ -24,9 +24,6 @@ export interface Translations {
   linkLabel: string;
   linkNone: string;
   linkWarning: string;
-  attributionLabel: string;
-  attributionPersonal: string;
-  attributionHelp: string;
   copyLink: string;
   linkCopied: string;
   linkCopyError: string;
@@ -60,10 +57,6 @@ export const translations: Record<string, Translations> = {
     linkLabel: "Anyone with the link",
     linkNone: "No access",
     linkWarning: "Anyone with the link can see it.",
-    attributionLabel: "By",
-    attributionPersonal: "{name} (personal)",
-    attributionHelp:
-      "Shows it on behalf of an organization. It doesn't give the organization access.",
     copyLink: "Copy link",
     linkCopied: "Link copied",
     linkCopyError: "Couldn't copy the link",
@@ -95,10 +88,6 @@ export const translations: Record<string, Translations> = {
     linkLabel: "Cualquiera con el enlace",
     linkNone: "Sin acceso",
     linkWarning: "Cualquiera con el enlace puede verlo.",
-    attributionLabel: "Por",
-    attributionPersonal: "{name} (personal)",
-    attributionHelp:
-      "Lo muestra a nombre de una organización. No le da acceso a la organización.",
     copyLink: "Copiar enlace",
     linkCopied: "Enlace copiado",
     linkCopyError: "No se pudo copiar el enlace",
@@ -130,10 +119,6 @@ export const translations: Record<string, Translations> = {
     linkLabel: "Toute personne disposant du lien",
     linkNone: "Aucun accès",
     linkWarning: "Toute personne disposant du lien peut le voir.",
-    attributionLabel: "Par",
-    attributionPersonal: "{name} (personnel)",
-    attributionHelp:
-      "L'affiche au nom d'une organisation. Cela ne donne pas accès à l'organisation.",
     copyLink: "Copier le lien",
     linkCopied: "Lien copié",
     linkCopyError: "Impossible de copier le lien",
@@ -165,10 +150,6 @@ export const translations: Record<string, Translations> = {
     linkLabel: "Qualquer pessoa com o link",
     linkNone: "Sem acesso",
     linkWarning: "Qualquer pessoa com o link pode vê-lo.",
-    attributionLabel: "Por",
-    attributionPersonal: "{name} (pessoal)",
-    attributionHelp:
-      "Mostra em nome de uma organização. Não dá acesso à organização.",
     copyLink: "Copiar link",
     linkCopied: "Link copiado",
     linkCopyError: "Não foi possível copiar o link",

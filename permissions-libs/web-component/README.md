@@ -3,8 +3,8 @@
 Lit-based share dialog for HOT tools. It talks to the tool's
 [hotosm-permissions REST contract](../python/README.md#rest-contract) and to
 Login for group search, so every tool gets the same dialog with no
-tool-specific config: the roles, link sharing and the "By" all come from the
-tool's `ItemAccess`.
+tool-specific config: the roles and link sharing come from the tool's
+`ItemAccess`.
 
 ## Installation
 
@@ -21,7 +21,7 @@ but **your tool loads Web Awesome's base CSS and theme**, e.g.
 
 | Attribute    | Type    | Default | Description                                                                 |
 | ------------ | ------- | ------- | --------------------------------------------------------------------------- |
-| `access-url` | string  | `""`    | The item's base URL; the dialog adds `/access…` and `/attribution`           |
+| `access-url` | string  | `""`    | The item's base URL; the dialog adds `/access…`                             |
 | `login-url`  | string  | `""`    | Login's URL, for `/api/groups` and `/api/public/groups`                       |
 | `share-url`  | string  | `""`    | The item's URL, for "Copy link"                                             |
 | `lang`       | string  | `en`    | `en`, `es`, `fr` or `pt`; sent as `?locale=` on every request to the tool    |
@@ -45,7 +45,7 @@ The routes in the [REST contract](../python/README.md#rest-contract), under
   message, so open it only for the item's owner.
 - `PUT|DELETE /access/link`, `POST /access/user` (404: no account with that
   email; 409: that person already owns the item),
-  `PUT|DELETE /access/{subject_type}/{subject_id}` and `PUT /attribution`.
+  and `PUT|DELETE /access/{subject_type}/{subject_id}`.
 
 Login must allow the tool's origin in CORS, with credentials, for
 `/api/groups`.

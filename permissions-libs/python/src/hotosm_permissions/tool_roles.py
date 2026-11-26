@@ -1,11 +1,11 @@
 """Which roles a tool enables and how they are shown to its users."""
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from typing import Literal, cast
 
 from pydantic import BaseModel
 
-from hotosm_permissions.catalog import ToolCatalog, get_catalog
+from hotosm_permissions.catalog import ToolCatalog
 from hotosm_permissions.roles import (
     DEFAULT_ROLE_DISPLAY,
     ROLES,
@@ -26,52 +26,65 @@ class RoleOption(BaseModel):
 class ToolRoles:
     """The roles one tool enables, with their display texts.
 
-    Example:
-        ChatMap enables `contributor` and renames it::
+    The enabled roles are the catalog's `available_roles`.
 
+    Example:
+        ChatMap defines its catalog and renames `contributor`::
+
+            chatmap_catalog = ToolCatalog(
+                tool="chatmap",
+                available_roles=("viewer", "contributor", "editor", "owner"),
+                permissions=(
+                    Permission("chatmap:maps.view", "View a map"),
+                    Permission("chatmap:tags.edit", "Edit tags on points"),
+                    Permission("chatmap:points.edit", "Edit points"),
+                    Permission("chatmap:maps.share", "Share a map with others"),
+                    Permission("chatmap:maps.delete", "Delete a map"),
+                ),
+                role_permissions={
+                    "viewer": ("chatmap:maps.view",),
+                    "contributor": ("chatmap:tags.edit",),
+                    "editor": ("chatmap:points.edit",),
+                    "owner": ("chatmap:maps.share", "chatmap:maps.delete"),
+                },
+            )
             chatmap_roles = ToolRoles(
-                "chatmap",
-                roles=["viewer", "contributor", "editor", "owner"],
+                chatmap_catalog,
                 display={
                     "contributor": RoleDisplay(
-                        label={"en": "Add tags"},
+                        label={"en": "Edit tags"},
                         description={
-                            "en": "Can add tags to points, but not edit them",
+                            "en": "Can edit tags on points, but not the points",
                         },
                     ),
                 },
             )
-            chatmap_roles.has_permission("contributor", "chatmap:tags.add")  # True
+            chatmap_roles.has_permission("contributor", "chatmap:tags.edit")  # True
             chatmap_roles.has_permission("contributor", "chatmap:points.edit")  # False
     """
 
     def __init__(
         self,
-        tool: str,
-        roles: Iterable[Role],
+        catalog: ToolCatalog,
         display: Mapping[Role, RoleDisplay] | None = None,
     ) -> None:
         """Validate and store the tool's roles.
 
         Raises:
-            ValueError: If the tool is unknown, a role is not available for
-                the tool, `owner` is not enabled, or `display` overrides a
-                role that is not enabled.
+            ValueError: If `owner` is not available in the catalog, or
+                `display` overrides a role that is not enabled.
         """
-        self.catalog: ToolCatalog = get_catalog(tool)
-        self.tool = tool
-        enabled = set(roles)
-        unavailable = enabled - set(self.catalog.available_roles)
-        if unavailable:
-            raise ValueError(f"Roles not available in {tool!r}: {sorted(unavailable)}")
+        self.catalog: ToolCatalog = catalog
+        self.tool = catalog.tool
+        enabled = set(catalog.available_roles)
         if "owner" not in enabled:
-            raise ValueError(f"{tool!r} must enable the 'owner' role")
+            raise ValueError(f"{self.tool!r} must enable the 'owner' role")
         self.roles: tuple[Role, ...] = tuple(r for r in ROLES if r in enabled)
         self._display: dict[Role, RoleDisplay] = dict(display or {})
         not_enabled = set(self._display) - enabled
         if not_enabled:
             raise ValueError(
-                f"Display overrides for roles not enabled in {tool!r}: "
+                f"Display overrides for roles not enabled in {self.tool!r}: "
                 f"{sorted(not_enabled)}"
             )
 
@@ -85,6 +98,16 @@ class ToolRoles:
         if role not in self.roles:
             return False
         return permission in self.catalog.permissions_for(cast(Role, role))
+
+    def permissions_for(self, role: str) -> list[str]:
+        """Sorted permission keys of an enabled role; [] for anything unknown.
+
+        Tools return it as `my_permissions` so their frontend checks
+        permission keys, not roles.
+        """
+        if role not in self.roles:
+            return []
+        return sorted(self.catalog.permissions_for(cast(Role, role)))
 
     def role_options(self, locale: str = "en") -> list[RoleOption]:
         """The enabled roles in rank order, localized for the share dialog.

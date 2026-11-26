@@ -136,12 +136,6 @@ export const styles = css`
     flex: 1;
   }
 
-  .attribution {
-    display: flex;
-    flex-direction: column;
-    gap: var(--wa-space-xs);
-  }
-
   .footer {
     display: flex;
     justify-content: space-between;

@@ -1,7 +1,7 @@
 /**
  * <hotosm-share-dialog>: the one share dialog for HOT tools. Talks to the
- * tool's hotosm-permissions REST contract (`{access-url}/access…`,
- * `{access-url}/attribution`) and to Login for group search.
+ * tool's hotosm-permissions REST contract (`{access-url}/access…`) and to
+ * Login for group search.
  *
  * Every change is applied immediately; each response replaces the local
  * `ItemAccess` and is announced with `hotosm-access-change`.
@@ -20,8 +20,6 @@ import "@awesome.me/webawesome/dist/components/divider/divider.js";
 import "@awesome.me/webawesome/dist/components/dropdown/dropdown.js";
 import "@awesome.me/webawesome/dist/components/dropdown-item/dropdown-item.js";
 import "@awesome.me/webawesome/dist/components/input/input.js";
-import "@awesome.me/webawesome/dist/components/option/option.js";
-import "@awesome.me/webawesome/dist/components/select/select.js";
 
 import {
   AccessError,
@@ -56,10 +54,6 @@ export type {
 } from "./api";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Org roles that may attribute an item to the org.
-const ORG_MANAGER_ROLES = new Set(["owner", "manager"]);
-// The "By" select's value for "no organization": the owner, personally.
-const PERSONAL = "__personal__";
 const SEARCH_DEBOUNCE_MS = 250;
 const SEARCH_MIN_CHARS = 2;
 const COPY_FEEDBACK_MS = 2000;
@@ -313,15 +307,6 @@ export class HotosmShareDialog extends LitElement {
     }
   }
 
-  private onAttributionChange(event: Event) {
-    const value = (event.target as HTMLSelectElement).value;
-    const current = this.access?.attribution?.id ?? PERSONAL;
-    if (value === current) return;
-    this.write("/attribution", "PUT", {
-      organization_id: value === PERSONAL ? null : value,
-    });
-  }
-
   private async copyLink() {
     if (this.copyTimer) clearTimeout(this.copyTimer);
     try {
@@ -521,41 +506,6 @@ export class HotosmShareDialog extends LitElement {
         : nothing}`;
   }
 
-  private renderAttribution(access: ItemAccess) {
-    if (!access.attribution_enabled) return nothing;
-    const t = this.t;
-    const attribution = access.attribution;
-    // The owner personally, or an organization the caller owns or manages.
-    // A current attribution outside that list (the owner stopped managing
-    // it) is still shown so it doesn't change silently.
-    const orgs = this.myGroups.filter(
-      (g) => g.type === "organization" && ORG_MANAGER_ROLES.has(g.role),
-    );
-    const showCurrent =
-      attribution !== null && !orgs.some((g) => g.id === attribution.id);
-    return html`<div class="attribution">
-      <wa-select
-        label=${t.attributionLabel}
-        size="small"
-        .value=${live(attribution?.id ?? PERSONAL)}
-        @change=${this.onAttributionChange}
-      >
-        <wa-option value=${PERSONAL}>
-          ${format(t.attributionPersonal, {
-            name: access.owner.name ?? t.unknownName,
-          })}
-        </wa-option>
-        ${showCurrent
-          ? html`<wa-option value=${attribution!.id}>
-              ${attribution!.name ?? t.unknownName}
-            </wa-option>`
-          : nothing}
-        ${orgs.map((g) => html`<wa-option value=${g.id}>${g.name}</wa-option>`)}
-      </wa-select>
-      <p class="quiet">${t.attributionHelp}</p>
-    </div>`;
-  }
-
   private renderBody() {
     const t = this.t;
     if (this.status === "forbidden") return html`<p>${t.cannotShare}</p>`;
@@ -569,7 +519,7 @@ export class HotosmShareDialog extends LitElement {
         ? html`<wa-callout variant="danger">${this.error}</wa-callout>`
         : nothing}
       ${this.renderSearch()} ${this.renderAccessList(access)}
-      ${this.renderLink(access)} ${this.renderAttribution(access)}
+      ${this.renderLink(access)}
     `;
   }
 

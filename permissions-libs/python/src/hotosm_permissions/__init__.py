@@ -2,7 +2,7 @@
 
 __version__ = "0.1.0.dev0"
 
-from hotosm_permissions.catalog import Permission, ToolCatalog, get_catalog
+from hotosm_permissions.catalog import Permission, ToolCatalog
 from hotosm_permissions.context import (
     GroupRole,
     GroupType,
@@ -28,10 +28,8 @@ from hotosm_permissions.roles import (
     RoleDisplay,
 )
 from hotosm_permissions.schemas import (
-    AccessAttribution,
     AccessGrant,
     AccessOwner,
-    AttributionUpdate,
     GrantRoleUpdate,
     ItemAccess,
     LinkUpdate,
@@ -53,7 +51,6 @@ __all__ = [
     # Catalog
     "Permission",
     "ToolCatalog",
-    "get_catalog",
     # Tool roles
     "ToolRoles",
     "RoleOption",
@@ -76,11 +73,9 @@ __all__ = [
     "LoginUnavailable",
     # REST contract
     "AccessOwner",
-    "AccessAttribution",
     "AccessGrant",
     "ItemAccess",
     "GrantRoleUpdate",
     "UserGrantCreate",
     "LinkUpdate",
-    "AttributionUpdate",
 ]

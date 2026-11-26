@@ -24,13 +24,11 @@ export interface AccessGrant {
 
 export interface ItemAccess {
   owner: { id: string; name: string | null };
-  attribution: { id: string; name: string | null } | null;
   grants: AccessGrant[];
   link_role: GrantableRole | null;
   my_role: Role | null;
   available_roles: RoleOption[];
   link_roles: GrantableRole[];
-  attribution_enabled: boolean;
 }
 
 /** A group the caller belongs to (Login `GET /api/groups`). */
@@ -53,7 +51,7 @@ export interface PublicGroup {
   avatar_url: string | null;
 }
 
-/** A non-2xx answer from the tool's `/access…` or `/attribution` routes. */
+/** A non-2xx answer from the tool's `/access…` routes. */
 export class AccessError extends Error {
   constructor(public status: number) {
     super(`[${status}] Access request failed`);

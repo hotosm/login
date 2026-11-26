@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 GroupType = Literal["team", "organization"]
 GroupRole = Literal["owner", "manager", "member"]
 
-# Organization roles that may attribute an item to the organization.
+# Organization roles that count as managers (owner or manager).
 ORG_MANAGER_ROLES: frozenset[str] = frozenset({"owner", "manager"})
 
 

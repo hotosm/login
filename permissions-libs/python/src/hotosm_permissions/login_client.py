@@ -10,8 +10,7 @@ Endpoints used:
   organizations, optionally by id (no cookie). Not cached.
 
 Failures are never cached and raise `LoginUnavailable`, so callers can fail
-closed. The caller decides whether Login is enabled at all; this client
-always calls it.
+closed.
 """
 
 import asyncio
