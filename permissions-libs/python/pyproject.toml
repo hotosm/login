@@ -5,10 +5,10 @@ build-backend = "hatchling.build"
 [project]
 name = "hotosm-permissions"
 version = "0.1.0.dev0"
-description = "HOTOSM shared permissions: catalog, roles and access rules for HOT tools"
+description = "HOTOSM shared permissions: roles and access rules for HOT tools"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "AGPL-3.0" }
+license = { text = "AGPL-3.0-only" }
 authors = [
     { name = "HOTOSM", email = "tech@hotosm.org" },
 ]
@@ -16,7 +16,7 @@ keywords = ["hotosm", "permissions", "roles", "sharing", "access"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

@@ -29,7 +29,7 @@
     "webawesome"
   ],
   "author": "HOTOSM <tech@hotosm.org>",
-  "license": "AGPL-3.0",
+  "license": "AGPL-3.0-only",
   "homepage": "https://github.com/hotosm/login/tree/main/permissions-libs/web-component",
   "repository": {
     "type": "git",
