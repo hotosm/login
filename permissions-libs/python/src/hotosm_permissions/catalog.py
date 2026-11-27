@@ -10,7 +10,7 @@ lower-ranked role available in the tool.
 
 from dataclasses import dataclass
 
-from hotosm_permissions.roles import ROLE_RANK, Role
+from hotosm_permissions.roles import ROLE_RANK, ROLES, Role
 
 
 @dataclass(frozen=True)
@@ -32,7 +32,10 @@ class ToolCatalog:
     role_permissions: dict[Role, tuple[str, ...]]
 
     def __post_init__(self) -> None:
-        """Check that keys belong to this tool and roles are available."""
+        """Check roles are known, keys belong to the tool and roles are available."""
+        unknown_roles = [r for r in self.available_roles if r not in ROLES]
+        if unknown_roles:
+            raise ValueError(f"Unknown roles in {self.tool!r}: {unknown_roles}")
         keys = {p.key for p in self.permissions}
         for key in keys:
             if not key.startswith(f"{self.tool}:"):

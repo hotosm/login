@@ -45,16 +45,8 @@ class TestToolCatalogValidation:
                 role_permissions={"viewer": ("demo:items.missing",)},
             )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "ToolCatalog does not validate role keys: an unknown role like "
-            "'admin' passes __post_init__ and permissions_for later raises "
-            "KeyError on ROLE_RANK"
-        ),
-    )
     def test_rejects_invalid_role_key(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Unknown roles in 'demo': \['admin'\]"):
             ToolCatalog(
                 tool="demo",
                 available_roles=("viewer", "admin", "owner"),  # type: ignore[arg-type]
