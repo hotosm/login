@@ -24,17 +24,18 @@ but **your tool loads Web Awesome's base CSS and theme**, e.g.
 | `access-url` | string  | `""`    | The item's base URL; the dialog adds `/access…`                             |
 | `login-url`  | string  | `""`    | Login's URL, for `/api/groups` and `/api/public/groups`                       |
 | `share-url`  | string  | `""`    | The item's URL, for "Copy link"                                             |
-| `lang`       | string  | `en`    | `en`, `es`, `fr` or `pt`; sent as `?locale=` on every request to the tool    |
+| `lang`       | string  | `en`    | `en`, `es`, `fr` or `pt`; sent as `?locale=` on every `/access…` request except `PUT /access/owner` |
 | `open`       | boolean | `false` | Shows the dialog; loads the access state each time it opens                  |
 
 ## Events
 
-Both bubble and are composed.
+All bubble and are composed.
 
 | Event                  | `detail`     | When                                     |
 | ---------------------- | ------------ | ---------------------------------------- |
 | `hotosm-access-change` | `ItemAccess` | After every successful change            |
 | `hotosm-share-close`   |              | The dialog closed (`open` is now `false`) |
+| `hotosm-owner-change`  | `{ ownerId }` | Ownership was transferred; the dialog then closes (so `hotosm-share-close` follows) |
 
 ## What the tool's backend must implement
 
@@ -46,6 +47,10 @@ The routes in the [REST contract](../python/README.md#rest-contract), under
 - `PUT|DELETE /access/link`, `POST /access/user` (404: no account with that
   email; 409: that person already owns the item),
   and `PUT|DELETE /access/{subject_type}/{subject_id}`.
+- `PUT /access/owner` (204; 404: that person no longer has a `user` grant),
+  only if `ItemAccess.owner_transfer_enabled` is true. The dialog then offers
+  "Make owner" in the role menu of `user` grants, asks for confirmation, and
+  closes on success: reload the item, since the caller is now an editor.
 
 Login must allow the tool's origin in CORS, with credentials, for
 `/api/groups`.

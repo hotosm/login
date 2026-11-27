@@ -33,6 +33,7 @@ from hotosm_permissions.schemas import (
     GrantRoleUpdate,
     ItemAccess,
     LinkUpdate,
+    OwnerTransfer,
     UserGrantCreate,
 )
 from hotosm_permissions.tool_roles import RoleOption, ToolRoles
@@ -78,4 +79,5 @@ __all__ = [
     "GrantRoleUpdate",
     "UserGrantCreate",
     "LinkUpdate",
+    "OwnerTransfer",
 ]

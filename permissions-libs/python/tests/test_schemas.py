@@ -9,6 +9,7 @@ from hotosm_permissions import (
     GrantRoleUpdate,
     ItemAccess,
     LinkUpdate,
+    OwnerTransfer,
     UserGrantCreate,
 )
 
@@ -24,6 +25,7 @@ class TestItemAccess:
         assert access.link_role is None
         assert access.my_role is None
         assert access.link_roles == []
+        assert access.owner_transfer_enabled is False
         assert [r.key for r in access.available_roles] == list(tool_roles.roles)
 
     def test_link_roles_default_not_shared(self, tool_roles):
@@ -146,3 +148,12 @@ class TestLinkUpdate:
     def test_rejects_owner_and_unknown(self, role):
         with pytest.raises(ValidationError):
             LinkUpdate(role=role)
+
+
+class TestOwnerTransfer:
+    def test_accepts_user_id(self):
+        assert OwnerTransfer(user_id="u2").user_id == "u2"
+
+    def test_user_id_required(self):
+        with pytest.raises(ValidationError):
+            OwnerTransfer()

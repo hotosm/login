@@ -136,6 +136,12 @@ export const styles = css`
     flex: 1;
   }
 
+  .confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--wa-space-s);
+  }
+
   .footer {
     display: flex;
     justify-content: space-between;

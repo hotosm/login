@@ -29,6 +29,7 @@ export interface ItemAccess {
   my_role: Role | null;
   available_roles: RoleOption[];
   link_roles: GrantableRole[];
+  owner_transfer_enabled: boolean;
 }
 
 /** A group the caller belongs to (Login `GET /api/groups`). */
@@ -85,6 +86,24 @@ export async function accessRequest(
   });
   if (!response.ok) throw new AccessError(response.status);
   return response.json();
+}
+
+/**
+ * Make `userId` (who already has a `user` grant) the item's owner:
+ * `PUT {accessUrl}/access/owner`. Answers 204: no body, nothing to localize.
+ */
+export async function transferOwner(
+  accessUrl: string,
+  userId: string,
+): Promise<void> {
+  const url = `${trimSlash(accessUrl)}/access/owner`;
+  const response = await fetch(url, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  if (!response.ok) throw new AccessError(response.status);
 }
 
 /** The caller's groups from Login; [] if Login fails. */

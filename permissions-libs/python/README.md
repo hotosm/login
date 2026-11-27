@@ -120,7 +120,7 @@ lowest role that should get it. Nothing changes in this library.
 ## REST contract
 
 Every tool exposes the same routes, relative to the item URL, using the models
-in `schemas.py`. Every write returns `ItemAccess`, which includes
+in `schemas.py`. Every write except `PUT /access/owner` returns `ItemAccess`, which includes
 `available_roles` so the share dialog can render the tool's roles.
 
 | Method           | Path                                  | Body                |
@@ -131,12 +131,22 @@ in `schemas.py`. Every write returns `ItemAccess`, which includes
 | `POST`           | `/access/user`                        | `UserGrantCreate`   |
 | `PUT`            | `/access/{subject_type}/{subject_id}` | `GrantRoleUpdate`   |
 | `DELETE`         | `/access/{subject_type}/{subject_id}` |                     |
+| `PUT`            | `/access/owner`                       | `OwnerTransfer`     |
 
 `GET /access` is owner only (the `*.share` permission): viewers and editors
 must not see who else has access, so a non-owner gets 403.
 
 `POST /access/user` answers 404 when no account has that email and 409 when
 that person already owns the item.
+
+`PUT /access/owner` makes a person who already has a `user` grant the new
+owner; never a team, organization or the link. Owner only (403 otherwise).
+It answers 404 when `user_id` has no `user` grant on the item, 400 when
+`owner_transfer_enabled` is false, and **204 No Content** on success, since
+the caller is no longer the owner. The tool removes the new owner's `user`
+grant (owner implies everything), gives the previous owner a `user` grant
+with role `editor`, and leaves team, organization and link grants unchanged.
+Anything tool-specific (e.g. resetting attribution) is the tool's business.
 
 The schemas accept any grantable role; each tool must check it against its
 `ToolRoles` and reject the ones it doesn't enable.
@@ -150,6 +160,8 @@ tool-specific config:
 
 - `link_roles`: roles "anyone with the link" may get. `PUT /access/link` must
   reject any other role. Empty means the tool has no link sharing.
+- `owner_transfer_enabled` (default `false`): whether `PUT /access/owner` is
+  available, so the dialog offers "Make owner".
 
 `PUT /access/{team|organization}/{id}` accepts any group the owner belongs to
 or any public group (public and approved, for organizations), not only the

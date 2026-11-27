@@ -14,6 +14,9 @@ export interface Translations {
   owner: string;
   unknownName: string;
   removeAccess: string;
+  makeOwner: string;
+  makeOwnerConfirm: string;
+  cancel: string;
   summary: string;
   peopleSingular: string;
   peoplePlural: string;
@@ -33,6 +36,7 @@ export interface Translations {
   errorGeneric: string;
   errorUserNotFound: string;
   errorAlreadyOwner: string;
+  errorNoLongerHasAccess: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -47,6 +51,9 @@ export const translations: Record<string, Translations> = {
     owner: "Owner",
     unknownName: "Unknown",
     removeAccess: "Remove access",
+    makeOwner: "Make owner",
+    makeOwnerConfirm: "Make {name} the owner? You'll become an editor and won't be able to share or delete this item.",
+    cancel: "Cancel",
     summary: "Shared with {list}",
     peopleSingular: "{count} person",
     peoplePlural: "{count} people",
@@ -66,6 +73,7 @@ export const translations: Record<string, Translations> = {
     errorGeneric: "Couldn't update access",
     errorUserNotFound: "No account found for that email",
     errorAlreadyOwner: "That person already owns this item",
+    errorNoLongerHasAccess: "That person no longer has access",
   },
   es: {
     dialogLabel: "Compartir",
@@ -78,6 +86,9 @@ export const translations: Record<string, Translations> = {
     owner: "Propietario",
     unknownName: "Desconocido",
     removeAccess: "Quitar acceso",
+    makeOwner: "Hacer propietario",
+    makeOwnerConfirm: "¿Hacer propietario a {name}? Pasarás a ser editor y no podrás compartir ni eliminar este elemento.",
+    cancel: "Cancelar",
     summary: "Compartido con {list}",
     peopleSingular: "{count} persona",
     peoplePlural: "{count} personas",
@@ -97,6 +108,7 @@ export const translations: Record<string, Translations> = {
     errorGeneric: "No se pudo actualizar el acceso",
     errorUserNotFound: "No hay ninguna cuenta con ese email",
     errorAlreadyOwner: "Esa persona ya es propietaria de este elemento",
+    errorNoLongerHasAccess: "Esa persona ya no tiene acceso",
   },
   fr: {
     dialogLabel: "Partager",
@@ -109,6 +121,9 @@ export const translations: Record<string, Translations> = {
     owner: "Propriétaire",
     unknownName: "Inconnu",
     removeAccess: "Retirer l'accès",
+    makeOwner: "Rendre propriétaire",
+    makeOwnerConfirm: "Rendre {name} propriétaire ? Vous deviendrez éditeur et ne pourrez plus partager ni supprimer cet élément.",
+    cancel: "Annuler",
     summary: "Partagé avec {list}",
     peopleSingular: "{count} personne",
     peoplePlural: "{count} personnes",
@@ -128,6 +143,7 @@ export const translations: Record<string, Translations> = {
     errorGeneric: "Impossible de mettre à jour l'accès",
     errorUserNotFound: "Aucun compte trouvé pour cet e-mail",
     errorAlreadyOwner: "Cette personne est déjà propriétaire de cet élément",
+    errorNoLongerHasAccess: "Cette personne n'a plus accès",
   },
   pt: {
     dialogLabel: "Compartilhar",
@@ -140,6 +156,9 @@ export const translations: Record<string, Translations> = {
     owner: "Proprietário",
     unknownName: "Desconhecido",
     removeAccess: "Remover acesso",
+    makeOwner: "Tornar proprietário",
+    makeOwnerConfirm: "Tornar {name} proprietário? Você passará a ser editor e não poderá compartilhar nem excluir este item.",
+    cancel: "Cancelar",
     summary: "Compartilhado com {list}",
     peopleSingular: "{count} pessoa",
     peoplePlural: "{count} pessoas",
@@ -159,5 +178,6 @@ export const translations: Record<string, Translations> = {
     errorGeneric: "Não foi possível atualizar o acesso",
     errorUserNotFound: "Nenhuma conta encontrada para esse e-mail",
     errorAlreadyOwner: "Essa pessoa já é proprietária deste item",
+    errorNoLongerHasAccess: "Essa pessoa não tem mais acesso",
   },
 };

@@ -26,6 +26,7 @@ import {
   accessRequest,
   fetchMyGroups,
   searchPublicGroups,
+  transferOwner,
   type AccessGrant,
   type GrantableRole,
   type GroupType,
@@ -100,6 +101,9 @@ export class HotosmShareDialog extends LitElement {
   @state() private inputFocused = false;
   @state() private error: string | null = null;
   @state() private copyStatus: "rest" | "copied" | "failed" = "rest";
+  /** The `user` grant waiting for "Make owner" confirmation. */
+  @state() private pendingOwner: AccessGrant | null = null;
+  @state() private transferring = false;
 
   private loadToken = 0;
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -134,6 +138,7 @@ export class HotosmShareDialog extends LitElement {
     this.status = "loading";
     this.access = null;
     this.error = null;
+    this.pendingOwner = null;
     this.query = "";
     this.publicGroups = [];
     this.cancelSearch();
@@ -285,12 +290,44 @@ export class HotosmShareDialog extends LitElement {
     const path = `/access/${grant.subject_type}/${encodeURIComponent(grant.subject_id)}`;
     if (value === "remove") {
       this.write(path, "DELETE");
+    } else if (value === "make-owner") {
+      this.error = null;
+      this.pendingOwner = grant;
     } else if (value !== grant.role) {
       this.write(path, "PUT", { role: value });
     } else {
       // Unchecking the current role: keep it checked.
       this.requestUpdate();
     }
+  }
+
+  /** Transfer ownership to the pending person, then close like "Done". */
+  private async confirmOwner() {
+    const grant = this.pendingOwner;
+    if (!grant || this.transferring) return;
+    this.error = null;
+    this.transferring = true;
+    try {
+      await transferOwner(this.accessUrl, grant.subject_id);
+    } catch (e) {
+      this.transferring = false;
+      this.pendingOwner = null;
+      this.error =
+        e instanceof AccessError && e.status === 404
+          ? this.t.errorNoLongerHasAccess
+          : this.t.errorGeneric;
+      return;
+    }
+    this.transferring = false;
+    this.pendingOwner = null;
+    this.dispatchEvent(
+      new CustomEvent<{ ownerId: string }>("hotosm-owner-change", {
+        detail: { ownerId: grant.subject_id },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    this.open = false;
   }
 
   private onLinkSelect(event: CustomEvent) {
@@ -458,6 +495,11 @@ export class HotosmShareDialog extends LitElement {
                 </wa-dropdown-item>`,
               )}
               <wa-divider></wa-divider>
+              ${grant.subject_type === "user" && access.owner_transfer_enabled
+                ? html`<wa-dropdown-item value="make-owner">
+                    ${t.makeOwner}
+                  </wa-dropdown-item>`
+                : nothing}
               <wa-dropdown-item value="remove" variant="danger">
                 ${t.removeAccess}
               </wa-dropdown-item>
@@ -514,6 +556,32 @@ export class HotosmShareDialog extends LitElement {
     }
     const access = this.access;
     if (!access) return nothing;
+    if (this.pendingOwner) {
+      const name = this.pendingOwner.subject_name ?? t.unknownName;
+      return html`<wa-callout variant="warning">
+          <span slot="icon">${warningIcon}</span>
+          ${format(t.makeOwnerConfirm, { name })}
+        </wa-callout>
+        <div class="confirm-actions">
+          <wa-button
+            size="small"
+            appearance="outlined"
+            ?disabled=${this.transferring}
+            @click=${() => (this.pendingOwner = null)}
+          >
+            ${t.cancel}
+          </wa-button>
+          <wa-button
+            size="small"
+            variant="danger"
+            ?disabled=${this.transferring}
+            ?loading=${this.transferring}
+            @click=${this.confirmOwner}
+          >
+            ${t.makeOwner}
+          </wa-button>
+        </div>`;
+    }
     return html`
       ${this.error
         ? html`<wa-callout variant="danger">${this.error}</wa-callout>`
@@ -569,5 +637,6 @@ declare global {
   interface HTMLElementEventMap {
     "hotosm-access-change": CustomEvent<ItemAccess>;
     "hotosm-share-close": CustomEvent<void>;
+    "hotosm-owner-change": CustomEvent<{ ownerId: string }>;
   }
 }
