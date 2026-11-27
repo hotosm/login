@@ -3,6 +3,7 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { keyed } from "lit/directives/keyed.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 import { register } from "@teamhanko/hanko-elements";
 import { styles } from "./hanko-auth.styles";
 // hanko ui translations
@@ -17,6 +18,12 @@ import mapIcon from "../assets/icon-map.svg";
 import checkIcon from "../assets/icon-check.svg";
 import chevronDownIcon from "../assets/chevron-down.svg";
 import chevronUpIcon from "../assets/chevron-up.svg";
+
+// Some pages lock down images from other sites (COEP require-corp, used for
+// threaded WASM), so avatars must be requested with CORS
+const AVATAR_CROSS_ORIGIN = globalThis.crossOriginIsolated
+  ? "anonymous"
+  : undefined;
 
 // Track if Hanko has been registered globally
 let hankoRegistered = false;
@@ -1522,6 +1529,7 @@ window.location.href = redirectUrl;
                   ${this.profilePictureUrl
                     ? html`<img
                         class="avatar-img"
+                        crossorigin=${ifDefined(AVATAR_CROSS_ORIGIN)}
                         src="${this.profilePictureUrl}"
                         alt="${initial}"
                         @error=${(e: Event) => {
@@ -1617,6 +1625,7 @@ window.location.href = redirectUrl;
                   ${this.profilePictureUrl
                     ? html`<img
                         class="avatar-img"
+                        crossorigin=${ifDefined(AVATAR_CROSS_ORIGIN)}
                         src="${this.profilePictureUrl}"
                         alt="${initial}"
                         @error=${(e: Event) => {
@@ -1653,6 +1662,7 @@ window.location.href = redirectUrl;
                 ${this.profilePictureUrl
                   ? html`<img
                       class="avatar-img"
+                      crossorigin=${ifDefined(AVATAR_CROSS_ORIGIN)}
                       src="${this.profilePictureUrl}"
                       alt="${initial}"
                       @error=${(e: Event) => {
